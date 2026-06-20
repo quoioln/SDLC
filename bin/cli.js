@@ -107,6 +107,8 @@ const SCAN_IGNORE = new Set([
 ]);
 const SCAN_MAX_FILES = 20000;
 const SCAN_MAX_DEPTH = 10;
+// Files this tool scaffolds at the repo root — never count them as project source.
+const SCAN_IGNORE_FILES = new Set(["agents.md"]);
 
 function looksLikeExistingProject(cwd) {
   const manifests = [
@@ -154,6 +156,7 @@ async function scanProject(cwd) {
         continue;
       }
       if (!e.isFile()) continue;
+      if (SCAN_IGNORE_FILES.has(lower)) continue;
       fileCount++;
       const dot = lower.lastIndexOf(".");
       if (dot > 0) {
