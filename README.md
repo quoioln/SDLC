@@ -178,7 +178,9 @@ Layout: `.claude-plugin/marketplace.json` (root) lists the plugin at `./plugin`,
    git push origin v1.0.1
    ```
 
-3. GitHub Action publishes to npm and creates a GitHub Release.
+3. GitHub Action validates the plugin/marketplace files, publishes to npm, and creates a GitHub Release.
+
+> The release workflow runs `.github/scripts/validate-plugin.mjs`, which **fails the release** if `plugin/.claude-plugin/plugin.json` or `.claude-plugin/marketplace.json` version doesn't match the tag. Before tagging a new version: bump `package.json`, run `npx sdlc-workflow plugin` to regenerate the plugin files, and commit — otherwise the git-distributed plugin would ship a stale version.
 
 ## License
 
