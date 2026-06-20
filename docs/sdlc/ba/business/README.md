@@ -24,6 +24,13 @@ docs/sdlc/ba/business/
 - [ ] **Write use cases**: Actor, goal, preconditions, main/alternate flows, postconditions
 - [ ] **Maintain glossary**: Business terms, definitions, acronyms
 - [ ] **Map to user stories**: Trace FRs + NFRs to user stories / AC
+- [ ] **Gherkin acceptance criteria**: Each requirement/story has Given/When/Then AC + at least one edge case / negative scenario
+- [ ] **Traceability matrix**: Maintain a requirement ↔ user story ↔ test case ID mapping
+- [ ] **Business rules & negative scenarios**: Catalog business rules; document negative/exception scenarios separately
+- [ ] **Data dictionary**: Fields, types, validation, retention, and PII classification
+- [ ] **Entity lifecycle / state transitions**: Document states and allowed transitions for key entities
+- [ ] **Open questions & assumptions log**: Track ambiguities, assumptions, and constraints with owners
+- [ ] **Compliance mapping**: Map regulatory obligations (GDPR / PCI / etc.) to specific requirements
 - [ ] **Handoff to Design (if app/web) or Architect**: Deliverables in `ba/business/{epic-slug}/`
 
 Use functional-requirement.template.md for FRS items.

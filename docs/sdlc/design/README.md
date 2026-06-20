@@ -28,6 +28,13 @@
 - [ ] **Component hierarchy**: Define reusable components, layout structure, navigation
 - [ ] **User flows**: Document step-by-step flows for each user story (include happy path + error states)
 - [ ] **Responsive breakpoints**: Define mobile / tablet / desktop behavior
+- [ ] **Mobile-first**: Design for the smallest viewport first, then enhance upward
+- [ ] **Accessibility (WCAG 2.1 AA)**: Color contrast ≥ 4.5:1, full keyboard navigation, visible focus states, semantic structure, alt text, touch targets ≥ 44×44px
+- [ ] **All UI states**: Specify loading / empty / error / success states for every async surface — not just the happy path
+- [ ] **i18n-ready**: Leave room for ~+30–40% text expansion, support RTL (logical layout), locale-aware date/number/currency formats, no text baked into images
+- [ ] **Interaction & motion spec**: Hover / active / disabled / focus states; transitions and motion notes
+- [ ] **Design tokens (required)**: Define color / spacing / typography tokens — no hardcoded values (aligns with Dev "no hardcoded colors")
+- [ ] **Usability check**: Validate against Nielsen heuristics (or a light usability test)
 - [ ] **Write design-spec.md**: Full design spec in Markdown; output to `design/{epic-slug}/`
 - [ ] **HTML wireframes** (optional): Generate static HTML/CSS wireframes for key screens in `design/{epic-slug}/wireframes/`
 - [ ] **PO review**: Check design aligns with epic brief, user stories, acceptance criteria

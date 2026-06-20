@@ -1170,6 +1170,13 @@ const PO_README = `# PO (Product Owner)
 - [ ] **Identify dependencies**: External teams, systems, blockers
 - [ ] **Call out risks**: Technical, schedule, compliance
 - [ ] **Feasibility assessment**: Evaluate technical feasibility, resource availability, timeline viability, and budget constraints. Flag blockers early. Document go/no-go recommendation
+- [ ] **Measurable success metrics**: Each metric has baseline + target + timeframe and traces to a business KPI / North Star
+- [ ] **Prioritization framework**: Apply RICE or WSJF (not only MoSCoW); order by value vs effort vs risk
+- [ ] **MVP & non-goals**: Define the smallest releasable slice; state explicit non-goals / out-of-scope
+- [ ] **Definition of Ready (INVEST)**: Stories are Independent, Negotiable, Valuable, Estimable, Small, Testable before handoff; AC must be verifiable
+- [ ] **Riskiest assumptions**: Identify the riskiest assumption per epic and how to validate (de-risk) it
+- [ ] **Compliance & privacy at intake**: Classify data; flag GDPR / PCI / HIPAA / SOC2 obligations early
+- [ ] **Rollout & post-launch measurement**: Release strategy + the analytics events/instrumentation needed to measure success metrics
 - [ ] **Handoff to Business BA**: Deliverables in \`po/{epic-slug}/\`
 
 Use epic-brief.template.md as starting point for each epic.
@@ -1191,6 +1198,19 @@ const BA_FR_TEMPLATE = `## FR-001: [Title]
 **Output**: [Result]
 
 **Constraints**: [Compliance, SLA, etc.]
+
+**Acceptance Criteria (Gherkin)**:
+\`\`\`gherkin
+Scenario: [happy path]
+  Given [precondition]
+  When [action]
+  Then [expected outcome]
+
+Scenario: [edge / negative case]
+  Given [precondition]
+  When [invalid action]
+  Then [error / rejection outcome]
+\`\`\`
 
 ---
 
@@ -1234,6 +1254,13 @@ docs/sdlc/ba/business/
 - [ ] **Write use cases**: Actor, goal, preconditions, main/alternate flows, postconditions
 - [ ] **Maintain glossary**: Business terms, definitions, acronyms
 - [ ] **Map to user stories**: Trace FRs + NFRs to user stories / AC
+- [ ] **Gherkin acceptance criteria**: Each requirement/story has Given/When/Then AC + at least one edge case / negative scenario
+- [ ] **Traceability matrix**: Maintain a requirement ↔ user story ↔ test case ID mapping
+- [ ] **Business rules & negative scenarios**: Catalog business rules; document negative/exception scenarios separately
+- [ ] **Data dictionary**: Fields, types, validation, retention, and PII classification
+- [ ] **Entity lifecycle / state transitions**: Document states and allowed transitions for key entities
+- [ ] **Open questions & assumptions log**: Track ambiguities, assumptions, and constraints with owners
+- [ ] **Compliance mapping**: Map regulatory obligations (GDPR / PCI / etc.) to specific requirements
 - [ ] **Handoff to Design (if app/web) or Architect**: Deliverables in \`ba/business/{epic-slug}/\`
 
 Use functional-requirement.template.md for FRS items.
@@ -1360,8 +1387,14 @@ const ARCH_ADR_TEMPLATE = `# ADR-001: [Decision Title]
 ## Context
 [Why we need this decision]
 
+## Options Considered
+| Option | Pros | Cons / Trade-offs |
+|--------|------|-------------------|
+| [Option A] | ... | ... |
+| [Option B] | ... | ... |
+
 ## Decision
-[What we decided]
+[What we decided, and why this option over the alternatives]
 
 ## Consequences
 - Positive: ...
@@ -1384,6 +1417,14 @@ Use adr.template.md for new ADRs.
 - [ ] **Non-functional alignment**: Performance, security, scalability, compliance — reference NFRs from Business BA
 - [ ] **Security by design (Shift Left)**: Threat model (STRIDE/attack surface), auth/authz architecture, data encryption at rest/transit, secrets management approach, dependency security policy. Document in ADR
 - [ ] **Engineering principles alignment**: Verify architecture follows — SOLID, DRY, KISS, SoC, LoD, CoI, GRASP, High Availability, CQRS (if applicable), Zero Trust, EDA (if applicable), Statelessness, Disposability, Backing Services, Config (externalize), Database Sharding/Partitioning (if applicable), Codebase (single per service), Logging & Tracing, Monitoring & Alerting
+- [ ] **ADR alternatives & trade-offs**: Each ADR records the options considered and rejected, with trade-offs — not just the chosen decision
+- [ ] **C4 completeness**: Add a Component view for complex services + a Deployment diagram (beyond context/container)
+- [ ] **Quality-attribute scenarios / fitness functions**: Make each NFR architecturally verifiable (stimulus → response → measure)
+- [ ] **Capacity & scalability plan**: Expected load, scaling strategy (horizontal/vertical), identified bottlenecks
+- [ ] **Failure modes & resilience**: Failure domains, fallback/degradation, disaster recovery with RTO/RPO targets
+- [ ] **Data architecture**: Data flow, ownership, consistency model, storage choices
+- [ ] **Observability architecture**: Concrete logging/metrics/tracing strategy as a deliverable
+- [ ] **Cost & lock-in**: FinOps cost considerations and build-vs-buy / vendor lock-in noted in ADRs
 - [ ] **Handoff to Technical BA**: Architecture docs, ADRs in \`architecture/\`
 `;
 
@@ -1521,6 +1562,13 @@ const DESIGN_README = `# Design (optional — app/web projects only)
 - [ ] **Component hierarchy**: Define reusable components, layout structure, navigation
 - [ ] **User flows**: Document step-by-step flows for each user story (include happy path + error states)
 - [ ] **Responsive breakpoints**: Define mobile / tablet / desktop behavior
+- [ ] **Mobile-first**: Design for the smallest viewport first, then enhance upward
+- [ ] **Accessibility (WCAG 2.1 AA)**: Color contrast ≥ 4.5:1, full keyboard navigation, visible focus states, semantic structure, alt text, touch targets ≥ 44×44px
+- [ ] **All UI states**: Specify loading / empty / error / success states for every async surface — not just the happy path
+- [ ] **i18n-ready**: Leave room for ~+30–40% text expansion, support RTL (logical layout), locale-aware date/number/currency formats, no text baked into images
+- [ ] **Interaction & motion spec**: Hover / active / disabled / focus states; transitions and motion notes
+- [ ] **Design tokens (required)**: Define color / spacing / typography tokens — no hardcoded values (aligns with Dev "no hardcoded colors")
+- [ ] **Usability check**: Validate against Nielsen heuristics (or a light usability test)
 - [ ] **Write design-spec.md**: Full design spec in Markdown; output to \`design/{epic-slug}/\`
 - [ ] **HTML wireframes** (optional): Generate static HTML/CSS wireframes for key screens in \`design/{epic-slug}/wireframes/\`
 - [ ] **PO review**: Check design aligns with epic brief, user stories, acceptance criteria
@@ -1581,11 +1629,32 @@ App
 | Tablet | 768–1024px | ... |
 | Desktop | > 1024px | Full layout |
 
-## Design Tokens (optional)
+## Design Tokens (required)
 
 - **Primary color:** ...
 - **Typography:** ...
 - **Spacing:** ...
+
+## UI States
+
+| State | Screen / Component | Behavior |
+|-------|--------------------|----------|
+| Loading | | |
+| Empty | | |
+| Error | | |
+| Success | | |
+
+## Accessibility (WCAG 2.1 AA)
+- [ ] Color contrast ≥ 4.5:1 (text), ≥ 3:1 (large text / UI components)
+- [ ] Full keyboard navigation + visible focus states
+- [ ] Semantic structure / ARIA where needed; alt text for images
+- [ ] Touch targets ≥ 44×44px
+
+## Internationalization
+- [ ] Layout tolerates ~+30–40% text expansion
+- [ ] RTL supported (logical layout, mirrored where needed)
+- [ ] Locale-aware date / number / currency formats
+- [ ] No text baked into images
 
 ## Anti AI Checklist
 - [ ] No generic/templated layouts — design feels unique and intentional

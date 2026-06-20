@@ -15,6 +15,19 @@
 
 **Constraints**: [Compliance, SLA, etc.]
 
+**Acceptance Criteria (Gherkin)**:
+```gherkin
+Scenario: [happy path]
+  Given [precondition]
+  When [action]
+  Then [expected outcome]
+
+Scenario: [edge / negative case]
+  Given [precondition]
+  When [invalid action]
+  Then [error / rejection outcome]
+```
+
 ---
 
 ## NFR-001: [Title]

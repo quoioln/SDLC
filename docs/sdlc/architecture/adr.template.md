@@ -9,8 +9,14 @@
 ## Context
 [Why we need this decision]
 
+## Options Considered
+| Option | Pros | Cons / Trade-offs |
+|--------|------|-------------------|
+| [Option A] | ... | ... |
+| [Option B] | ... | ... |
+
 ## Decision
-[What we decided]
+[What we decided, and why this option over the alternatives]
 
 ## Consequences
 - Positive: ...

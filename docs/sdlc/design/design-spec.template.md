@@ -50,11 +50,32 @@ App
 | Tablet | 768–1024px | ... |
 | Desktop | > 1024px | Full layout |
 
-## Design Tokens (optional)
+## Design Tokens (required)
 
 - **Primary color:** ...
 - **Typography:** ...
 - **Spacing:** ...
+
+## UI States
+
+| State | Screen / Component | Behavior |
+|-------|--------------------|----------|
+| Loading | | |
+| Empty | | |
+| Error | | |
+| Success | | |
+
+## Accessibility (WCAG 2.1 AA)
+- [ ] Color contrast ≥ 4.5:1 (text), ≥ 3:1 (large text / UI components)
+- [ ] Full keyboard navigation + visible focus states
+- [ ] Semantic structure / ARIA where needed; alt text for images
+- [ ] Touch targets ≥ 44×44px
+
+## Internationalization
+- [ ] Layout tolerates ~+30–40% text expansion
+- [ ] RTL supported (logical layout, mirrored where needed)
+- [ ] Locale-aware date / number / currency formats
+- [ ] No text baked into images
 
 ## Anti AI Checklist
 - [ ] No generic/templated layouts — design feels unique and intentional
