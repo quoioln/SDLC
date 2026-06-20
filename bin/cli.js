@@ -1437,7 +1437,7 @@ Use adr.template.md for new ADRs.
 - [ ] **Capacity & scalability plan**: Expected load, scaling strategy (horizontal/vertical), identified bottlenecks
 - [ ] **Failure modes & resilience**: Failure domains, fallback/degradation, disaster recovery with RTO/RPO targets
 - [ ] **Data architecture**: Data flow, ownership, consistency model, storage choices
-- [ ] **Observability architecture**: Concrete logging/metrics/tracing strategy as a deliverable
+- [ ] **Observability architecture**: Define the logging standard (text + JSON formats; context schema — requestId/traceId/spanId/correlationId/userId; deep-redaction policy; W3C trace-context propagation across HTTP + message bus) plus metrics and tracing — OpenTelemetry as the unifying signal — as a deliverable
 - [ ] **Cost & lock-in**: FinOps cost considerations and build-vs-buy / vendor lock-in noted in ADRs
 - [ ] **Handoff to Technical BA**: Architecture docs, ADRs in \`architecture/\`
 `;
@@ -1908,11 +1908,50 @@ Mandatory quality bar for **all implementation roles**. Tech Lead enforces at re
 - **Strict mode** maxed out (TS \`strict\`, mypy \`--strict\`, etc.). **No \`any\`/\`@ts-ignore\`** without an inline justification + issue ID.
 - SAST (Semgrep/SonarQube) in CI; **block on any High finding**.
 
-## 4. Error handling & observability (shift-left, at code time)
-- **No swallowed errors** (empty \`catch {}\`); log with context or re-throw meaningfully.
-- **Structured logging** (JSON, with correlation/trace ID); **never log secrets or PII**.
+## 4. Error handling, logging & observability (shift-left, at code time)
+
+### Error handling
+- **No swallowed errors** (empty \`catch {}\`); log with context or re-throw meaningfully — never lose the original cause.
+- **Classify errors**: expected/business (→ 4xx, no stack trace, WARN/INFO) vs unexpected (→ 5xx, full stack, ERROR); map both to a consistent error response (problem+json).
 - Validate input **at the boundary** (API edge); fail fast with a clear message.
 - Critical write operations must be **idempotent** where retries are possible.
+
+### Logging — format & levels
+- **Two output formats**: human-readable **text** for local/dev and **JSON** for staging/prod (machine-parseable for aggregation). Switch via config/env (e.g. \`LOG_FORMAT=json|text\`) — never edit call sites to change format.
+- **Correct levels**: ERROR (actionable failure) · WARN (recoverable/degraded) · INFO (lifecycle + business events) · DEBUG (diagnostics, off in prod) · TRACE (verbose). Level configurable **per logger/package** at runtime.
+- **One structured event per line**: a stable message + key/value fields; never string-interpolate data into the message (keeps logs queryable, low-cardinality).
+- **Timestamps in UTC ISO-8601**; every line carries service name, environment, and version/commit.
+
+### Context propagation (MDC / async-local storage)
+- Every log line carries: **requestId**, **traceId**, **spanId**, **correlationId**, **userId** + **username** (when authenticated), **clientIp** (if relevant).
+- Populate via MDC (Logback), AsyncLocalStorage (Node), or context vars — **set at request entry, cleared at exit**, surviving async boundaries.
+- **Cross-service propagation**: forward **W3C Trace Context** (\`traceparent\`/\`tracestate\`) + correlationId on every outbound call — HTTP headers **and** message headers (Kafka/RabbitMQ). Inbound middleware reads them or generates new ones, stitching logs across microservices into one trace.
+
+### Deep redaction — never log sensitive data
+- **Deny-by-default**: redact passwords, tokens/secrets/API keys, \`Authorization\` headers, cookies, and PII (email, phone, national id, full card PAN, CVV, health/financial data).
+- **Deep/recursive redaction** of nested objects and arrays — not just top-level keys; match by key-name patterns **and** typed annotations; mask fully (\`***\`) or partially (e.g. card last-4).
+- Redact **in the logging layer** (a serializer/redactor) so a stray log call can't leak; also redact stack traces and request/response bodies.
+- **Don't log full bodies** by default — allowlist safe fields; log ids/sizes instead. Align redaction with the data classification from BA and GDPR/PCI.
+- **Prevent log injection**: strip/escape CR/LF in user-supplied values before logging.
+
+### Request/response logging middleware (filter / interceptor)
+- A single middleware logs **every request**: method, **templated route** (not raw path with ids — avoids cardinality blow-up), status code, **duration in ms**, requestId/traceId, userId, response size, outcome.
+- Log **completion** at INFO (2xx/3xx), WARN (4xx), ERROR (5xx); include exception type + redacted message on failure; optional DEBUG line at start.
+- **Skip or sample** health-check/noise endpoints. Emit a **latency metric + error counter** alongside the log (logs + metrics share the traceId).
+
+### ORM / database logging (config, not ad-hoc)
+- Configurable channels: **migration** (INFO — log applied versions), **DDL/schema** (INFO non-prod), **query** (DEBUG only, **off in prod**), **bound parameters** (DEBUG and **redacted** — never log PII params in prod), **slow query** (WARN above a threshold, e.g. 200–500ms), **errors** (ERROR with SQL + sanitized params).
+- **Never enable full SQL/param logging in prod** (perf cost + PII leak) — rely on slow-query logs + metrics. See \`tech/\` stack files for concrete config.
+
+### HTTP client / service-to-service logging
+- Log every outbound call: target service, method, **sanitized URL** (no secrets/PII in query string), status, **duration**, retry count, propagated traceId.
+- On failure, log status + **sanitized** response body; correlate with timeout/circuit-breaker state. **Redact** \`Authorization\`/cookie headers — never log full bearer tokens.
+
+### Operability gates
+- **No PII/secret in logs** is a release gate (scan or review).
+- Logs ↔ traces ↔ metrics correlate by traceId; prefer **OpenTelemetry** as the unifying signal.
+- Define **retention + sampling** (sample high-volume DEBUG; always keep ERROR).
+- Write logs to **stdout** (12-factor); the platform ships/aggregates them — the app does not manage log files.
 
 ## 5. Performance budget (at code time — not only Phase 8)
 - **No N+1 queries**; use batch/eager-load; every list query has **pagination + index**.
@@ -2203,6 +2242,13 @@ Extends [Developer Quality Rules](../quality-rules.md). Apply alongside the gene
 - **Backpressure**: use streams for large payloads; never load whole files into memory.
 - **Dependency hygiene**: commit the lockfile, npm audit gate, minimal deps, pin engines in package.json.
 - **Modern runtime**: ESM modules; native fetch/AbortSignal (Node 18+).
+
+## Logging config
+- **pino** (fast JSON) with **redact** paths for deep masking (e.g. authorization, password, *.token, req.headers.cookie); pretty transport for dev only, JSON in prod.
+- **AsyncLocalStorage** carries requestId/traceId/userId across async without threading them through calls.
+- **pino-http** (or a middleware) logs method, route, status, and responseTime; generates or forwards the request id.
+- Propagate **traceparent** on outbound fetch/axios; wire the OpenTelemetry SDK.
+- Log to **stdout** only — never manage log files in the app.
 `,
   },
   "spring-boot": {
@@ -2221,6 +2267,14 @@ Extends [Developer Quality Rules](../quality-rules.md) and the backend section. 
 - **Security**: Spring Security with method-level authorization, deny by default, CSRF for cookie auth, CORS allowlist, object-level checks (no IDOR).
 - **Resilience**: timeouts on RestClient/WebClient; Resilience4j (retry, circuit breaker, bulkhead) for downstreams.
 - **Tests**: slice tests (@WebMvcTest, @DataJpaTest) over full @SpringBootTest; Testcontainers for the real DB (do not use H2 to stand in for DB-specific behavior).
+
+## Logging & observability config
+- **Logback** with two profiles: a plain pattern for dev and **JSON** (logstash-logback-encoder) for prod; toggle via Spring profile or LOG_FORMAT.
+- **MDC filter** (OncePerRequestFilter) populates requestId, traceId, spanId, correlationId, userId/username at entry and clears them in a finally block.
+- **Micrometer Tracing + OpenTelemetry/Brave** propagates W3C traceparent on RestClient/WebClient outbound and reads it inbound.
+- **Request logging**: a filter or interceptor (StopWatch) logging method, templated route, status, and duration; reserve Actuator http-exchanges for non-prod.
+- **Redaction**: a Logback masking converter (or logstash masking) for sensitive fields; never log request bodies or the Authorization header.
+- **Levels per package** via logging.level.*; never DEBUG SQL in prod.
 `,
   },
   "spring-jpa": {
@@ -2240,6 +2294,13 @@ Extends [Developer Quality Rules](../quality-rules.md) and the backend section. 
 - **Bidirectional relations**: manage both sides; understand cascade and orphanRemoval before using them.
 - **Bulk operations** via modifying queries/batch; don't load entities just to delete them.
 - **Indexes** on foreign keys and query predicates; review generated SQL for hot paths.
+
+## Logging config
+- **SQL**: logging.level.org.hibernate.SQL=DEBUG in non-prod only — **never in prod**.
+- **Bound parameters**: logging.level.org.hibernate.orm.jdbc.bind=TRACE in dev only — params may contain PII, keep off in prod.
+- **Slow query**: use datasource-proxy / p6spy (or Hibernate session metrics) with a threshold logged at WARN (~300ms).
+- **Migrations**: Flyway/Liquibase log applied versions at INFO.
+- Prefer **statistics + slow-query log + metrics** over full SQL logging in prod.
 `,
   },
   quarkus: {
@@ -2259,6 +2320,13 @@ Extends [Developer Quality Rules](../quality-rules.md) and the backend section. 
 - **Validation**: Hibernate Validator on DTOs; exception mappers returning problem+json.
 - **Testing**: Dev Services / Testcontainers for integration; native-mode smoke tests.
 - **Startup/memory**: leverage fast startup; avoid eager heavy initialization.
+
+## Logging config
+- **quarkus.log.console.json=true** for prod (JSON); a pattern/plain format for dev.
+- Levels via quarkus.log.category."...".level; never DEBUG SQL/Hibernate in prod.
+- **quarkus.hibernate-orm.log.sql** in dev only; bound params off in prod.
+- **OpenTelemetry** extension propagates traceparent on the REST client and reads it inbound; add MDC keys to the log format.
+- **Access log** (quarkus.http.access-log.enabled) with a pattern including status + duration.
 `,
   },
   nestjs: {
@@ -2278,6 +2346,12 @@ Extends [Developer Quality Rules](../quality-rules.md), the backend section, and
 - **Persistence**: repository pattern; map entities → DTOs; avoid N+1 (see ORM rules).
 - **Testing**: unit-test services with mocked providers; e2e with Testcontainers; coverage per the general bar.
 - **TypeScript bar applies**: strict, no any.
+
+## Logging config
+- Use **nestjs-pino** (JSON + redact) as the app logger; bind requestId/traceId/userId via AsyncLocalStorage.
+- A **LoggingInterceptor** logs each request (method, route, status, duration); a global **ExceptionFilter** logs errors (redacted) and returns problem+json.
+- Propagate trace context on HttpService/axios via OpenTelemetry.
+- Configure levels via env; no query logging in prod (see TypeORM rules).
 `,
   },
   nextjs: {
@@ -2335,6 +2409,12 @@ Extends [Developer Quality Rules](../quality-rules.md), the backend section, and
 - **Connection pool** sized appropriately; query timeouts; close on shutdown.
 - **Avoid global eager: true**; load explicitly.
 - **Parameterize** all queries; never interpolate user input into raw SQL.
+
+## Logging config
+- **logging**: dev uses ["error","warn","migration"] (+ "query"/"schema" locally only); **prod restricts to ["error","warn","migration"]**.
+- **maxQueryExecutionTime**: set (e.g. 300ms) so slow queries are logged as warnings.
+- **Never log parameters with PII in prod** — supply a custom Logger that redacts bound params.
+- Migrations log at INFO; query logging is DEBUG-only and off in prod.
 `,
   },
   kafka: {
@@ -2354,6 +2434,7 @@ Extends [Developer Quality Rules](../quality-rules.md) and the backend eventing 
 - **Error handling**: distinguish retriable vs non-retriable; don't block the consumer group on one bad record.
 - **Observability**: consumer lag, processing latency, and DLQ alerts.
 - **Config & shutdown**: tune max.poll.records/timeouts to processing time; close the consumer and commit on graceful shutdown.
+- **Context propagation**: carry W3C traceparent + correlationId in **message headers**; consumers restore them into MDC so logs correlate across services.
 `,
   },
   rabbitmq: {
@@ -2373,6 +2454,7 @@ Extends [Developer Quality Rules](../quality-rules.md) and the backend eventing 
 - **Connection/channel management**: long-lived connections, one channel per thread, automatic recovery, graceful shutdown.
 - **Observability**: queue depth, unacked count, DLQ alerts, consumer health.
 - **Security**: per-service vhost and credentials, least privilege, TLS.
+- **Context propagation**: carry traceparent + correlationId in **message/AMQP headers**; consumers restore them into MDC so logs correlate across services.
 `,
   },
 };

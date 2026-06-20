@@ -20,6 +20,6 @@ Use adr.template.md for new ADRs.
 - [ ] **Capacity & scalability plan**: Expected load, scaling strategy (horizontal/vertical), identified bottlenecks
 - [ ] **Failure modes & resilience**: Failure domains, fallback/degradation, disaster recovery with RTO/RPO targets
 - [ ] **Data architecture**: Data flow, ownership, consistency model, storage choices
-- [ ] **Observability architecture**: Concrete logging/metrics/tracing strategy as a deliverable
+- [ ] **Observability architecture**: Define the logging standard (text + JSON formats; context schema — requestId/traceId/spanId/correlationId/userId; deep-redaction policy; W3C trace-context propagation across HTTP + message bus) plus metrics and tracing — OpenTelemetry as the unifying signal — as a deliverable
 - [ ] **Cost & lock-in**: FinOps cost considerations and build-vs-buy / vendor lock-in noted in ADRs
 - [ ] **Handoff to Technical BA**: Architecture docs, ADRs in `architecture/`

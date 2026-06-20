@@ -21,11 +21,50 @@ Mandatory quality bar for **all implementation roles**. Tech Lead enforces at re
 - **Strict mode** maxed out (TS `strict`, mypy `--strict`, etc.). **No `any`/`@ts-ignore`** without an inline justification + issue ID.
 - SAST (Semgrep/SonarQube) in CI; **block on any High finding**.
 
-## 4. Error handling & observability (shift-left, at code time)
-- **No swallowed errors** (empty `catch {}`); log with context or re-throw meaningfully.
-- **Structured logging** (JSON, with correlation/trace ID); **never log secrets or PII**.
+## 4. Error handling, logging & observability (shift-left, at code time)
+
+### Error handling
+- **No swallowed errors** (empty `catch {}`); log with context or re-throw meaningfully — never lose the original cause.
+- **Classify errors**: expected/business (→ 4xx, no stack trace, WARN/INFO) vs unexpected (→ 5xx, full stack, ERROR); map both to a consistent error response (problem+json).
 - Validate input **at the boundary** (API edge); fail fast with a clear message.
 - Critical write operations must be **idempotent** where retries are possible.
+
+### Logging — format & levels
+- **Two output formats**: human-readable **text** for local/dev and **JSON** for staging/prod (machine-parseable for aggregation). Switch via config/env (e.g. `LOG_FORMAT=json|text`) — never edit call sites to change format.
+- **Correct levels**: ERROR (actionable failure) · WARN (recoverable/degraded) · INFO (lifecycle + business events) · DEBUG (diagnostics, off in prod) · TRACE (verbose). Level configurable **per logger/package** at runtime.
+- **One structured event per line**: a stable message + key/value fields; never string-interpolate data into the message (keeps logs queryable, low-cardinality).
+- **Timestamps in UTC ISO-8601**; every line carries service name, environment, and version/commit.
+
+### Context propagation (MDC / async-local storage)
+- Every log line carries: **requestId**, **traceId**, **spanId**, **correlationId**, **userId** + **username** (when authenticated), **clientIp** (if relevant).
+- Populate via MDC (Logback), AsyncLocalStorage (Node), or context vars — **set at request entry, cleared at exit**, surviving async boundaries.
+- **Cross-service propagation**: forward **W3C Trace Context** (`traceparent`/`tracestate`) + correlationId on every outbound call — HTTP headers **and** message headers (Kafka/RabbitMQ). Inbound middleware reads them or generates new ones, stitching logs across microservices into one trace.
+
+### Deep redaction — never log sensitive data
+- **Deny-by-default**: redact passwords, tokens/secrets/API keys, `Authorization` headers, cookies, and PII (email, phone, national id, full card PAN, CVV, health/financial data).
+- **Deep/recursive redaction** of nested objects and arrays — not just top-level keys; match by key-name patterns **and** typed annotations; mask fully (`***`) or partially (e.g. card last-4).
+- Redact **in the logging layer** (a serializer/redactor) so a stray log call can't leak; also redact stack traces and request/response bodies.
+- **Don't log full bodies** by default — allowlist safe fields; log ids/sizes instead. Align redaction with the data classification from BA and GDPR/PCI.
+- **Prevent log injection**: strip/escape CR/LF in user-supplied values before logging.
+
+### Request/response logging middleware (filter / interceptor)
+- A single middleware logs **every request**: method, **templated route** (not raw path with ids — avoids cardinality blow-up), status code, **duration in ms**, requestId/traceId, userId, response size, outcome.
+- Log **completion** at INFO (2xx/3xx), WARN (4xx), ERROR (5xx); include exception type + redacted message on failure; optional DEBUG line at start.
+- **Skip or sample** health-check/noise endpoints. Emit a **latency metric + error counter** alongside the log (logs + metrics share the traceId).
+
+### ORM / database logging (config, not ad-hoc)
+- Configurable channels: **migration** (INFO — log applied versions), **DDL/schema** (INFO non-prod), **query** (DEBUG only, **off in prod**), **bound parameters** (DEBUG and **redacted** — never log PII params in prod), **slow query** (WARN above a threshold, e.g. 200–500ms), **errors** (ERROR with SQL + sanitized params).
+- **Never enable full SQL/param logging in prod** (perf cost + PII leak) — rely on slow-query logs + metrics. See `tech/` stack files for concrete config.
+
+### HTTP client / service-to-service logging
+- Log every outbound call: target service, method, **sanitized URL** (no secrets/PII in query string), status, **duration**, retry count, propagated traceId.
+- On failure, log status + **sanitized** response body; correlate with timeout/circuit-breaker state. **Redact** `Authorization`/cookie headers — never log full bearer tokens.
+
+### Operability gates
+- **No PII/secret in logs** is a release gate (scan or review).
+- Logs ↔ traces ↔ metrics correlate by traceId; prefer **OpenTelemetry** as the unifying signal.
+- Define **retention + sampling** (sample high-volume DEBUG; always keep ERROR).
+- Write logs to **stdout** (12-factor); the platform ships/aggregates them — the app does not manage log files.
 
 ## 5. Performance budget (at code time — not only Phase 8)
 - **No N+1 queries**; use batch/eager-load; every list query has **pagination + index**.
