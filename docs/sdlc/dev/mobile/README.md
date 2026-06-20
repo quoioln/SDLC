@@ -14,4 +14,5 @@
 - [ ] **API integration**: Auth, state, offline (if required)
 - [ ] **Unit tests (TDD/BDD)**: Components, logic — coverage **100%**; follow Clean Code, SOLID, DRY, KISS
 - [ ] **PR**: Lint, tests; Tech Lead review
+- [ ] **Quality gate (mandatory)**: Satisfy [Developer Quality Rules](../quality-rules.md) before PR — incl. **i18n/l10n** (no hardcoded strings, locale-aware formatting, RTL) and a11y
 - [ ] **Output**: Code + screen/module docs in `dev/mobile/`

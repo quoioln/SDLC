@@ -14,4 +14,5 @@
 - [ ] **Security practices (Shift Left)**: Input validation, parameterized queries, no hardcoded secrets, follow Architect's security ADR
 - [ ] **Unit tests (TDD/BDD)**: Coverage **100%**; TDD (write tests first) or BDD (behavior specs); edge cases, error paths, BSR (Behavior-Structure-Result)
 - [ ] **PR**: Lint, tests, security scan passing; request Tech Lead review
+- [ ] **Quality gate (mandatory)**: Satisfy [Developer Quality Rules](../quality-rules.md) before PR — DoD, test quality, type-safety, error handling, security, i18n
 - [ ] **Output**: Code + implementation notes in `dev/senior-developer/`

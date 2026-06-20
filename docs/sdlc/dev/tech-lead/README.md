@@ -19,4 +19,5 @@
 - [ ] **Merge approval**: Enforce quality gates before merge (tests, coverage, security scan pass)
 - [ ] **Tech guidance**: Resolve technical disputes; mentor team
 - [ ] **Engineering principles enforcement**: Code review must verify — Clean Code, SOLID, DRY, KISS, SoC, LoD, CoI, GRASP, POLS, TDD/BDD. Architecture patterns: Statelessness, Disposability, Backing Services, Config externalization, Logging & Tracing, Monitoring & Alerting
+- [ ] **Enforce quality gate**: Reject any PR that does not satisfy [Developer Quality Rules](../quality-rules.md) — DoD, test quality, type-safety, error handling, performance budget, security, i18n
 - [ ] **Output**: ADRs, review checklist in `dev/tech-lead/`

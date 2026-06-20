@@ -13,4 +13,5 @@
 - [ ] **Implement modules/drivers**: Per spec; safety-critical compliance
 - [ ] **Tests**: Unit, HW-in-loop as feasible
 - [ ] **PR**: Lint, tests; Tech Lead review
+- [ ] **Quality gate (mandatory)**: Satisfy [Developer Quality Rules](../quality-rules.md) before PR — DoD, test quality, type-safety, error handling, security
 - [ ] **Output**: Code + module/interface docs in `dev/embedded/`

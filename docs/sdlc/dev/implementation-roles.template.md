@@ -11,6 +11,8 @@ Use only the roles that apply. Remove or ignore the rest. Tech Lead is cross-cut
 
 Tech Lead defines all critical steps, logic, and specs first → implementation roles execute them. This maximizes quality on thinking while reducing cost on execution.
 
+> **All roles must satisfy [Developer Quality Rules](./quality-rules.md) before opening a PR** (DoD, test quality, type-safety, error handling, performance budget, security, and i18n for UI). Tech Lead enforces it at review.
+
 ## By project type
 
 | Project type        | Roles to use (all Senior 10+ except Tech Lead 15+) |

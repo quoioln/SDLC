@@ -13,4 +13,5 @@
 - [ ] **Infra as code**: Terraform/Pulumi/CloudFormation per spec
 - [ ] **Observability**: Logging, metrics, traces, alerts
 - [ ] **PR**: Lint; Tech Lead review
+- [ ] **Quality gate (mandatory)**: Satisfy [Developer Quality Rules](../quality-rules.md) before PR — DoD, type-safety (IaC lint/tfsec), error handling, security, observability
 - [ ] **Output**: Pipelines, infra code, runbooks in `dev/platform/`

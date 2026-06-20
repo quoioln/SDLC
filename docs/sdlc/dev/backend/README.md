@@ -14,4 +14,5 @@
 - [ ] **Implement DB layer**: Migrations, queries, transactions
 - [ ] **Unit tests (TDD/BDD)**: Services, controllers, DB — coverage **100%**; follow Clean Code, SOLID, DRY, KISS
 - [ ] **PR**: Lint, tests; Tech Lead review
+- [ ] **Quality gate (mandatory)**: Satisfy [Developer Quality Rules](../quality-rules.md) before PR — DoD, test quality, type-safety, error handling, performance budget (no N+1, timeouts), security
 - [ ] **Output**: Code + API/DB implementation notes in `dev/backend/`

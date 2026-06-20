@@ -14,4 +14,5 @@
 - [ ] **API integration**: Fetch, state, error handling
 - [ ] **Unit tests (TDD/BDD)**: Components, hooks, utils — coverage **100%**; follow Clean Code, SOLID, DRY, KISS
 - [ ] **PR**: Lint, tests; Tech Lead review
+- [ ] **Quality gate (mandatory)**: Satisfy [Developer Quality Rules](../quality-rules.md) before PR — incl. **i18n** (no hardcoded strings, ICU, RTL, locale-aware formatting), a11y (WCAG 2.1 AA), and loading/empty/error states
 - [ ] **Output**: Code + component/integration docs in `dev/frontend/`

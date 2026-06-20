@@ -14,4 +14,5 @@
 - [ ] **Implement models**: Training, evaluation; model cards
 - [ ] **Tests**: Data validation, model quality metrics
 - [ ] **PR**: Lint, tests; Tech Lead review
+- [ ] **Quality gate (mandatory)**: Satisfy [Developer Quality Rules](../quality-rules.md) before PR — DoD, test/data-validation quality, type-safety, error handling, security
 - [ ] **Output**: Code + pipeline/model docs in `dev/data-ml/`
