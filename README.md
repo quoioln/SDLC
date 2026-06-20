@@ -36,6 +36,18 @@ Creates project-level files:
 - `AGENTS.md` — Antigravity, Codex (universal project guidance)
 - `.agents/skills/sdlc-workflow/` — Codex repo skill
 
+### `tech` — Stack-specific rules
+
+Generate quality rules tailored to your stack. They **extend** `docs/sdlc/dev/quality-rules.md` (the general bar always holds) and are written to `docs/sdlc/dev/tech/`.
+
+```bash
+npx sdlc-workflow tech java spring-boot kafka   # add rules for these stacks
+npx sdlc-workflow tech list                      # list available stacks
+npx sdlc-workflow tech                           # interactive selection (TTY)
+```
+
+Available: `java`, `typescript`, `nodejs`, `spring-boot`, `spring-jpa`, `quarkus`, `nestjs`, `nextjs`, `angular`, `typeorm`, `kafka`, `rabbitmq` (aliases: `node`, `ts`, `spring`, `jpa`, `next`, `nest`, `rabbit`, `ng`). Re-running regenerates the listed stacks and keeps the rest; an index is written to `dev/tech/README.md`.
+
 ### `install` — Global setup
 
 ```bash

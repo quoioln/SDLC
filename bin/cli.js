@@ -3,7 +3,7 @@
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { homedir } from "node:os";
-import { mkdir, writeFile, readFile, cp } from "node:fs/promises";
+import { mkdir, writeFile, readFile, readdir, cp } from "node:fs/promises";
 import { existsSync } from "node:fs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -29,7 +29,18 @@ async function main() {
       await installAgentsMd(cwd);
       console.log("\nDone.");
       console.log("  - Project: docs/sdlc/, .cursor/rules/, .claude/, AGENTS.md, .agents/skills/");
-      console.log("\nRun `npx sdlc-workflow install` to set up global skills (Cursor, Codex).");
+      console.log("\nRun `npx sdlc-workflow tech <stack...>` to add stack-specific rules (e.g. java spring-boot kafka).");
+      console.log("Run `npx sdlc-workflow install` to set up global skills (Cursor, Codex).");
+    } catch (err) {
+      console.error("Error:", err.message);
+      process.exit(1);
+    }
+    return;
+  }
+
+  if (command === "tech") {
+    try {
+      await techCommand(cwd, args.slice(1));
     } catch (err) {
       console.error("Error:", err.message);
       process.exit(1);
@@ -57,12 +68,15 @@ async function main() {
   console.log("");
   console.log("Commands:");
   console.log("  init     Scaffold SDLC docs and templates into current project");
+  console.log("  tech     Generate stack-specific rules (java, spring-boot, kafka, …)");
   console.log("  install  Install global skills (Cursor, Codex) to home directory");
   console.log("  version  Print current version");
   console.log("");
   console.log("Examples:");
-  console.log("  npx sdlc-workflow init      # project-level setup");
-  console.log("  npx sdlc-workflow install   # global setup (~/.cursor, ~/.codex, ~/.agents)");
+  console.log("  npx sdlc-workflow init                     # project-level setup");
+  console.log("  npx sdlc-workflow tech java spring-boot kafka  # add stack rules");
+  console.log("  npx sdlc-workflow tech list                # list available stacks");
+  console.log("  npx sdlc-workflow install                  # global setup (~/.cursor, ~/.codex, ~/.agents)");
   console.log("  npx sdlc-workflow version");
   process.exit(1);
 }
@@ -1875,6 +1889,8 @@ const DEV_QUALITY_RULES = `# Developer Quality Rules
 
 Mandatory quality bar for **all implementation roles**. Tech Lead enforces at review; every Senior role must satisfy this **before opening a PR**. Applies **on top of** the existing baseline (100% branch coverage, TDD/BDD, Clean Code, SOLID, DRY, KISS, SoC, security shift-left).
 
+> **Stack-specific rules** (Java, Spring Boot, Kafka, TypeScript, NestJS, Next.js, …) live in \`tech/\` — generate them with \`npx sdlc-workflow tech <stack...>\`. The general bar here always holds; stack files add language/framework rules on top.
+
 ## 1. Definition of Done (gate before PR)
 - [ ] Tests pass locally; **100% branch** coverage (not just line).
 - [ ] Lint + formatter + type-check: **0 warnings** (CI treats warnings as errors).
@@ -1990,5 +2006,375 @@ const MAINTENANCE_README = `# Maintenance
 - [ ] **Documentation**: Keep runbooks, incident logs, and post-mortems up to date
 - [ ] **Output**: Patches, updates, runbooks in \`docs/sdlc/maintenance/\`
 `;
+
+// ── tech command ──────────────────────────────────────────────────────────
+
+const CATEGORY_ORDER = ["language", "backend", "frontend", "persistence", "messaging"];
+const CATEGORY_LABELS = {
+  language: "Languages & runtimes",
+  backend: "Backend frameworks",
+  frontend: "Frontend frameworks",
+  persistence: "Persistence / ORM",
+  messaging: "Messaging",
+};
+const TECH_ALIASES = {
+  node: "nodejs",
+  ts: "typescript",
+  spring: "spring-boot",
+  springboot: "spring-boot",
+  jpa: "spring-jpa",
+  hibernate: "spring-jpa",
+  springdata: "spring-jpa",
+  next: "nextjs",
+  nest: "nestjs",
+  rabbit: "rabbitmq",
+  ng: "angular",
+};
+
+async function techCommand(cwd, args) {
+  const sub = (args[0] || "").toLowerCase();
+  if (sub === "list" || sub === "--list" || sub === "-l") {
+    printTechList();
+    return;
+  }
+
+  let requested = args;
+  if (requested.length === 0) {
+    if (process.stdin.isTTY) {
+      requested = await promptTechSelection();
+    }
+    if (requested.length === 0) {
+      console.log("Usage: npx sdlc-workflow tech <stack...>   (e.g. tech java spring-boot kafka)\n");
+      printTechList();
+      return;
+    }
+  }
+
+  const resolved = [];
+  const unknown = [];
+  for (const raw of requested) {
+    const key = TECH_ALIASES[raw.toLowerCase()] || raw.toLowerCase();
+    if (TECH_STACKS[key]) {
+      if (!resolved.includes(key)) resolved.push(key);
+    } else {
+      unknown.push(raw);
+    }
+  }
+  if (unknown.length) {
+    console.error("Unknown stack(s): " + unknown.join(", ") + "\n");
+    printTechList();
+    process.exit(1);
+  }
+
+  const techDir = join(cwd, "docs", "sdlc", "dev", "tech");
+  await mkdir(techDir, { recursive: true });
+  for (const key of resolved) {
+    await writeFile(join(techDir, key + ".md"), TECH_STACKS[key].body, "utf8");
+    console.log("  + docs/sdlc/dev/tech/" + key + ".md");
+  }
+
+  const entries = await readdir(techDir);
+  const existing = entries
+    .filter((f) => f.endsWith(".md") && f !== "README.md")
+    .map((f) => f.slice(0, -3))
+    .filter((k) => TECH_STACKS[k]);
+  await writeFile(join(techDir, "README.md"), buildTechIndex(existing), "utf8");
+  console.log("  + docs/sdlc/dev/tech/README.md (index)");
+  console.log("\nDone. Stack rules extend docs/sdlc/dev/quality-rules.md.");
+}
+
+function printTechList() {
+  console.log("Available tech stacks (npx sdlc-workflow tech <stack...>):\n");
+  for (const cat of CATEGORY_ORDER) {
+    const keys = Object.keys(TECH_STACKS)
+      .filter((k) => TECH_STACKS[k].category === cat)
+      .sort();
+    if (!keys.length) continue;
+    console.log("  " + CATEGORY_LABELS[cat] + ":");
+    for (const k of keys) console.log("    " + k.padEnd(14) + TECH_STACKS[k].name);
+    console.log("");
+  }
+  console.log(
+    "Aliases: " +
+      Object.entries(TECH_ALIASES)
+        .map(([a, k]) => a + " → " + k)
+        .join(", ")
+  );
+}
+
+async function promptTechSelection() {
+  printTechList();
+  const { createInterface } = await import("node:readline/promises");
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  const answer = await rl.question("\nEnter stacks (space/comma separated), or blank to cancel: ");
+  rl.close();
+  return answer
+    .split(/[\s,]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function buildTechIndex(keys) {
+  const sorted = keys.slice().sort();
+  const lines = [];
+  lines.push("# Tech Stack Rules");
+  lines.push("");
+  lines.push(
+    "Stack-specific quality rules that **extend** the general [Developer Quality Rules](../quality-rules.md). Apply both: the general bar always holds; the files below add language/framework-specific rules. Tech Lead enforces them at review."
+  );
+  lines.push("");
+  lines.push("## Active stacks");
+  lines.push("");
+  lines.push("| Stack | Category | Rules |");
+  lines.push("|-------|----------|-------|");
+  for (const k of sorted) {
+    const s = TECH_STACKS[k];
+    if (!s) continue;
+    lines.push("| " + s.name + " | " + CATEGORY_LABELS[s.category] + " | [" + k + ".md](./" + k + ".md) |");
+  }
+  lines.push("");
+  lines.push("## Add or update stacks");
+  lines.push("");
+  lines.push(
+    "Run `npx sdlc-workflow tech <stack...>` — re-running regenerates the listed stacks; files for other stacks are kept."
+  );
+  lines.push("");
+  lines.push("Available: " + Object.keys(TECH_STACKS).sort().join(", "));
+  lines.push("");
+  lines.push("List with details: `npx sdlc-workflow tech list`");
+  lines.push("");
+  return lines.join("\n");
+}
+
+const TECH_STACKS = {
+  java: {
+    name: "Java",
+    category: "language",
+    body: `# Java — Quality Rules
+
+Extends [Developer Quality Rules](../quality-rules.md). Apply alongside the general bar.
+
+- **JDK 17+ / LTS**; prefer **records** for immutable DTOs and **sealed** types for closed hierarchies.
+- **Null-safety**: return **Optional** for absent values; never use Optional for fields or parameters; annotate nullability (JSpecify / JSR-305) where adopted.
+- **Immutability by default**: final fields, no setters on value objects.
+- **Exceptions**: never swallow; wrap with context, don't lose the cause; no control flow via exceptions; custom exceptions carry meaningful messages.
+- **Streams** for transformation, not side effects; prefer a plain loop in hot paths where it is clearer or faster.
+- **equals/hashCode** consistent (or use records); avoid Lombok on JPA entities.
+- **Resource management**: try-with-resources for everything Closeable.
+- **Concurrency**: prefer java.util.concurrent and immutable shared state over synchronized; no blocking calls inside reactive/async contexts.
+- **Time/money**: java.time with UTC Instant (never Date/Calendar); BigDecimal for money.
+- **Build & static analysis**: Maven/Gradle with locked versions; SpotBugs + PMD + Checkstyle + Error Prone in CI; format with Spotless/google-java-format.
+- **Tests**: JUnit 5 + AssertJ, Mockito for collaborators, Testcontainers for integration.
+`,
+  },
+  typescript: {
+    name: "TypeScript",
+    category: "language",
+    body: `# TypeScript — Quality Rules
+
+Extends [Developer Quality Rules](../quality-rules.md). Apply alongside the general bar.
+
+- **strict** fully on, plus noUncheckedIndexedAccess, exactOptionalPropertyTypes, noImplicitOverride.
+- **No any and no ts-ignore** without an inline justification + issue ID; prefer unknown + narrowing.
+- **Discriminated unions** with exhaustive switch (assertNever helper); avoid a default branch for known unions.
+- **Validate external data at the boundary** with a schema library (zod/valibot) and infer types from the schema — one source of truth.
+- **type-only imports** (import type); enable verbatimModuleSyntax to avoid accidental runtime imports.
+- **Readonly by default** for data; immutable updates.
+- **No non-null assertion (!)** to silence the compiler — fix the type.
+- **Avoid casts (as)**; if unavoidable, isolate and comment why.
+- **Prefer string-literal unions or const objects** over enums.
+- **ESLint** (typescript-eslint strict-type-checked) + Prettier in CI with 0 warnings.
+`,
+  },
+  nodejs: {
+    name: "Node.js",
+    category: "language",
+    body: `# Node.js — Quality Rules
+
+Extends [Developer Quality Rules](../quality-rules.md). Apply alongside the general bar.
+
+- **Never block the event loop**: offload CPU-bound work to worker_threads; stream large I/O instead of buffering.
+- **Handle every promise**: no floating promises; register handlers for unhandledRejection/uncaughtException that log and exit — never swallow.
+- **AbortController + timeout** on every outbound call (fetch, DB, HTTP).
+- **Config via env** (12-factor); validate env at startup and fail fast on missing/invalid config.
+- **Structured logging** (pino/winston) with a correlation id; no console.log in production paths.
+- **Security**: secure headers (helmet), validate and sanitize input, never pass user input to eval/child_process, no secrets in code.
+- **Graceful shutdown**: handle SIGTERM, stop accepting connections, drain in-flight work, close DB pools.
+- **Backpressure**: use streams for large payloads; never load whole files into memory.
+- **Dependency hygiene**: commit the lockfile, npm audit gate, minimal deps, pin engines in package.json.
+- **Modern runtime**: ESM modules; native fetch/AbortSignal (Node 18+).
+`,
+  },
+  "spring-boot": {
+    name: "Spring Boot",
+    category: "backend",
+    body: `# Spring Boot — Quality Rules
+
+Extends [Developer Quality Rules](../quality-rules.md) and the backend section. Apply alongside the general bar.
+
+- **Layering**: controller → service → repository; no business logic in controllers; DTOs at the boundary (never expose entities).
+- **Constructor injection only** (no field @Autowired); keep components stateless.
+- **Config**: typed @ConfigurationProperties over scattered @Value; profiles per environment; secrets via env/Vault, not application.yml.
+- **Validation**: @Valid + Bean Validation on request DTOs; a global @ControllerAdvice mapping to RFC 7807 ProblemDetail responses.
+- **Transactions**: @Transactional at the service layer with explicit readOnly; understand propagation; never on controllers.
+- **Observability**: Actuator liveness/readiness/health; Micrometer metrics; tracing with correlation id.
+- **Security**: Spring Security with method-level authorization, deny by default, CSRF for cookie auth, CORS allowlist, object-level checks (no IDOR).
+- **Resilience**: timeouts on RestClient/WebClient; Resilience4j (retry, circuit breaker, bulkhead) for downstreams.
+- **Tests**: slice tests (@WebMvcTest, @DataJpaTest) over full @SpringBootTest; Testcontainers for the real DB (do not use H2 to stand in for DB-specific behavior).
+`,
+  },
+  "spring-jpa": {
+    name: "Spring Data JPA / Hibernate",
+    category: "persistence",
+    body: `# Spring Data JPA / Hibernate — Quality Rules
+
+Extends [Developer Quality Rules](../quality-rules.md) and the backend section. Apply alongside the general bar.
+
+- **Never expose entities over the API** — map to DTOs/projections.
+- **Avoid N+1**: use fetch joins, @EntityGraph, or projections; keep associations LAZY and verify with SQL logging.
+- **Disable open-session-in-view** in production (spring.jpa.open-in-view=false).
+- **Transaction boundaries** at the service layer; keep them short; understand the flush/session lifecycle.
+- **Pagination** with Pageable on every list query; never load unbounded collections.
+- **Optimistic locking** with @Version for concurrent updates; handle OptimisticLockException.
+- **Schema migrations** via Flyway/Liquibase; never ddl-auto=update/create in production (validate only).
+- **Bidirectional relations**: manage both sides; understand cascade and orphanRemoval before using them.
+- **Bulk operations** via modifying queries/batch; don't load entities just to delete them.
+- **Indexes** on foreign keys and query predicates; review generated SQL for hot paths.
+`,
+  },
+  quarkus: {
+    name: "Quarkus",
+    category: "backend",
+    body: `# Quarkus — Quality Rules
+
+Extends [Developer Quality Rules](../quality-rules.md) and the backend section. Apply alongside the general bar.
+
+- **Build-time DI** (CDI/Arc): constructor injection; avoid reflection-heavy patterns that break native image.
+- **Native image readiness**: register reflection where required and build/test the native image in CI, not only JVM mode.
+- **Reactive vs imperative**: choose one consistently per endpoint; on reactive (Mutiny) never block the event loop — annotate blocking work with @Blocking.
+- **Panache**: keep persistence thin; still map to DTOs at the boundary; avoid N+1 with fetch joins.
+- **Config**: MicroProfile Config with typed @ConfigMapping; profiles; secrets via env/Vault.
+- **Resilience**: SmallRye Fault Tolerance (@Retry, @CircuitBreaker, @Timeout) on downstreams.
+- **Observability**: SmallRye Health (liveness/readiness), Micrometer metrics, OpenTelemetry tracing.
+- **Validation**: Hibernate Validator on DTOs; exception mappers returning problem+json.
+- **Testing**: Dev Services / Testcontainers for integration; native-mode smoke tests.
+- **Startup/memory**: leverage fast startup; avoid eager heavy initialization.
+`,
+  },
+  nestjs: {
+    name: "NestJS",
+    category: "backend",
+    body: `# NestJS — Quality Rules
+
+Extends [Developer Quality Rules](../quality-rules.md), the backend section, and [TypeScript rules](./typescript.md). Apply alongside the general bar.
+
+- **Module boundaries**: feature modules exporting only what's needed; no circular deps (prefer redesign over forwardRef).
+- **DI via providers**; thin controllers → services; no business logic in controllers.
+- **DTOs + class-validator/class-transformer**; a global ValidationPipe with whitelist + forbidNonWhitelisted (anti mass-assignment).
+- **Cross-cutting via the right primitive**: Guards (authz), Interceptors (transform/logging/correlation id), Pipes (validation), global ExceptionFilter → problem+json.
+- **Config**: @nestjs/config with schema validation (zod/Joi) at startup; fail fast.
+- **Async**: never block; handle rejections; OnApplicationShutdown / enableShutdownHooks for graceful shutdown.
+- **Security**: helmet, rate limiting (@nestjs/throttler), CORS allowlist, object-level authorization (no IDOR/BOLA).
+- **Persistence**: repository pattern; map entities → DTOs; avoid N+1 (see ORM rules).
+- **Testing**: unit-test services with mocked providers; e2e with Testcontainers; coverage per the general bar.
+- **TypeScript bar applies**: strict, no any.
+`,
+  },
+  nextjs: {
+    name: "Next.js (App Router)",
+    category: "frontend",
+    body: `# Next.js (App Router) — Quality Rules
+
+Extends [Developer Quality Rules](../quality-rules.md), the frontend/i18n sections, and [TypeScript rules](./typescript.md). Apply alongside the general bar.
+
+- **Server Components by default**; add 'use client' only where interactivity is needed; keep client bundles small.
+- **Deliberate data fetching & caching**: choose force-cache vs no-store vs revalidate per call; document the rendering strategy (SSG/ISR/SSR) for each route.
+- **Server Actions are public endpoints**: validate input (zod), authorize inside the action, never trust the client.
+- **Secrets stay server-side**: only NEXT_PUBLIC_* reach the browser.
+- **Core Web Vitals**: next/image, next/font, dynamic import for heavy client code, minimize client JS; budget LCP/CLS/INP.
+- **Metadata/SEO**: the Metadata API per route; correct canonical/OG tags.
+- **State UX**: provide error.tsx, loading.tsx, not-found.tsx and Suspense boundaries per segment.
+- **Accessibility & i18n**: semantic HTML / WCAG 2.1 AA; i18n routing with no hardcoded strings.
+- **Route handlers**: validate, authorize, and set correct status/caching headers.
+- **TypeScript bar applies**: strict, no any.
+`,
+  },
+  angular: {
+    name: "Angular",
+    category: "frontend",
+    body: `# Angular — Quality Rules
+
+Extends [Developer Quality Rules](../quality-rules.md), the frontend/i18n sections, and [TypeScript rules](./typescript.md). Apply alongside the general bar.
+
+- **Standalone components** + lazy-loaded routes; keep feature areas isolated.
+- **OnPush change detection** by default; prefer **signals** or the async pipe over manual subscriptions.
+- **RxJS hygiene**: unsubscribe (takeUntilDestroyed / async pipe); no nested subscribes; transform with operators, don't put logic in subscribe.
+- **Typed reactive forms** for non-trivial forms; validate and show error states.
+- **Smart/dumb split**: typed @Input/@Output; no logic in templates.
+- **State**: a predictable store (NgRx or signal store) for shared state; immutable updates.
+- **HTTP**: interceptors for auth/error/correlation id; timeouts; typed responses; handle loading/empty/error states.
+- **Security**: rely on Angular sanitization; never bypassSecurityTrust with untrusted input; enable XSRF protection for cookie auth.
+- **Performance**: trackBy on lists, lazy loading, @defer blocks, avoid heavy pipes in templates.
+- **Accessibility & i18n**: WCAG 2.1 AA; Angular i18n or transloco with no hardcoded strings. **TypeScript bar applies** (strict).
+`,
+  },
+  typeorm: {
+    name: "TypeORM",
+    category: "persistence",
+    body: `# TypeORM — Quality Rules
+
+Extends [Developer Quality Rules](../quality-rules.md), the backend section, and [TypeScript rules](./typescript.md). Apply alongside the general bar.
+
+- **Migrations only**: never synchronize=true in production; commit and review generated migrations; make them reversible.
+- **Avoid N+1**: load relations explicitly with QueryBuilder joins; inspect logged SQL in dev.
+- **Transactions**: wrap multi-write operations (QueryRunner / transaction helper); keep them short; handle rollback.
+- **Pagination** (take/skip or cursor) on every list query; never findAll unbounded.
+- **Don't expose entities over the API** — map to DTOs; beware lazy relations serializing unexpectedly.
+- **Indexes** via @Index on query predicates and foreign keys; enforce unique constraints in the DB, not just the app.
+- **Concurrency**: @VersionColumn for optimistic locking.
+- **Connection pool** sized appropriately; query timeouts; close on shutdown.
+- **Avoid global eager: true**; load explicitly.
+- **Parameterize** all queries; never interpolate user input into raw SQL.
+`,
+  },
+  kafka: {
+    name: "Apache Kafka",
+    category: "messaging",
+    body: `# Apache Kafka — Quality Rules
+
+Extends [Developer Quality Rules](../quality-rules.md) and the backend eventing section. Apply alongside the general bar.
+
+- **Idempotent producer** (enable.idempotence=true, acks=all) to avoid duplicates.
+- **Explicit delivery semantics**: design consumers to be **idempotent** assuming at-least-once; use transactions/EOS only when justified.
+- **Manual offset commit** after successful processing; never auto-commit before the work is done.
+- **Dead-letter topic** for poison messages + a retry-topic strategy with backoff and a retry cap.
+- **Schema management**: Schema Registry (Avro/Protobuf) with compatibility rules; version events; no breaking schema changes.
+- **Partitioning/key strategy** documented where ordering matters.
+- **Outbox pattern** for DB ↔ Kafka consistency (no dual-write).
+- **Error handling**: distinguish retriable vs non-retriable; don't block the consumer group on one bad record.
+- **Observability**: consumer lag, processing latency, and DLQ alerts.
+- **Config & shutdown**: tune max.poll.records/timeouts to processing time; close the consumer and commit on graceful shutdown.
+`,
+  },
+  rabbitmq: {
+    name: "RabbitMQ",
+    category: "messaging",
+    body: `# RabbitMQ — Quality Rules
+
+Extends [Developer Quality Rules](../quality-rules.md) and the backend eventing section. Apply alongside the general bar.
+
+- **Manual ack** after successful processing; nack/reject with a deliberate requeue policy on failure; no auto-ack for important work.
+- **Idempotent consumers** (assume redelivery / at-least-once).
+- **Dead-letter exchange (DLX)** + retry with TTL/backoff and a retry cap to avoid poison-message loops.
+- **Durability**: durable queues + persistent messages for data that must survive a broker restart; enable publisher confirms.
+- **Prefetch (QoS)** set to bound unacked messages per consumer (fair dispatch).
+- **Exchange/routing design** (topic/direct/fanout) documented and versioned.
+- **Outbox pattern** for DB ↔ broker consistency (no dual-write).
+- **Connection/channel management**: long-lived connections, one channel per thread, automatic recovery, graceful shutdown.
+- **Observability**: queue depth, unacked count, DLQ alerts, consumer health.
+- **Security**: per-service vhost and credentials, least privilege, TLS.
+`,
+  },
+};
 
 main();

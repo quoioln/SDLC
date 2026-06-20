@@ -2,6 +2,8 @@
 
 Mandatory quality bar for **all implementation roles**. Tech Lead enforces at review; every Senior role must satisfy this **before opening a PR**. Applies **on top of** the existing baseline (100% branch coverage, TDD/BDD, Clean Code, SOLID, DRY, KISS, SoC, security shift-left).
 
+> **Stack-specific rules** (Java, Spring Boot, Kafka, TypeScript, NestJS, Next.js, …) live in `tech/` — generate them with `npx sdlc-workflow tech <stack...>`. The general bar here always holds; stack files add language/framework rules on top.
+
 ## 1. Definition of Done (gate before PR)
 - [ ] Tests pass locally; **100% branch** coverage (not just line).
 - [ ] Lint + formatter + type-check: **0 warnings** (CI treats warnings as errors).

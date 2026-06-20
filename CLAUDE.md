@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 `sdlc-workflow` is a zero-dependency npm CLI (ESM, Node ≥18) that **scaffolds SDLC documentation and templates into other projects**. It is not an application — it generates files for Cursor, Claude Code, Antigravity, and Codex. The two subcommands:
 
 - `npx sdlc-workflow init` — project-level scaffold into the current directory (`docs/sdlc/`, `.cursor/rules/`, `.claude/CLAUDE.md`, `AGENTS.md`, `.agents/skills/`).
+- `npx sdlc-workflow tech <stack...>` — generate stack-specific dev rules into `docs/sdlc/dev/tech/` (catalog lives in the `TECH_STACKS` const; aliases in `TECH_ALIASES`). Not part of `init` — opt-in per project.
 - `npx sdlc-workflow install` — global scaffold into `~` (`~/.cursor/skills/`, `~/.codex/AGENTS.md`, `~/.agents/skills/`).
 
 ## Architecture — the one thing to know
