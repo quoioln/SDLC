@@ -53,6 +53,7 @@ Installs global skills (run once per machine):
 docs/sdlc/
 ├── SDLC-WORKFLOW.md          # Main workflow (use with Claude)
 ├── reference.md
+├── skill-mapping.md          # Recommended skills/agents per SDLC role
 ├── po/                       # Product Owner (one folder per epic: po/{epic-slug}/)
 │   ├── epic-brief.template.md
 │   └── README.md
@@ -78,6 +79,7 @@ docs/sdlc/
 │       └── README.md
 ├── dev/                      # Dev team (all Senior 10+ yrs; roles vary by project)
 │   ├── implementation-roles.template.md
+│   ├── quality-rules.md      # Mandatory dev quality bar (DoD, tests, security, perf, i18n, backend/API)
 │   ├── tech-lead/            # Tech Lead 15+ yrs
 │   ├── senior-developer/    # Senior Dev 10+ yrs (generic)
 │   ├── frontend/             # Senior Frontend 10+ yrs — Web UI
