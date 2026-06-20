@@ -1868,6 +1868,40 @@ Mandatory quality bar for **all implementation roles**. Tech Lead enforces at re
 - [ ] **UTF-8 everywhere**; correct \`lang\`/charset attributes; no text baked into images (provide translatable alt text).
 - [ ] **Translation keys carry context** for translators; no reusing one key across different contexts.
 - [ ] **Pseudolocalization** in QA to catch hardcoded strings and truncation before real locales are added.
+
+## 12. Backend / API & data services (if applicable)
+
+### A. API contract & compatibility
+- [ ] **Version the API** (\`/v1\`); no breaking change without a version bump. Deprecations carry a \`Sunset\` header + timeline.
+- [ ] **Consistent error schema** (RFC 7807 \`application/problem+json\`); **semantically correct HTTP status codes** (404 vs 403 vs 409 vs 422).
+- [ ] **Mass-assignment protection**: bind via DTO/allowlist fields; never map a request body straight onto an entity.
+- [ ] (Public API) **consumer-driven contract tests** so clients don't break on change.
+
+### B. Resilience & operability
+- [ ] **Idempotency-Key** for non-idempotent endpoints (resource creation, payments) so retries are safe.
+- [ ] **Retry with exponential backoff + jitter**; **circuit breaker** for downstreams; **bulkhead** to isolate pools.
+- [ ] **Graceful shutdown**: drain in-flight requests, close pools; separate **liveness / readiness / health** probes.
+
+### C. Data integrity & concurrency
+- [ ] **Explicit transaction boundaries** with the correct **isolation level**; guard races with **optimistic/pessimistic locking** (avoid lost updates, deadlocks).
+- [ ] **Zero-downtime migrations** (expand/contract), **reversible**, forward-only in prod; **never edit an applied migration**.
+- [ ] **Money as integer minor units / decimal** (never float); **store timestamps in UTC**.
+
+### D. Throughput protection
+- [ ] **Rate limiting / throttling** + **request body size limits**.
+- [ ] **Connection pool** sized appropriately; **query timeout** on every query.
+- [ ] **Caching** with explicit TTL + **invalidation strategy**; support **ETag / conditional requests** where it fits.
+
+### E. Authorization depth (beyond authentication)
+- [ ] **Object-level authorization** on every resource access (prevent **IDOR/BOLA**) — not just "is the caller logged in".
+- [ ] **CORS allowlist**; **CSRF** protection for cookie-based auth; **security headers**; **SSRF** guard on outbound URLs.
+
+### F. Eventing / async (if a message bus is used)
+- [ ] **Outbox pattern** / transactional messaging to keep DB and events consistent.
+- [ ] **Idempotent consumers**; **dead-letter queue**; assume **at-least-once** delivery.
+
+### G. Test depth
+- [ ] **Integration tests against a real DB** (e.g. Testcontainers), not only mocks.
 `;
 
 const MAINTENANCE_README = `# Maintenance
