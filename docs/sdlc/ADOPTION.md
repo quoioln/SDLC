@@ -8,6 +8,7 @@ Use this when adding the SDLC workflow to a codebase that already exists and may
 - Ratchet: coverage / lint / security may only go **up** — never regress.
 
 ## 2. Capture the current state (reverse-engineering)
+- **Scan first**: `npx sdlc-workflow scan` (also run automatically by `init`) writes `docs/sdlc/project-profile.md` — a mechanical inventory (stacks, structure, signals). Then follow `docs/sdlc/reverse-engineering.md` with the SDLC agent to turn those facts into understanding.
 - **As-is architecture**: write context + container diagrams from the code as it is today.
 - **As-is ADRs**: record decisions already baked in (DB, frameworks, integration style), even retroactively, so future changes have context.
 - **Tech-debt register**: list known debt, risks, and the "to-be" target; prioritize.

@@ -36,11 +36,17 @@ Creates project-level files:
 - `AGENTS.md` — Antigravity, Codex (universal project guidance)
 - `.agents/skills/sdlc-workflow/` — Codex repo skill
 
-**Existing / brownfield projects:** `init` is **non-destructive** — existing files are skipped and listed in the summary (re-run with `--force` to overwrite managed docs with newer templates, then review the diff). It also **detects your stack** (from `package.json`, `pom.xml`, `build.gradle`, compose files) and suggests the matching `tech` command, and writes `docs/sdlc/ADOPTION.md` — a guide for adopting the workflow on a codebase that already exists (reverse-engineering, baselines, diff-coverage ratcheting, strangler-fig).
+**Existing / brownfield projects:** `init` is **non-destructive** — existing files are skipped and listed in the summary (re-run with `--force` to overwrite managed docs with newer templates, then review the diff). It also:
+- **detects your stack** (from `package.json`, `pom.xml`, `build.gradle`, compose files) and suggests the matching `tech` command;
+- **scans the repo** into `docs/sdlc/project-profile.md` — a mechanical inventory (languages, structure, monorepo, tests/CI/Docker/k8s/IaC signals, API hints, top deps);
+- writes `docs/sdlc/ADOPTION.md` (brownfield adoption guide) and `docs/sdlc/reverse-engineering.md` (a prompt for the SDLC **agent** to turn the profile + code into as-is architecture, feature summary, retroactive ADRs, and a tech-debt register).
+
+The CLI produces **facts**; the agent produces the **understanding**.
 
 ```bash
-npx sdlc-workflow init            # safe: skips existing files
+npx sdlc-workflow init            # safe: skips existing files, scans existing repos
 npx sdlc-workflow init --force    # overwrite managed docs with current templates
+npx sdlc-workflow scan            # (re)generate docs/sdlc/project-profile.md
 ```
 
 ### `tech` — Stack-specific rules
@@ -74,6 +80,8 @@ docs/sdlc/
 ├── reference.md
 ├── skill-mapping.md          # Recommended skills/agents per SDLC role
 ├── ADOPTION.md               # Brownfield adoption guide (existing projects)
+├── reverse-engineering.md    # Agent prompt: derive as-is architecture from code
+├── project-profile.md        # Auto-generated repo scan (created by init/scan on existing repos)
 ├── po/                       # Product Owner (one folder per epic: po/{epic-slug}/)
 │   ├── epic-brief.template.md
 │   └── README.md
