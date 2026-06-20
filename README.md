@@ -148,6 +148,17 @@ The rule `.cursor/rules/sdlc-workflow.mdc` activates when working with `docs/sdl
 - **Claude Code** (project): `.claude/CLAUDE.md` — Claude loads it when you open this project.
 - **Claude.ai** (web): Copy `docs/sdlc/SDLC-WORKFLOW.md` into Custom Instructions or @ mention it.
 
+## Install as a Claude Code plugin
+
+This repo is also a single-plugin Claude Code **marketplace**, so you can install the workflow as a plugin (no `npx` needed) — it adds the `/sdlc-workflow:workflow` skill (the full pipeline) and `/sdlc-workflow:scaffold` (bridges to the CLI):
+
+```shell
+/plugin marketplace add quoioln/SDLC
+/plugin install sdlc-workflow@sdlc-workflow
+```
+
+Layout: `.claude-plugin/marketplace.json` (root) lists the plugin at `./plugin`, which holds `plugin/.claude-plugin/plugin.json` and `plugin/skills/`. These files are generated from the CLI's source of truth — run `npx sdlc-workflow plugin` to (re)generate them. To scaffold the docs/templates into a project, still use `init`/`tech`/`scan` (the `scaffold` skill points Claude at those).
+
 ## Use with Antigravity
 
 `AGENTS.md` at project root — Antigravity reads it (priority: AGENTS.md → GEMINI.md). Universal format, works across agentic IDEs.

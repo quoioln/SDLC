@@ -285,6 +285,90 @@ async function scanCommand(cwd) {
   console.log("\nNext: run the SDLC agent with docs/sdlc/reverse-engineering.md for the as-is architecture + feature summary.");
 }
 
+// ── plugin command (Claude Code plugin + marketplace) ───────────────────────
+
+const PLUGIN_DESCRIPTION =
+  "Multi-role SDLC workflow (PO → BA → Design → Architect → Dev → QE → Security → Deploy) with a quality bar, stack-specific rules, and brownfield onboarding.";
+
+function buildPluginManifest(version) {
+  return JSON.stringify(
+    {
+      name: "sdlc-workflow",
+      description: PLUGIN_DESCRIPTION,
+      version,
+      homepage: "https://www.npmjs.com/package/sdlc-workflow",
+      keywords: ["sdlc", "workflow", "skill", "po", "ba", "architecture", "qe"],
+    },
+    null,
+    2
+  ) + "\n";
+}
+
+function buildMarketplaceJson(version) {
+  return JSON.stringify(
+    {
+      name: "sdlc-workflow",
+      owner: { name: "sdlc-workflow" },
+      plugins: [
+        {
+          name: "sdlc-workflow",
+          source: "./plugin",
+          description: PLUGIN_DESCRIPTION,
+          version,
+        },
+      ],
+    },
+    null,
+    2
+  ) + "\n";
+}
+
+async function pluginCommand(cwd) {
+  const pkg = JSON.parse(await readFile(join(PKG_ROOT, "package.json"), "utf8"));
+  const version = pkg.version;
+
+  await mkdir(join(cwd, ".claude-plugin"), { recursive: true });
+  await writeFile(join(cwd, ".claude-plugin", "marketplace.json"), buildMarketplaceJson(version), "utf8");
+  console.log("  + .claude-plugin/marketplace.json");
+
+  const pluginDir = join(cwd, "plugin");
+  await mkdir(join(pluginDir, ".claude-plugin"), { recursive: true });
+  await writeFile(join(pluginDir, ".claude-plugin", "plugin.json"), buildPluginManifest(version), "utf8");
+  console.log("  + plugin/.claude-plugin/plugin.json");
+
+  const wf = join(pluginDir, "skills", "workflow");
+  await mkdir(wf, { recursive: true });
+  await writeFile(join(wf, "SKILL.md"), CURSOR_SKILL_MD, "utf8");
+  await writeFile(join(wf, "reference.md"), CURSOR_REFERENCE_MD, "utf8");
+  console.log("  + plugin/skills/workflow/ (SKILL.md + reference.md)");
+
+  const sc = join(pluginDir, "skills", "scaffold");
+  await mkdir(sc, { recursive: true });
+  await writeFile(join(sc, "SKILL.md"), PLUGIN_SCAFFOLD_SKILL, "utf8");
+  console.log("  + plugin/skills/scaffold/SKILL.md");
+
+  console.log("\nDone. This repo is now a single-plugin Claude Code marketplace.");
+  console.log("Users install it with:");
+  console.log("  /plugin marketplace add <owner>/<repo>");
+  console.log("  /plugin install sdlc-workflow@sdlc-workflow");
+}
+
+const PLUGIN_SCAFFOLD_SKILL = `---
+name: scaffold
+description: Scaffold the SDLC workflow docs and templates into the current project using the sdlc-workflow CLI. Use when the user wants to set up SDLC docs, run init, detect the tech stack, add stack-specific rules, or onboard an existing/brownfield project.
+---
+
+# Scaffold the SDLC workflow
+
+Run the \`sdlc-workflow\` CLI in the project root (Node 18+):
+
+1. \`npx sdlc-workflow init\` — scaffold \`docs/sdlc/\`, \`.cursor/rules/\`, \`.claude/CLAUDE.md\`, \`AGENTS.md\`, \`.agents/skills/\`. Non-destructive (existing files skipped; \`--force\` to overwrite). On an existing repo it also writes \`docs/sdlc/project-profile.md\` (a mechanical scan) and suggests the matching stack rules.
+2. \`npx sdlc-workflow tech detect\` then \`npx sdlc-workflow tech <stack...>\` — generate stack-specific rules (java, spring-boot, spring-jpa, quarkus, nestjs, nextjs, angular, typeorm, nodejs, typescript, kafka, rabbitmq).
+3. Existing/brownfield project? Follow \`docs/sdlc/reverse-engineering.md\` to turn the scan + code into as-is architecture, a feature summary, retroactive ADRs, and a tech-debt register.
+
+Then drive the pipeline using the \`workflow\` skill (one role per phase; parallel where independent).
+`;
+
 async function main() {
   const cwd = process.cwd();
   const args = process.argv.slice(2);
@@ -354,6 +438,16 @@ async function main() {
     return;
   }
 
+  if (command === "plugin") {
+    try {
+      await pluginCommand(cwd);
+    } catch (err) {
+      console.error("Error:", err.message);
+      process.exit(1);
+    }
+    return;
+  }
+
   if (command === "install") {
     console.log("Installing SDLC workflow (global)...\n");
     try {
@@ -376,6 +470,7 @@ async function main() {
   console.log("  init     Scaffold SDLC docs and templates into current project");
   console.log("  scan     Scan an existing repo → docs/sdlc/project-profile.md");
   console.log("  tech     Generate stack-specific rules (java, spring-boot, kafka, …)");
+  console.log("  plugin   Generate Claude Code plugin + marketplace files");
   console.log("  install  Install global skills (Cursor, Codex) to home directory");
   console.log("  version  Print current version");
   console.log("");

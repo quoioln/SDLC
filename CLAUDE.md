@@ -9,6 +9,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npx sdlc-workflow init` — project-level scaffold into the current directory (`docs/sdlc/`, `.cursor/rules/`, `.claude/CLAUDE.md`, `AGENTS.md`, `.agents/skills/`).
 - `npx sdlc-workflow tech <stack...>` — generate stack-specific dev rules into `docs/sdlc/dev/tech/` (catalog lives in the `TECH_STACKS` const; aliases in `TECH_ALIASES`). Not part of `init` — opt-in per project.
 - `npx sdlc-workflow install` — global scaffold into `~` (`~/.cursor/skills/`, `~/.codex/AGENTS.md`, `~/.agents/skills/`).
+- `npx sdlc-workflow scan` — write `docs/sdlc/project-profile.md` (mechanical repo scan; also runs inside `init` on existing repos).
+- `npx sdlc-workflow plugin` — regenerate the Claude Code plugin + marketplace files (`.claude-plugin/marketplace.json`, `plugin/`) from the inline constants. These committed files are **generated** — edit `bin/cli.js` (`buildPluginManifest`/`buildMarketplaceJson`/`CURSOR_SKILL_MD`/`PLUGIN_SCAFFOLD_SKILL`), not the files directly. Bump `package.json` version then re-run so the manifests' version matches.
 
 ## Architecture — the one thing to know
 
