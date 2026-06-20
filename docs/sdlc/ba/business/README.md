@@ -31,6 +31,7 @@ docs/sdlc/ba/business/
 - [ ] **Entity lifecycle / state transitions**: Document states and allowed transitions for key entities
 - [ ] **Open questions & assumptions log**: Track ambiguities, assumptions, and constraints with owners
 - [ ] **Compliance mapping**: Map regulatory obligations (GDPR / PCI / etc.) to specific requirements
+- [ ] **Reverse-engineer (brownfield)**: For existing systems, derive FRs and process flows from current system behavior — not only from new ideas
 - [ ] **Handoff to Design (if app/web) or Architect**: Deliverables in `ba/business/{epic-slug}/`
 
 Use functional-requirement.template.md for FRS items.

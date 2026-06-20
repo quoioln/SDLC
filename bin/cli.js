@@ -10,6 +10,94 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const PKG_ROOT = join(__dirname, "..");
 const TEMPLATES_DIR = join(PKG_ROOT, "templates");
 
+// Non-destructive write tracking (brownfield-safe init).
+let FORCE = false;
+const writeSummary = { created: [], skipped: [], overwritten: [] };
+
+async function writeFileSafe(absPath, content, label) {
+  const exists = existsSync(absPath);
+  if (exists && !FORCE) {
+    writeSummary.skipped.push(label);
+    return false;
+  }
+  await writeFile(absPath, content, "utf8");
+  (exists ? writeSummary.overwritten : writeSummary.created).push(label);
+  return true;
+}
+
+function printWriteSummary() {
+  console.log(
+    "\nFiles: " +
+      writeSummary.created.length + " created, " +
+      writeSummary.overwritten.length + " overwritten, " +
+      writeSummary.skipped.length + " skipped."
+  );
+  if (writeSummary.skipped.length && !FORCE) {
+    console.log("Skipped (already exist) — re-run with --force to overwrite:");
+    for (const s of writeSummary.skipped) console.log("  ~ " + s);
+  }
+}
+
+function preFlightCheck(cwd) {
+  if (!existsSync(join(cwd, ".git"))) {
+    console.log("Note: not a git repo. Consider `git init` first so you can review/revert changes.\n");
+  } else {
+    console.log("Tip: review `git status` after scaffolding before committing.\n");
+  }
+}
+
+async function detectStacks(cwd) {
+  const found = new Set();
+
+  const pkgPath = join(cwd, "package.json");
+  if (existsSync(pkgPath)) {
+    try {
+      const pkg = JSON.parse(await readFile(pkgPath, "utf8"));
+      const deps = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
+      const names = Object.keys(deps);
+      const has = (n) => names.includes(n);
+      found.add("nodejs");
+      if (has("typescript") || existsSync(join(cwd, "tsconfig.json"))) found.add("typescript");
+      if (has("@nestjs/core")) found.add("nestjs");
+      if (has("next")) found.add("nextjs");
+      if (has("@angular/core")) found.add("angular");
+      if (has("typeorm")) found.add("typeorm");
+      if (has("kafkajs") || has("kafka-node")) found.add("kafka");
+      if (has("amqplib") || has("amqp-connection-manager")) found.add("rabbitmq");
+    } catch {
+      // ignore malformed package.json
+    }
+  }
+
+  let java = null;
+  for (const f of ["pom.xml", "build.gradle", "build.gradle.kts"]) {
+    const p = join(cwd, f);
+    if (existsSync(p)) {
+      java = await readFile(p, "utf8").catch(() => "");
+      break;
+    }
+  }
+  if (java != null) {
+    found.add("java");
+    if (/spring-boot/.test(java)) found.add("spring-boot");
+    if (/spring-boot-starter-data-jpa|hibernate/.test(java)) found.add("spring-jpa");
+    if (/quarkus/.test(java)) found.add("quarkus");
+    if (/spring-kafka|kafka-clients/.test(java)) found.add("kafka");
+    if (/spring-(boot-starter-)?amqp|rabbitmq/i.test(java)) found.add("rabbitmq");
+  }
+
+  for (const f of ["docker-compose.yml", "docker-compose.yaml", "compose.yml", "compose.yaml"]) {
+    const p = join(cwd, f);
+    if (existsSync(p)) {
+      const c = await readFile(p, "utf8").catch(() => "");
+      if (/kafka|confluentinc/i.test(c)) found.add("kafka");
+      if (/rabbitmq/i.test(c)) found.add("rabbitmq");
+    }
+  }
+
+  return [...found].filter((k) => TECH_STACKS[k]).sort();
+}
+
 async function main() {
   const cwd = process.cwd();
   const args = process.argv.slice(2);
@@ -22,15 +110,26 @@ async function main() {
   }
 
   if (command === "init") {
-    console.log("Scaffolding SDLC workflow (project)...\n");
+    FORCE = args.includes("--force") || args.includes("-f");
+    console.log("Scaffolding SDLC workflow (project)" + (FORCE ? " [--force]" : "") + "...\n");
     try {
+      preFlightCheck(cwd);
       await scaffold(cwd);
       await installClaudeSkill(cwd);
       await installAgentsMd(cwd);
-      console.log("\nDone.");
-      console.log("  - Project: docs/sdlc/, .cursor/rules/, .claude/, AGENTS.md, .agents/skills/");
-      console.log("\nRun `npx sdlc-workflow tech <stack...>` to add stack-specific rules (e.g. java spring-boot kafka).");
+      printWriteSummary();
+
+      const detected = await detectStacks(cwd);
+      if (detected.length) {
+        console.log("\nDetected stack: " + detected.join(", "));
+        console.log("→ Generate matching rules: npx sdlc-workflow tech " + detected.join(" "));
+      } else {
+        console.log("\nAdd stack rules: npx sdlc-workflow tech <stack...>   (or `tech detect`)");
+      }
+
+      console.log("\nExisting project? See docs/sdlc/ADOPTION.md for the brownfield adoption guide.");
       console.log("Run `npx sdlc-workflow install` to set up global skills (Cursor, Codex).");
+      console.log("\nDone.");
     } catch (err) {
       console.error("Error:", err.message);
       process.exit(1);
@@ -129,9 +228,8 @@ async function installAgentsMd(cwd) {
 
   const codexSkillDir = join(cwd, ".agents", "skills", "sdlc-workflow");
   await mkdir(codexSkillDir, { recursive: true });
-  await writeFile(join(codexSkillDir, "SKILL.md"), CURSOR_SKILL_MD, "utf8");
-  await writeFile(join(codexSkillDir, "reference.md"), CURSOR_REFERENCE_MD, "utf8");
-  console.log("  + .agents/skills/sdlc-workflow/ (Codex repo skill)");
+  await writeFileSafe(join(codexSkillDir, "SKILL.md"), CURSOR_SKILL_MD, ".agents/skills/sdlc-workflow/SKILL.md");
+  await writeFileSafe(join(codexSkillDir, "reference.md"), CURSOR_REFERENCE_MD, ".agents/skills/sdlc-workflow/reference.md");
 }
 
 async function installCodexSkill(home) {
@@ -173,11 +271,11 @@ async function scaffold(cwd) {
 
   const cursorRulesDir = join(cwd, ".cursor", "rules");
   await mkdir(cursorRulesDir, { recursive: true });
-  await writeFile(
+  await writeFileSafe(
     join(cursorRulesDir, "sdlc-workflow.mdc"),
-    CURSOR_RULE_CONTENT
+    CURSOR_RULE_CONTENT,
+    ".cursor/rules/sdlc-workflow.mdc"
   );
-  console.log("  + .cursor/rules/sdlc-workflow.mdc");
 }
 
 async function generateFromInline(cwd) {
@@ -217,6 +315,7 @@ async function generateFromInline(cwd) {
     ["ORCHESTRATION.md", ORCHESTRATION_MD],
     ["reference.md", REFERENCE_MD],
     ["skill-mapping.md", SKILL_MAPPING_MD],
+    ["ADOPTION.md", ADOPTION_MD],
     ["po/epic-brief.template.md", PO_EPIC_TEMPLATE],
     ["po/README.md", PO_README],
     ["ba/business/functional-requirement.template.md", BA_FR_TEMPLATE],
@@ -254,9 +353,7 @@ async function generateFromInline(cwd) {
   ];
 
   for (const [rel, content] of files) {
-    const path = join(base, rel);
-    await writeFile(path, content, "utf8");
-    console.log("  + docs/sdlc/" + rel);
+    await writeFileSafe(join(base, rel), content, "docs/sdlc/" + rel);
   }
 }
 
@@ -788,6 +885,40 @@ const REFERENCE_MD = `# SDLC Workflow — Reference
 Every issue must have an Issue ID (e.g. SEC-001). Track: 🔁 CYCLE 1 → 🔁 CYCLE 2 → 🔁 CYCLE 3. Max 3 cycles per issue.
 `;
 
+const ADOPTION_MD = `# SDLC Adoption Guide (existing / brownfield projects)
+
+Use this when adding the SDLC workflow to a codebase that already exists and may be in production. The default pipeline (PO → … → Deploy) assumes greenfield; this guide adapts it so you don't have to stop the world.
+
+## 1. Don't boil the ocean
+- Apply the full quality bar to **new and changed code first**; improve legacy incrementally (see "Brownfield" in dev/quality-rules.md).
+- Gate coverage on **changed lines (diff coverage)**, not the whole repo.
+- Ratchet: coverage / lint / security may only go **up** — never regress.
+
+## 2. Capture the current state (reverse-engineering)
+- **As-is architecture**: write context + container diagrams from the code as it is today.
+- **As-is ADRs**: record decisions already baked in (DB, frameworks, integration style), even retroactively, so future changes have context.
+- **Tech-debt register**: list known debt, risks, and the "to-be" target; prioritize.
+- **BA reverse-engineering**: derive FRs / process flows from current system behavior, not only from new ideas.
+
+## 3. Establish a baseline
+- Measure current test coverage, lint / static-analysis debt, dependency CVEs, and key performance numbers.
+- Record them as the starting line; set realistic ratchet targets per quarter.
+
+## 4. Map existing work into the structure
+- Create one epic folder per existing feature area under \`po/{epic-slug}/\` (lightweight, retroactive).
+- Detect your stack and generate matching rules: \`npx sdlc-workflow tech detect\` then \`npx sdlc-workflow tech <stack...>\`.
+
+## 5. Roll out incrementally
+- Enforce the gates in CI for changed files first; widen scope as debt shrinks.
+- Use the **strangler-fig** approach when replacing legacy modules — wrap, divert traffic gradually, retire the old path.
+- **Add characterization tests** before refactoring untested legacy: capture current behavior, then change safely.
+- Don't rewrite working code just to apply a design pattern (see "avoid over-engineering").
+
+## 6. Safe re-runs
+- \`npx sdlc-workflow init\` is **non-destructive**: existing files are skipped (shown in the summary).
+- Re-run with \`npx sdlc-workflow init --force\` to overwrite managed docs with newer template versions — then review the git diff.
+`;
+
 const SKILL_MAPPING_MD = `# SDLC Skill & Agent Mapping
 
 Đề xuất **skill** (gọi qua \`/\`) và **sub-agent** (gọi qua Agent tool) cho từng vai trò trong pipeline. Tier model theo quy ước workflow: **lead = model mạnh nhất (Opus)**, **execution = model tiết kiệm (Haiku)**.
@@ -1275,6 +1406,7 @@ docs/sdlc/ba/business/
 - [ ] **Entity lifecycle / state transitions**: Document states and allowed transitions for key entities
 - [ ] **Open questions & assumptions log**: Track ambiguities, assumptions, and constraints with owners
 - [ ] **Compliance mapping**: Map regulatory obligations (GDPR / PCI / etc.) to specific requirements
+- [ ] **Reverse-engineer (brownfield)**: For existing systems, derive FRs and process flows from current system behavior — not only from new ideas
 - [ ] **Handoff to Design (if app/web) or Architect**: Deliverables in \`ba/business/{epic-slug}/\`
 
 Use functional-requirement.template.md for FRS items.
@@ -1439,6 +1571,7 @@ Use adr.template.md for new ADRs.
 - [ ] **Data architecture**: Data flow, ownership, consistency model, storage choices
 - [ ] **Observability architecture**: Define the logging standard (text + JSON formats; context schema — requestId/traceId/spanId/correlationId/userId; deep-redaction policy; W3C trace-context propagation across HTTP + message bus) plus metrics and tracing — OpenTelemetry as the unifying signal — as a deliverable
 - [ ] **Cost & lock-in**: FinOps cost considerations and build-vs-buy / vendor lock-in noted in ADRs
+- [ ] **As-is vs to-be (brownfield)**: For existing systems, capture current-state architecture + retroactive ADRs and a tech-debt register with a target state and migration path (e.g. strangler-fig)
 - [ ] **Handoff to Technical BA**: Architecture docs, ADRs in \`architecture/\`
 `;
 
@@ -2036,6 +2169,16 @@ Mandatory quality bar for **all implementation roles**. Tech Lead enforces at re
 - **Document the decision**: record the pattern + rationale (and rejected alternatives) in an ADR or implementation note; name classes/abstractions after the pattern's intent.
 - **Stay idiomatic**: prefer language/framework-native idioms where they express the same intent more simply (e.g. a higher-order function instead of a Strategy class, the DI container instead of a hand-rolled Factory).
 - **Patterns serve SOLID**: use them to honor SRP/OCP/DIP — never let a pattern add indirection that obscures the code.
+
+## 14. Working in existing / legacy code (brownfield)
+- **New and changed code meets the full bar**; do not block on pre-existing debt.
+- **Diff coverage**: enforce 100% coverage on **changed lines**, not on the whole legacy repo.
+- **Ratchet, don't regress**: coverage, lint, and security findings may only improve over time — a gate fails on regression, not on absolute legacy debt.
+- **Boy Scout rule**: leave each touched file a little better (naming, a test, a small refactor), scoped to your change.
+- **Characterization tests first**: before refactoring untested legacy, capture current behavior with tests, then change safely.
+- **Strangler-fig** for replacement: wrap the old path, divert traffic incrementally, retire it — no big-bang rewrites.
+- **Don't rewrite working code** just to apply a pattern (see §13) or to chase 100% on untouched legacy.
+- **Document as-is** decisions (retroactive ADRs) so future work has context — see \`../ADOPTION.md\`.
 `;
 
 const MAINTENANCE_README = `# Maintenance
@@ -2084,6 +2227,17 @@ async function techCommand(cwd, args) {
   const sub = (args[0] || "").toLowerCase();
   if (sub === "list" || sub === "--list" || sub === "-l") {
     printTechList();
+    return;
+  }
+  if (sub === "detect") {
+    const detected = await detectStacks(cwd);
+    if (detected.length) {
+      console.log("Detected stack: " + detected.join(", "));
+      console.log("→ npx sdlc-workflow tech " + detected.join(" "));
+    } else {
+      console.log("No known stack detected from package.json / pom.xml / build.gradle / compose files.");
+      printTechList();
+    }
     return;
   }
 

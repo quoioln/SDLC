@@ -22,4 +22,5 @@ Use adr.template.md for new ADRs.
 - [ ] **Data architecture**: Data flow, ownership, consistency model, storage choices
 - [ ] **Observability architecture**: Define the logging standard (text + JSON formats; context schema — requestId/traceId/spanId/correlationId/userId; deep-redaction policy; W3C trace-context propagation across HTTP + message bus) plus metrics and tracing — OpenTelemetry as the unifying signal — as a deliverable
 - [ ] **Cost & lock-in**: FinOps cost considerations and build-vs-buy / vendor lock-in noted in ADRs
+- [ ] **As-is vs to-be (brownfield)**: For existing systems, capture current-state architecture + retroactive ADRs and a tech-debt register with a target state and migration path (e.g. strangler-fig)
 - [ ] **Handoff to Technical BA**: Architecture docs, ADRs in `architecture/`

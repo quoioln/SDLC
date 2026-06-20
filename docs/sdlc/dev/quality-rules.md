@@ -147,3 +147,13 @@ Mandatory quality bar for **all implementation roles**. Tech Lead enforces at re
 - **Document the decision**: record the pattern + rationale (and rejected alternatives) in an ADR or implementation note; name classes/abstractions after the pattern's intent.
 - **Stay idiomatic**: prefer language/framework-native idioms where they express the same intent more simply (e.g. a higher-order function instead of a Strategy class, the DI container instead of a hand-rolled Factory).
 - **Patterns serve SOLID**: use them to honor SRP/OCP/DIP — never let a pattern add indirection that obscures the code.
+
+## 14. Working in existing / legacy code (brownfield)
+- **New and changed code meets the full bar**; do not block on pre-existing debt.
+- **Diff coverage**: enforce 100% coverage on **changed lines**, not on the whole legacy repo.
+- **Ratchet, don't regress**: coverage, lint, and security findings may only improve over time — a gate fails on regression, not on absolute legacy debt.
+- **Boy Scout rule**: leave each touched file a little better (naming, a test, a small refactor), scoped to your change.
+- **Characterization tests first**: before refactoring untested legacy, capture current behavior with tests, then change safely.
+- **Strangler-fig** for replacement: wrap the old path, divert traffic incrementally, retire it — no big-bang rewrites.
+- **Don't rewrite working code** just to apply a pattern (see §13) or to chase 100% on untouched legacy.
+- **Document as-is** decisions (retroactive ADRs) so future work has context — see `../ADOPTION.md`.

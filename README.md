@@ -36,6 +36,13 @@ Creates project-level files:
 - `AGENTS.md` — Antigravity, Codex (universal project guidance)
 - `.agents/skills/sdlc-workflow/` — Codex repo skill
 
+**Existing / brownfield projects:** `init` is **non-destructive** — existing files are skipped and listed in the summary (re-run with `--force` to overwrite managed docs with newer templates, then review the diff). It also **detects your stack** (from `package.json`, `pom.xml`, `build.gradle`, compose files) and suggests the matching `tech` command, and writes `docs/sdlc/ADOPTION.md` — a guide for adopting the workflow on a codebase that already exists (reverse-engineering, baselines, diff-coverage ratcheting, strangler-fig).
+
+```bash
+npx sdlc-workflow init            # safe: skips existing files
+npx sdlc-workflow init --force    # overwrite managed docs with current templates
+```
+
 ### `tech` — Stack-specific rules
 
 Generate quality rules tailored to your stack. They **extend** `docs/sdlc/dev/quality-rules.md` (the general bar always holds) and are written to `docs/sdlc/dev/tech/`.
@@ -66,6 +73,7 @@ docs/sdlc/
 ├── SDLC-WORKFLOW.md          # Main workflow (use with Claude)
 ├── reference.md
 ├── skill-mapping.md          # Recommended skills/agents per SDLC role
+├── ADOPTION.md               # Brownfield adoption guide (existing projects)
 ├── po/                       # Product Owner (one folder per epic: po/{epic-slug}/)
 │   ├── epic-brief.template.md
 │   └── README.md
