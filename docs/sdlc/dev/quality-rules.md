@@ -139,3 +139,11 @@ Mandatory quality bar for **all implementation roles**. Tech Lead enforces at re
 
 ### G. Test depth
 - [ ] **Integration tests against a real DB** (e.g. Testcontainers), not only mocks.
+
+## 13. Design patterns & abstraction
+- **Fit the context, not the textbook**: a pattern must solve a real, present problem (duplication, a changing axis, testability) — otherwise prefer the simpler direct solution (KISS/YAGNI).
+- **Choose by intent**: Strategy (interchangeable algorithms/behaviors), Template Method (fixed skeleton + variable steps), Factory / Abstract Factory (decouple creation / product families), Builder (complex/stepwise construction), Bridge (vary abstraction and implementation independently), Adapter (bridge incompatible interfaces), Decorator (compose behavior without subclass explosion), Observer / Pub-Sub (react to events), Repository / Unit of Work (persistence abstraction).
+- **Rule of three**: refactor toward a pattern when the third real case appears — not speculatively on the first.
+- **Document the decision**: record the pattern + rationale (and rejected alternatives) in an ADR or implementation note; name classes/abstractions after the pattern's intent.
+- **Stay idiomatic**: prefer language/framework-native idioms where they express the same intent more simply (e.g. a higher-order function instead of a Strategy class, the DI container instead of a hand-rolled Factory).
+- **Patterns serve SOLID**: use them to honor SRP/OCP/DIP — never let a pattern add indirection that obscures the code.
