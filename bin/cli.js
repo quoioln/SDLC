@@ -218,14 +218,16 @@ async function installAgentsMd(cwd) {
     const existing = await readFile(agentsPath, "utf8");
     if (existing.includes("## SDLC Workflow")) {
       console.log("  + AGENTS.md (SDLC section already present)");
-      return;
+    } else {
+      await writeFile(agentsPath, existing.trimEnd() + "\n\n" + content, "utf8");
+      console.log("  + AGENTS.md (Antigravity, Codex project)");
     }
-    await writeFile(agentsPath, existing.trimEnd() + "\n\n" + content, "utf8");
   } else {
     await writeFile(agentsPath, content, "utf8");
+    console.log("  + AGENTS.md (Antigravity, Codex project)");
   }
-  console.log("  + AGENTS.md (Antigravity, Codex project)");
 
+  // Independent of AGENTS.md state — these must still be created/refreshed.
   const codexSkillDir = join(cwd, ".agents", "skills", "sdlc-workflow");
   await mkdir(codexSkillDir, { recursive: true });
   await writeFileSafe(join(codexSkillDir, "SKILL.md"), CURSOR_SKILL_MD, ".agents/skills/sdlc-workflow/SKILL.md");
