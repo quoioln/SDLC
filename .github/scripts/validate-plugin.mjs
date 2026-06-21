@@ -41,9 +41,13 @@ for (const f of [
   "plugin/skills/workflow/SKILL.md",
   "plugin/skills/workflow/reference.md",
   "plugin/skills/scaffold/SKILL.md",
+  "plugin/cli/bin/cli.js",
+  "plugin/cli/package.json",
 ]) {
   if (!existsSync(f)) fail("missing plugin component: " + f);
 }
+
+const bundledCli = readJson("plugin/cli/package.json");
 
 if (tag) {
   if (manifest.version !== tag) {
@@ -54,6 +58,9 @@ if (tag) {
   }
   if (entry.version !== tag) {
     fail("marketplace.json sdlc-workflow version " + entry.version + " != tag " + tag);
+  }
+  if (bundledCli.version !== tag) {
+    fail("plugin/cli/package.json version " + bundledCli.version + " != tag " + tag + " — re-run `npx sdlc-workflow plugin`");
   }
 }
 

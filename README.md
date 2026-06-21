@@ -160,7 +160,9 @@ This repo is also a single-plugin Claude Code **marketplace**, so you can instal
 /plugin install sdlc-workflow@sdlc-workflow
 ```
 
-Layout: `.claude-plugin/marketplace.json` (root) lists the plugin at `./plugin`, which holds `plugin/.claude-plugin/plugin.json` and `plugin/skills/`. These files are generated from the CLI's source of truth — run `npx sdlc-workflow plugin` to (re)generate them. To scaffold the docs/templates into a project, still use `init`/`tech`/`scan` (the `scaffold` skill points Claude at those).
+**No `npx` needed:** the plugin **bundles the CLI** at `plugin/cli/bin/cli.js`. Invoking `/sdlc-workflow:scaffold` has Claude run it via `node "${CLAUDE_PLUGIN_ROOT}/cli/bin/cli.js" init|tech|scan` — offline, with the version pinned to the installed plugin (`npx` remains a fallback).
+
+Layout: `.claude-plugin/marketplace.json` (root) lists the plugin at `./plugin`, which holds `plugin/.claude-plugin/plugin.json`, `plugin/skills/`, and the bundled `plugin/cli/`. These files are generated from the CLI's source of truth — run `npx sdlc-workflow plugin` to (re)generate them.
 
 ## Use with Antigravity
 
