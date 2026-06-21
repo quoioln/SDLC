@@ -2,3 +2,7 @@ node_modules/
 *.log
 .DS_Store
 dist/
+
+# Local Claude Code state (plugin enablement, machine-specific)
+.claude/settings.json
+.claude/settings.local.json
