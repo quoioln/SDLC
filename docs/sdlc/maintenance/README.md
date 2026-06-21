@@ -12,5 +12,6 @@
 - [ ] **Dependency updates**: Regular security patches, library upgrades; run audit tools
 - [ ] **Performance tuning**: Monitor metrics vs NFR targets; optimize bottlenecks
 - [ ] **Feature iteration**: Small enhancements from user feedback → loop back to PO for new epics if scope is significant
+- [ ] **Update guidelines**: Every shipped change updates the relevant feature guideline in `docs/sdlc/guideline/`; keep the index status (Current/Outdated) accurate
 - [ ] **Documentation**: Keep runbooks, incident logs, and post-mortems up to date
 - [ ] **Output**: Patches, updates, runbooks in `docs/sdlc/maintenance/`

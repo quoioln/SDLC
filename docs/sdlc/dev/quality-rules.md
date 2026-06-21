@@ -88,6 +88,7 @@ Mandatory quality bar for **all implementation roles**. Tech Lead enforces at re
 ## 9. Documentation
 - Public functions/classes have a **docstring** (purpose, params, return, throws).
 - README/setup runs from scratch; ADRs updated when technical direction changes.
+- **Living feature guideline**: any **new or changed feature** creates/updates its guideline in `docs/sdlc/guideline/{feature}.md` **in the same PR** — a stale guideline means the feature is not done.
 
 ## 10. Frontend / UI (if applicable)
 - **WCAG 2.1 AA**; keyboard-navigable; semantic HTML.

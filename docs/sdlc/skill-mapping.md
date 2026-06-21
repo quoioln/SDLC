@@ -2,7 +2,7 @@
 
 Đề xuất **skill** (gọi qua `/`) và **sub-agent** (gọi qua Agent tool) cho từng vai trò trong pipeline. Tier model theo quy ước workflow: **lead = model mạnh nhất (Opus)**, **execution = model tiết kiệm (Haiku)**.
 
-> **Lưu ý:** Repo này là *generator*. Bảng dưới dùng khi chạy pipeline **trên một project đích**. Để sửa nội dung SDLC mà package phát hành, sửa các hằng string trong `bin/cli.js` — không phải chạy các skill này. Xem `CLAUDE.md` ở root.
+> **Lưu ý:** Tên skill/agent dưới đây theo bộ skill của Claude Code; tùy môi trường (Cursor/Codex/Antigravity) tên gọi có thể khác — ánh xạ theo *mục đích* của từng cột.
 
 ---
 
@@ -104,3 +104,4 @@
 | Meta-skill: biết skill nào áp dụng | `/using-agent-skills` |
 | Feature có dùng LLM / Claude API | `/claude-api` |
 | Mọi thay đổi code (commit/branch/merge) | `/git-workflow-and-versioning` |
+| Viết/cập nhật guideline tính năng (living docs) | `/documentation-and-adrs` (vai trò Guideline) |

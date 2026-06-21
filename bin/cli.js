@@ -606,6 +606,7 @@ async function generateFromInline(cwd) {
     join(base, "dev", "platform"),
     join(base, "security"),
     join(base, "principle-engineer"),
+    join(base, "guideline"),
     join(base, "agents"),
     join(base, "deploy"),
     join(base, "deploy", "k8s"),
@@ -650,6 +651,8 @@ async function generateFromInline(cwd) {
     ["dev/platform/README.md", DEV_PLATFORM_README],
     ["security/README.md", SECURITY_README],
     ["principle-engineer/README.md", PRINCIPLE_ENGINEER_README],
+    ["guideline/README.md", GUIDELINE_README],
+    ["guideline/feature-guideline.template.md", GUIDELINE_TEMPLATE],
     ["agents/README.md", AGENTS_README],
     ["deploy/README.md", DEPLOY_README],
     ["deploy/docker-compose.yml.template", DOCKER_COMPOSE_TEMPLATE],
@@ -1001,6 +1004,8 @@ const CLAUDE_SDLC_CONTENT = `## SDLC Workflow
 8. **Deploy** — Docker Compose + K8s + IaC → docs/sdlc/deploy/ (after all Phase 8 issues resolved)
 9. **Maintenance** — Monitoring, bug fixes, patches, dependency updates → docs/sdlc/maintenance/
 
+**Guideline (living docs):** Every new/changed feature must create or update its feature guideline → docs/sdlc/guideline/{epic-slug}.md (part of Definition of Done; Tech Lead enforces).
+
 Design before Architect (UX drives tech). After Technical BA, Dev runs immediately — parallel with QE docs. See docs/sdlc/agents/
 `;
 
@@ -1098,6 +1103,7 @@ User Request → PO → Business BA → Design (if app/web) → Architect → Te
 - **Dependency updates**: Regular security patches, library upgrades
 - **Performance tuning**: Monitor vs NFR targets; optimize bottlenecks
 - **Feature iteration**: Small enhancements from feedback; significant scope → new PO epic
+- **Living guideline**: Every new/changed feature creates/updates its guideline in \`docs/sdlc/guideline/{epic-slug}.md\` (Definition of Done; Tech Lead enforces) — see the Guideline role
 - Output: \`docs/sdlc/maintenance/\` — runbooks, incident logs
 
 See [reference.md](./reference.md) for templates.
@@ -1367,6 +1373,7 @@ const SKILL_MAPPING_MD = `# SDLC Skill & Agent Mapping
 | Meta-skill: biết skill nào áp dụng | \`/using-agent-skills\` |
 | Feature có dùng LLM / Claude API | \`/claude-api\` |
 | Mọi thay đổi code (commit/branch/merge) | \`/git-workflow-and-versioning\` |
+| Viết/cập nhật guideline tính năng (living docs) | \`/documentation-and-adrs\` (vai trò Guideline) |
 `;
 
 const AGENTS_README = `# Sub-Agents
@@ -1930,6 +1937,10 @@ const QE_TC_TEMPLATE = `## TC-001: [Scenario]
 
 **Expected**: [Expected result]
 
+**Test data / account**: [Seeded data + which test account/role; secrets from env/CI store — never hardcoded]
+
+**Evidence**: [Screenshot / video / trace / report path for UI/E2E; request-response log for API]
+
 **Links to**: AC-001, Story #42
 
 ---
@@ -1955,8 +1966,10 @@ const QE_README = `# QE (Quality Engineering)
 - [ ] **QE Lead**: Test strategy, framework, review test code
 - [ ] **Senior QE**: Write automation tests per test plan
 - [ ] **UAT (User Acceptance Testing)**: Verify against original user stories and acceptance criteria from PO; confirm business requirements are met from end-user perspective. Document UAT results in \`qe/{epic-slug}/uat-results.md\`
+- [ ] **Test accounts & data**: Provision per-environment test accounts/roles (secrets via env/CI store, never hardcoded); seed + isolate + clean up test data (no prod data/PII)
+- [ ] **Evidence**: Capture screenshot/video/trace for UI/E2E (request-response logs for API), publish an HTML report, retain as CI artifacts linked to TC IDs → \`qe/{epic-slug}/evidence/\`
 - [ ] **Bug-fix loop**: If bugs or test failures found → **Dev fixes** → **QE retests**. **Repeat until all tests pass and UAT approved (0 open bugs)**. Only then → handoff to Security + PE
-- [ ] **Sign-off**: Regression pass, coverage met, UAT approved, 0 open bugs → release readiness in \`qe/{epic-slug}/\`
+- [ ] **Sign-off**: Regression pass, coverage met, UAT approved, evidence attached, 0 open bugs → release readiness in \`qe/{epic-slug}/\`
 
 Example:
 \`\`\`
@@ -1965,6 +1978,7 @@ docs/sdlc/qe/
     test-plan.md
     test-cases.md
     automation/   (Phase 6: Senior QE output)
+    evidence/     (Phase 6: screenshots, videos, traces, HTML report)
   user-auth/
     test-plan.md
     test-cases.md
@@ -1999,6 +2013,9 @@ const QE_LEAD_README = `# QE Lead (15+ years exp in test automation)
 - [ ] **Automation architecture**: Design folder structure, layers, fixtures, reporting, retries, env handling
 - [ ] **Review checklist**: Coverage, maintainability, naming, alignment with framework
 - [ ] **Quality gates**: Define thresholds (coverage, required suites before merge), regression criteria
+- [ ] **UI / E2E browser strategy**: Cross-browser (Chromium/Firefox/WebKit), headed vs headless, viewport/responsive, **stable selectors** (role/test-id, not brittle CSS); decide which journeys are E2E vs API-level
+- [ ] **Test account & data provisioning**: Define per-environment **test accounts/roles** and how they are provisioned; **secrets via secure store / CI secrets — never hardcoded or committed**; **test-data strategy** (seed fixtures, isolation per run, teardown/cleanup, no prod data/PII)
+- [ ] **Evidence policy**: Require **screenshot on failure, video, and trace** for E2E; publish an **HTML test report**; retain all as **CI artifacts** linked to TC IDs; define retention period
 - [ ] **Per-epic guidance**: Output to \`qe/{epic-slug}/\` per epic
 `;
 
@@ -2017,8 +2034,10 @@ const QE_SENIOR_README = `# Senior QE (10+ years exp)
 - [ ] **Implement E2E tests**: UI flows, critical paths per QE Lead's framework
 - [ ] **Implement API/integration tests**: Request/response, contracts
 - [ ] **Implement regression suite**: Add to CI; ensure stability (retries, waits)
+- [ ] **Use provisioned test accounts/data**: Read credentials from env / CI secrets (never hardcode); seed required test data and clean up after the run
+- [ ] **Capture evidence**: Screenshot on failure, video, and trace for UI/E2E; request-response logs for API; attach to the HTML report and link to TC IDs → \`qe/{epic-slug}/evidence/\`
 - [ ] **Report coverage**: Align with QE Lead's quality gates
-- [ ] **Output**: Automation code and docs in \`qe/{epic-slug}/\`
+- [ ] **Output**: Automation code, report, and evidence in \`qe/{epic-slug}/\`
 `;
 
 const DESIGN_README = `# Design (optional — app/web projects only)
@@ -2180,6 +2199,7 @@ const DEV_TECH_LEAD_README = `# Tech Lead (15+ years exp)
 - [ ] **Design pattern selection (context-driven)**: Evaluate whether a pattern genuinely fits the problem before applying it; choose by intent — Strategy (interchangeable algorithms/behaviors), Template Method (fixed skeleton + variable steps), Factory/Abstract Factory (decouple creation / product families), Builder (complex construction), Bridge (vary abstraction and implementation independently), Adapter (incompatible interfaces), Decorator (compose behavior), Observer/Pub-Sub (event reaction), Repository (persistence abstraction). Record the chosen pattern + rationale in an ADR or implementation note
 - [ ] **Avoid over-engineering (anti pattern-itis)**: Prefer the simplest design that works (KISS/YAGNI); introduce a pattern only when it removes real duplication, decouples a real axis of change, or is needed for testability — never speculatively. Refactor toward a pattern when the third real case appears (rule of three)
 - [ ] **Enforce quality gate**: Reject any PR that does not satisfy [Developer Quality Rules](../quality-rules.md) — DoD, test quality, type-safety, error handling, performance budget, security, i18n
+- [ ] **Enforce living guideline**: Reject feature PRs that add/change behavior without creating/updating the feature guideline in \`docs/sdlc/guideline/\` (see Guideline role)
 - [ ] **Output**: ADRs, review checklist in \`dev/tech-lead/\`
 `;
 
@@ -2452,6 +2472,7 @@ Mandatory quality bar for **all implementation roles**. Tech Lead enforces at re
 ## 9. Documentation
 - Public functions/classes have a **docstring** (purpose, params, return, throws).
 - README/setup runs from scratch; ADRs updated when technical direction changes.
+- **Living feature guideline**: any **new or changed feature** creates/updates its guideline in \`docs/sdlc/guideline/{feature}.md\` **in the same PR** — a stale guideline means the feature is not done.
 
 ## 10. Frontend / UI (if applicable)
 - **WCAG 2.1 AA**; keyboard-navigable; semantic HTML.
@@ -2523,6 +2544,60 @@ Mandatory quality bar for **all implementation roles**. Tech Lead enforces at re
 - **Document as-is** decisions (retroactive ADRs) so future work has context — see \`../ADOPTION.md\`.
 `;
 
+const GUIDELINE_README = `# Guideline / Technical Writer
+
+**When:** Alongside Dev/QE for each feature; kept current in Maintenance. **Living documentation** — a feature is **not "done" until its guideline is created or updated**.
+
+**Role:** Produce a full feature guideline (what it does, how to use it, configuration, examples, limits, troubleshooting) for each feature/epic, and keep it accurate as the product evolves.
+
+**One file per feature:** \`docs/sdlc/guideline/{epic-slug}.md\` (same slug as PO/BA). Maintain an index in this folder's README.
+
+## Detailed tasks
+
+- [ ] **Write the full feature guideline**: Overview, audience, prerequisites, step-by-step usage, configuration/flags, examples, screenshots (if UI), limits/edge cases, troubleshooting/FAQ
+- [ ] **Cross-link, don't duplicate**: Reference PRD/FRS (PO/BA), API spec (Technical BA), and design (if app/web) — single source of truth for decisions
+- [ ] **Update on every change (mandatory)**: Any **new or changed feature MUST create/update the relevant guideline in the same PR**. A stale guideline = an incomplete feature (part of Definition of Done; Tech Lead enforces at review)
+- [ ] **Keep the index current**: List every feature guideline + status (Current / Outdated) and last-updated release
+- [ ] **Version & deprecate**: Note "last updated" + release; flag deprecated behavior and migration notes
+- [ ] **Review**: PO/BA verify the guideline matches *intended* behavior; QE verifies it matches *actual* behavior
+- [ ] **Output**: \`docs/sdlc/guideline/{epic-slug}.md\` + index
+
+Use \`feature-guideline.template.md\` as the starting point for each feature.
+`;
+
+const GUIDELINE_TEMPLATE = `# Feature Guideline: [Feature name]
+
+**Status:** Current | Outdated  ·  **Last updated:** YYYY-MM-DD (release vX.Y.Z)
+**Audience:** [end user | integrator/developer | operator]
+
+## Overview
+[What the feature does and the problem it solves — 2–4 sentences]
+
+## Prerequisites
+- [Access/role, config, dependencies needed before use]
+
+## How to use
+1. [Step] → [result]
+2. ...
+
+## Configuration
+| Option / Flag | Default | Description |
+|---------------|---------|-------------|
+| | | |
+
+## Examples
+[Concrete example(s); request/response, command, or screenshot for UI]
+
+## Limits & edge cases
+- [Boundaries, known limitations, error states]
+
+## Troubleshooting / FAQ
+- **Symptom** → cause → fix
+
+## Related
+- PRD/Epic: \`po/{epic-slug}/\` · FRS: \`ba/business/{epic-slug}/\` · API: \`ba/technical/\` · Design: \`design/{epic-slug}/\`
+`;
+
 const MAINTENANCE_README = `# Maintenance
 
 **When:** After Deploy — ongoing throughout the product lifecycle.
@@ -2537,6 +2612,7 @@ const MAINTENANCE_README = `# Maintenance
 - [ ] **Dependency updates**: Regular security patches, library upgrades; run audit tools
 - [ ] **Performance tuning**: Monitor metrics vs NFR targets; optimize bottlenecks
 - [ ] **Feature iteration**: Small enhancements from user feedback → loop back to PO for new epics if scope is significant
+- [ ] **Update guidelines**: Every shipped change updates the relevant feature guideline in \`docs/sdlc/guideline/\`; keep the index status (Current/Outdated) accurate
 - [ ] **Documentation**: Keep runbooks, incident logs, and post-mortems up to date
 - [ ] **Output**: Patches, updates, runbooks in \`docs/sdlc/maintenance/\`
 `;

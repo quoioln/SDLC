@@ -8,7 +8,7 @@
       "name": "sdlc-workflow",
       "source": "./plugin",
       "description": "Multi-role SDLC workflow (PO → BA → Design → Architect → Dev → QE → Security → Deploy) with a quality bar, stack-specific rules, and brownfield onboarding.",
-      "version": "1.10.0"
+      "version": "1.11.0"
     }
   ]
 }

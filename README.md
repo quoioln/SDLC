@@ -118,6 +118,9 @@ docs/sdlc/
 │   └── platform/             # Senior Platform 10+ yrs — CI/CD, infra
 ├── security/                 # Security team: audit security risk (after implementation)
 │   └── README.md
+├── guideline/                # Technical Writer: full feature guidelines (living docs; update on every feature change)
+│   ├── feature-guideline.template.md
+│   └── README.md
 ├── principle-engineer/       # Principle engineer: audit logic, architecture (after implementation)
 │   └── README.md
 ├── agents/                   # Sub-agent specs (each role = sub-agent)

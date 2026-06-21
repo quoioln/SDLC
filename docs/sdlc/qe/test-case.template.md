@@ -11,6 +11,10 @@
 
 **Expected**: [Expected result]
 
+**Test data / account**: [Seeded data + which test account/role; secrets from env/CI store — never hardcoded]
+
+**Evidence**: [Screenshot / video / trace / report path for UI/E2E; request-response log for API]
+
 **Links to**: AC-001, Story #42
 
 ---
