@@ -1337,6 +1337,8 @@ const SKILL_MAPPING_MD = `# SDLC Skill & Agent Mapping
 |---|---|
 | Viết/chạy test, đánh giá coverage | agent \`agent-skills:test-engineer\`, \`/test\` |
 | UAT trong trình duyệt thật | \`/browser-testing-with-devtools\` |
+| Verify UI runtime (DOM/layout/input/console) | \`/browser-testing-with-devtools\` |
+| Visual regression + layout integrity (UI) | visual-diff tool (Playwright \`toHaveScreenshot\` / Percy / Chromatic) + \`/browser-testing-with-devtools\` |
 | Xác minh fix chạy thật | \`/verify\` |
 | Soát lỗi diff | \`/code-review\` |
 | Truy nguyên bug | \`/debugging-and-error-recovery\` |
@@ -1939,7 +1941,9 @@ const QE_TC_TEMPLATE = `## TC-001: [Scenario]
 
 **Test data / account**: [Seeded data + which test account/role; secrets from env/CI store — never hardcoded]
 
-**Evidence**: [Screenshot / video / trace / report path for UI/E2E; request-response log for API]
+**Viewport / breakpoint**: [UI/E2E only: viewport(s) + browser(s); note long-text/i18n or 200% zoom if relevant]
+
+**Evidence**: [Screenshot / video / trace / report path for UI/E2E; baseline+diff for visual regression; request-response log for API]
 
 **Links to**: AC-001, Story #42
 
@@ -2016,6 +2020,9 @@ const QE_LEAD_README = `# QE Lead (15+ years exp in test automation)
 - [ ] **UI / E2E browser strategy**: Cross-browser (Chromium/Firefox/WebKit), headed vs headless, viewport/responsive, **stable selectors** (role/test-id, not brittle CSS); decide which journeys are E2E vs API-level
 - [ ] **Test account & data provisioning**: Define per-environment **test accounts/roles** and how they are provisioned; **secrets via secure store / CI secrets — never hardcoded or committed**; **test-data strategy** (seed fixtures, isolation per run, teardown/cleanup, no prod data/PII)
 - [ ] **Evidence policy**: Require **screenshot on failure, video, and trace** for E2E; publish an **HTML test report**; retain all as **CI artifacts** linked to TC IDs; define retention period
+- [ ] **Visual regression**: Baseline screenshot + diff (with tolerance) **per breakpoint**; tool (Playwright \`toHaveScreenshot\` / Percy / Chromatic / Applitools); baselines are **review-gated**; mask dynamic regions (dates, avatars) to avoid flake
+- [ ] **Layout integrity assertions**: No overflow/clipping, no overlapping elements, **no horizontal scroll**, correct column count/alignment per breakpoint, elements within viewport; wait for fonts/images before asserting
+- [ ] **Responsive & resilience matrix**: Viewport set (mobile/tablet/desktop) × cross-browser; verify **long-text / i18n (+30–40%)** and **200% zoom** don't break the layout (ties to i18n + a11y)
 - [ ] **Per-epic guidance**: Output to \`qe/{epic-slug}/\` per epic
 `;
 
@@ -2036,6 +2043,9 @@ const QE_SENIOR_README = `# Senior QE (10+ years exp)
 - [ ] **Implement regression suite**: Add to CI; ensure stability (retries, waits)
 - [ ] **Use provisioned test accounts/data**: Read credentials from env / CI secrets (never hardcode); seed required test data and clean up after the run
 - [ ] **Capture evidence**: Screenshot on failure, video, and trace for UI/E2E; request-response logs for API; attach to the HTML report and link to TC IDs → \`qe/{epic-slug}/evidence/\`
+- [ ] **Form / input integrity**: Every field renders; **label↔control** association; validation + error states shown; focus/tab order; disabled/readonly; no overlap or clipping
+- [ ] **Visual & layout checks**: Run visual-regression + layout-integrity assertions in CI per breakpoint; on diff, save **baseline / actual / diff** images as artifacts linked to TC IDs
+- [ ] **a11y tree (axe)**: Run an accessibility scan (heading order, landmarks, labels) as a semantic-layout guard
 - [ ] **Report coverage**: Align with QE Lead's quality gates
 - [ ] **Output**: Automation code, report, and evidence in \`qe/{epic-slug}/\`
 `;

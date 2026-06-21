@@ -68,6 +68,8 @@
 |---|---|
 | Viết/chạy test, đánh giá coverage | agent `agent-skills:test-engineer`, `/test` |
 | UAT trong trình duyệt thật | `/browser-testing-with-devtools` |
+| Verify UI runtime (DOM/layout/input/console) | `/browser-testing-with-devtools` |
+| Visual regression + layout integrity (UI) | visual-diff tool (Playwright `toHaveScreenshot` / Percy / Chromatic) + `/browser-testing-with-devtools` |
 | Xác minh fix chạy thật | `/verify` |
 | Soát lỗi diff | `/code-review` |
 | Truy nguyên bug | `/debugging-and-error-recovery` |

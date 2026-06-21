@@ -13,7 +13,9 @@
 
 **Test data / account**: [Seeded data + which test account/role; secrets from env/CI store — never hardcoded]
 
-**Evidence**: [Screenshot / video / trace / report path for UI/E2E; request-response log for API]
+**Viewport / breakpoint**: [UI/E2E only: viewport(s) + browser(s); note long-text/i18n or 200% zoom if relevant]
+
+**Evidence**: [Screenshot / video / trace / report path for UI/E2E; baseline+diff for visual regression; request-response log for API]
 
 **Links to**: AC-001, Story #42
 
