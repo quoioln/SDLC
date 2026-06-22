@@ -160,6 +160,21 @@ This repo is also a single-plugin Claude Code **marketplace**, so you can instal
 /plugin install sdlc-workflow@sdlc-workflow
 ```
 
+### Update to the latest version
+
+The plugin is **version-pinned** (it updates only when `plugin.json`'s `version` is bumped and the marketplace is refreshed). To get the newest release:
+
+```shell
+/plugin marketplace update sdlc-workflow   # re-fetch the marketplace catalog
+/plugin install sdlc-workflow@sdlc-workflow # reinstall the bumped version
+/reload-plugins                             # apply without restarting
+```
+
+- Run `/plugin marketplace update` first — without it, install still sees the old pinned version.
+- `/reload-plugins` is enough for skill text changes mid-session; for new MCP servers/hooks, restart Claude Code.
+- Check the installed version anytime in the `/plugin` manager (or compare against `package.json` in the repo).
+- **Maintainers:** a new version isn't available to users until you `git push` and tag it — `git push origin master && git tag vX.Y.Z && git push origin vX.Y.Z` (the release workflow validates the plugin version matches the tag).
+
 **No `npx` needed:** the plugin **bundles the CLI** at `plugin/cli/bin/cli.js` and exposes discrete slash commands that run it offline (version pinned to the installed plugin):
 
 | Intent | Plugin command (no npx) | npx fallback |
