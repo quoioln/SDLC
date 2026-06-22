@@ -367,6 +367,13 @@ async function pluginCommand(cwd) {
   }
   console.log("  + plugin/skills/{init,tech,scan}/ (command skills)");
 
+  for (const c of PLUGIN_PHASE_COMMANDS) {
+    const d = join(pluginDir, "skills", c.name);
+    await mkdir(d, { recursive: true });
+    await writeFile(join(d, "SKILL.md"), buildPhaseCommandSkill(c), "utf8");
+  }
+  console.log("  + plugin/skills/{po,ba,design,architect,tech-ba,dev,test,security,deploy,guideline,maintain}/ (phase commands)");
+
   // Bundle the CLI so the plugin runs offline without npx (skill calls
   // node "${CLAUDE_PLUGIN_ROOT}/cli/bin/cli.js" <cmd>). PKG_ROOT resolves
   // to plugin/cli/, so package.json sits at plugin/cli/package.json.
@@ -460,6 +467,43 @@ Writes \`docs/sdlc/project-profile.md\` (languages, structure, signals, deps). T
 `,
   },
 ];
+
+// Phase commands → /sdlc-workflow:po, :ba, :design, :architect, :tech-ba, :dev,
+// :test, :security, :deploy, :guideline, :maintain. These are model-driven
+// (Claude does the work per the scaffolded role docs), not CLI wrappers — the
+// way to "execute" a role (e.g. QE testing) from the plugin.
+const PLUGIN_PHASE_COMMANDS = [
+  { name: "po", title: "Product Owner", description: "Run the Product Owner phase: PRD, user stories, feasibility, measurable success metrics for an epic.", readme: "po/README.md", reads: "the idea / feature request", out: "docs/sdlc/po/{epic-slug}/" },
+  { name: "ba", title: "Business BA", description: "Run the Business BA phase: functional + non-functional requirements, Gherkin acceptance criteria, process flows, traceability.", readme: "ba/business/README.md", reads: "the PO outputs in docs/sdlc/po/{epic-slug}/", out: "docs/sdlc/ba/business/{epic-slug}/" },
+  { name: "design", title: "Design / UX", description: "Run the Design/UX phase (app/web): design spec, all UI states, WCAG 2.1 AA, i18n-ready, anti-AI aesthetics; PO+BA review.", readme: "design/README.md", reads: "the PO + Business BA outputs", out: "docs/sdlc/design/{epic-slug}/" },
+  { name: "architect", title: "Architect", description: "Run the Architect phase: ADRs (with alternatives + trade-offs), C4 diagrams, security & observability by design, fitness functions.", readme: "architecture/README.md", reads: "Business BA (+ Design if app/web)", out: "docs/sdlc/architecture/" },
+  { name: "tech-ba", title: "Technical BA", description: "Run the Technical BA phase: API specs (OpenAPI), DB schema, team breakdown, traceability to FRs.", readme: "ba/technical/README.md", reads: "the Architect (+ Design) outputs", out: "docs/sdlc/ba/technical/" },
+  { name: "dev", title: "Dev (Tech Lead + Senior)", description: "Run the Dev phase: implement per spec with the full quality bar, 100% tests, and the living feature guideline.", readme: "dev/tech-lead/README.md", reads: "the Technical BA spec; the rules in docs/sdlc/dev/quality-rules.md and any docs/sdlc/dev/tech/ stack files", out: "code + tests; notes in docs/sdlc/dev/{role}/" },
+  { name: "test", title: "QE (test execution)", description: "Run the QE phase: test plan/cases, execute unit/integration/E2E + visual-regression & layout checks, capture evidence, run the bug-fix loop to zero bugs, UAT + sign-off.", readme: "qe/README.md", reads: "the Technical BA spec, the implemented code, and the QE rules in qe/qe-lead/README.md + qe/senior-qe/README.md", out: "docs/sdlc/qe/{epic-slug}/ — test-plan, test-cases, automation, evidence/ (screenshots/video/trace + report), uat-results, sign-off", extra: "Use provisioned test accounts/data (secrets from env/CI, never hardcoded; seed + isolate + clean up). Verify no broken/misaligned layout, dropped columns, or broken inputs (visual regression + layout-integrity assertions per breakpoint). Loop with Dev until 0 open bugs, then sign off." },
+  { name: "security", title: "Security + Principle Engineer + Performance", description: "Run the audit phase: OWASP/STRIDE/CVE, logic/architecture audit, performance (p95, N+1) with the remediation loop.", readme: "security/README.md", reads: "the implemented code and architecture", out: "docs/sdlc/security/ and docs/sdlc/principle-engineer/", extra: "Give every finding an issue ID; loop Dev fix -> QE retest -> re-audit until 0 Critical/High (max 3 cycles)." },
+  { name: "deploy", title: "OPS (deploy)", description: "Run the Deploy phase: Docker Compose + Kubernetes + IaC after sign-off.", readme: "deploy/README.md", reads: "the security/PE sign-off", out: "docs/sdlc/deploy/" },
+  { name: "guideline", title: "Technical Writer (guideline)", description: "Write or update the living feature guideline for a new or changed feature (Definition of Done).", readme: "guideline/README.md", reads: "the feature's PO/BA/Technical BA docs and the implemented behavior", out: "docs/sdlc/guideline/{epic-slug}.md + index" },
+  { name: "maintain", title: "Maintenance", description: "Run Maintenance: monitoring, bug triage/fix, dependency updates, performance tuning, guideline updates.", readme: "maintenance/README.md", reads: "production signals and the existing docs", out: "docs/sdlc/maintenance/" },
+];
+
+function buildPhaseCommandSkill(c) {
+  const extra = c.extra ? "\n" + c.extra + "\n" : "";
+  return `---
+name: ${c.name}
+description: ${c.description}
+---
+
+# /sdlc-workflow:${c.name} — ${c.title}
+
+Act as **${c.title}** for the target epic/feature (ask which epic if it is unclear).
+
+- **Read:** ${c.reads}
+- **Do:** Follow docs/sdlc/${c.readme} and the SDLC quality bar in docs/sdlc/dev/quality-rules.md; execute this role's tasks for the epic.
+- **Output:** ${c.out}
+${extra}
+If the SDLC docs are not scaffolded yet, run \`/sdlc-workflow:init\` first.
+`;
+}
 
 async function main() {
   const cwd = process.cwd();

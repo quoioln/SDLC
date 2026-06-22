@@ -172,6 +172,15 @@ This repo is also a single-plugin Claude Code **marketplace**, so you can instal
 
 The `init`/`tech`/`scan` commands are explicit (user-triggered); `scaffold` and `workflow` are model-invocable so the agent can run them during a task. All resolve `${CLAUDE_PLUGIN_ROOT}` to the installed plugin path.
 
+**Per-phase execution commands** (model-driven — run one role's work per the scaffolded docs, not the CLI):
+
+```
+/sdlc-workflow:po  ·  :ba  ·  :design  ·  :architect  ·  :tech-ba  ·  :dev
+/sdlc-workflow:test  ·  :security  ·  :deploy  ·  :guideline  ·  :maintain
+```
+
+For example `/sdlc-workflow:test` has Claude act as QE — execute unit/integration/E2E + visual-regression & layout-integrity checks, use provisioned test accounts/data, capture evidence, and run the bug-fix loop to zero open bugs.
+
 Layout: `.claude-plugin/marketplace.json` (root) lists the plugin at `./plugin`, which holds `plugin/.claude-plugin/plugin.json`, `plugin/skills/`, and the bundled `plugin/cli/`. These files are generated from the CLI's source of truth — run `npx sdlc-workflow plugin` to (re)generate them.
 
 ## Use with Antigravity

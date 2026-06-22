@@ -44,6 +44,8 @@ for (const f of [
   "plugin/skills/init/SKILL.md",
   "plugin/skills/tech/SKILL.md",
   "plugin/skills/scan/SKILL.md",
+  "plugin/skills/test/SKILL.md",
+  "plugin/skills/dev/SKILL.md",
   "plugin/cli/bin/cli.js",
   "plugin/cli/package.json",
 ]) {
