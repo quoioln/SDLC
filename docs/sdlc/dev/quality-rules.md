@@ -80,6 +80,7 @@ Mandatory quality bar for **all implementation roles**. Tech Lead enforces at re
 - **Conventional Commits**; atomic commits; **PR ≤ ~400 lines** of diff (split larger ones).
 - Each PR maps to one user story / issue ID; do **not** mix refactor + feature in one PR.
 - Branch protection: no merge while CI is red; squash to keep history clean.
+- **Phase checkpoint commits (opt-in)**: when "auto-commit per phase" is enabled, commit at each phase gate on `epic/{slug}` with a conventional message — only after the gate passes, never auto-push (see ORCHESTRATION.md → Version-control checkpoints).
 
 ## 8. Dependencies
 - **Pin versions** (commit the lockfile); `npm/pip audit` blocks High/Critical.

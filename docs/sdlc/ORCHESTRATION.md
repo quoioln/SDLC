@@ -3,12 +3,9 @@
 ## Trigger
 
 When the user sends an **idea**, **feature request**, or **requirement**:
-
 1. **Trigger the full pipeline** and run continuously through deployment.
-2. **One role per phase** — adopt only the specified `[ROLE]` badge per phase.
+2. **One role per phase** for sequential phases. **Spawn parallel workstreams** when dependencies are independent.
 3. **Run through to Maintenance.** Do not stop after PO, BA, or Dev unless the user explicitly says to stop.
-
----
 
 ## 🚦 The Orchestrator's Most Important Rule
 
@@ -18,168 +15,67 @@ Before running any two workstreams, ask: "Does workstream B depend on workstream
 - **Yes** → Run sequentially (A first, then B)
 - **No** → **Run in parallel immediately**
 
----
-
 ## Execution Map
 
-```
-PHASE 0 → PHASE 1 → PHASE 2 → PHASE 3 → PHASE 4 → PHASE 5 (Technical BA)
-                                                     │
-                                    ┌────────────────┴────────────────┐
-                                    │  TECHNICAL BA COMPLETE          │
-                                    │  Spawn Track A immediately       │
-                                    └─────────────────────────────────┘
-                                                         │
-                     ┌────────────────────────────────────┼────────────────────────────────────┐
-                     │                                    │                                    │
-                     ↓                                    ↓
-            ┌─────────────────┐               ┌─────────────────┐
-            │  TRACK A1       │               │  TRACK A2       │
-            │  [DEV]          │               │  [QE]           │
-            │  Implementation │               │  Test Plan      │
-            │  ⚡ PARALLEL    │               │  ⚡ PARALLEL     │
-            │  All roles:     │               │                 │
-            │  FE/BE/MOBILE/ │               │                 │
-            │  EMB/DATA/      │               │                 │
-            │  PLATFORM       │               │                 │
-            └─────────────────┘               └─────────────────┘
-                              │                        │
-                              └───────────┬────────────┘
-                                          ↓
-                              ┌─────────────────────┐
-                              │  BOTH TRACKS COMPLETE│
-                              └──────────┬──────────┘
-                                         │
-                        ┌────────────────┼────────────────┐
-                        │  Spawn Track B immediately      │
-                        └─────────────────────────────────┘
-                                         │
-          ┌────────────────────────────────┼────────────────────────────────┐
-          │                                │                                │
-          ↓                                ↓                                ↓
-┌─────────────────┐             ┌─────────────────┐             ┌─────────────────┐
-│  TRACK B1       │             │  TRACK B2       │             │  TRACK B3       │
-│  [QE]           │             │  [SEC]          │             │  [PERF]         │
-│  Test Execution │             │  Security Audit │             │  Perf Audit     │
-│  ⚡ PARALLEL    │             │  ⚡ PARALLEL    │             │  ⚡ PARALLEL    │
-└─────────────────┘             └─────────────────┘             └─────────────────┘
-          │                                │                                │
-          └────────────────────────────────┼────────────────────────────────┘
-                                           ↓
-                              ┌─────────────────────┐
-                              │  MERGE GATE         │
-                              │  (sequential)       │
-                              └──────────┬──────────┘
-                                         │
-                            IF Critical/High found:
-                              → 🔁 REMEDIATION LOOP
-                              → [DEV] fix → [QE] retest → re-audit
-                              → Max 3 cycles
-                            ELSE:
-                              → ✅ QUALITY GATE PASSED
-                                         │
-                                         ↓
-                              [OPS] Deploy → Maintenance
-```
+Sequential: Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 Technical BA
+Parallel Track A: Technical BA complete → [DEV] + [QE] simultaneously
+Parallel Track B: Dev complete → [QE] + [SEC] + [PERF] simultaneously → merge gate → [OPS] Deploy
 
----
-
-## Checklist Per Run
+## Checklist per run
 
 ### Sequential phases
-
 - [ ] Phase 0 Discovery: raw request captured
-- [ ] Phase 1 `[PO]`: artifacts in `docs/sdlc/po/{epic-slug}/` (one folder per epic)
-- [ ] Phase 2 `[BA]`: `docs/sdlc/ba/business/{epic-slug}/` (one folder per epic)
-- [ ] Phase 3 `[UX]` (if app/web): design specs + wireframes in `docs/sdlc/design/{epic-slug}/`; `[PO]`+`[BA]` review until approved
-- [ ] Phase 4 `[SA]`: `docs/sdlc/architecture/`
-- [ ] Phase 5 Technical `[BA]`: `docs/sdlc/ba/technical/`
+- [ ] Phase 1 [PO]: artifacts in `docs/sdlc/po/{epic-slug}/`
+- [ ] Phase 2 [BA]: `docs/sdlc/ba/business/{epic-slug}/`
+- [ ] Phase 3 [UX] (if app/web): `docs/sdlc/design/{epic-slug}/`; [PO]+[BA] review until approved
+- [ ] Phase 4 [SA]: `docs/sdlc/architecture/`
+- [ ] Phase 5 Technical [BA]: `docs/sdlc/ba/technical/`
 
 ### ⚡ Parallel Track A (spawn immediately after Phase 5)
+- [ ] Spawn [DEV] implementation (all roles: [FE]/[BE]/[MOBILE]/[EMB]/[DATA]/[PLATFORM])
+- [ ] Spawn [QE] test plan + test cases in parallel
+- [ ] Do NOT wait for one to finish before starting the other
 
-- [ ] **Spawn `[DEV]` (5b)** — implementation (all roles: `[FE]`/`[BE]`/`[MOBILE]`/`[EMB]`/`[DATA]`/`[PLATFORM]`)
-- [ ] **Spawn `[QE]` (5a)** — test plan + test cases in parallel
-- [ ] **Do NOT wait** for one to finish before starting the other
-
-### ⚡ Parallel Track B (spawn when `[DEV]` is complete)
-
-- [ ] **Spawn `[QE]`** — test execution, bug reports
-- [ ] **Spawn `[SEC]`** — security audit, OWASP, STRIDE, CVE
-- [ ] **Spawn `[PERF]`** — performance audit, latency, N+1, k6
-- [ ] **All three run simultaneously** — merge gate only after all complete
+### ⚡ Parallel Track B (spawn when [DEV] is complete)
+- [ ] Spawn [QE] test execution
+- [ ] Spawn [SEC] security audit
+- [ ] Spawn [PERF] performance audit
+- [ ] All three run simultaneously — merge gate only after all complete
 
 ### Post-merge
+- [ ] Phase 9 [OPS]: `docs/sdlc/deploy/`
+- [ ] Phase 10: Project Completion Package → SHIPPED ✅
+- [ ] Phase 11 Maintenance
 
-- [ ] Phase 9 `[OPS]`: `docs/sdlc/deploy/` — Docker Compose + K8s + IaC
-- [ ] Phase 10: Project Completion Package → `SHIPPED ✅`
-- [ ] Phase 11 Maintenance: monitoring, bug fixes, patches
+## Version-control checkpoints (opt-in)
 
----
+**Off by default.** Enable by telling the agent **"auto-commit per phase"** (aka checkpoint commits); disable with **"stop auto-commit"**. When on, the agent commits at each phase gate so you can track, review, and revert per phase.
 
-## Coordination Rules
+### How to use
+1. Say "auto-commit per phase" (optionally name a base branch).
+2. The agent creates/uses a branch `epic/{epic-slug}` and commits at each phase gate.
+3. After each commit it reports the **hash** so you can review (`git show <hash>`) or revert (`git revert <hash>`).
+4. **Push and PR stay manual** — the agent never pushes or tags on its own.
+5. Say "stop auto-commit" to go back to a single commit at the end.
 
-### How it runs (Cursor and similar)
+### Rules when enabled
+- **Branch per epic** (`epic/{epic-slug}` off the default branch) — never commit the pipeline straight to main/master.
+- **Commit only when the phase gate passes** — never commit a red/incomplete state (Dev: build+tests green; QE: 0 open bugs; SEC/PE: 0 Critical/High or documented accepted-risk).
+- **One commit per docs phase**; inside Dev, **one commit per task** (each green). Keep diffs atomic (≤ ~400 lines).
+- **No auto-push, no auto-tag.** **Secret-scan + respect .gitignore** before every commit — never commit secrets/PII or test credentials.
 
-There is **one agent** per conversation. It simulates the pipeline by **adopting one role per phase** in order for sequential phases, and **spawning parallel workstreams** for Track A and Track B.
+### Conventional messages (phase + epic + issue/TC id)
+| Phase | Example |
+|-------|---------|
+| PO | `docs(po): {epic} — PRD, user stories, feasibility` |
+| Business BA | `docs(ba): {epic} — FRS/NFR + Gherkin AC` |
+| Design | `docs(design): {epic} — spec + states + a11y` |
+| Architect | `docs(arch): {epic} — ADRs + C4` |
+| Technical BA | `docs(tech-ba): {epic} — API spec + schema` |
+| Dev | `feat(dev): {epic} — <task> (tests green)` |
+| QE | `test(qe): {epic} — suite + evidence (0 bugs)` |
+| Security/PE | `fix(sec): {epic} — SEC-001 …` / `docs(audit): {epic} — report` |
+| Deploy | `chore(deploy): {epic} — compose + k8s` |
+| Guideline | `docs(guideline): {epic} — feature guideline` |
 
-When the agent reaches "Technical BA complete":
-- It becomes `[DEV]` (spawning all implementation roles as parallel tasks)
-- AND simultaneously becomes `[QE]` (spawning test plan writing as parallel task)
-- When both complete → becomes `[QE]` + `[SEC]` + `[PERF]` simultaneously for Phase 8 audits
-
-### When parallel, when sequential
-
-| Decision point | Question | Answer |
-|---------------|----------|--------|
-| Phase 1 after Phase 0? | Does Phase 1 need Phase 0 output? | **Yes → Sequential** |
-| `[DEV]` (5b) + `[QE]` (5a)? | Does `[DEV]` need QE docs to start? | **No → Parallel** |
-| `[FE]` + `[BE]`? | Does frontend need backend API done first? | **No → Parallel** (coordinate via API contract) |
-| Phase 8 audits? | Do `[QE]`/`[SEC]`/`[PERF]` depend on each other? | **No → Parallel** |
-| Remediation loop? | Must issues be fixed before re-audit? | **Yes → Sequential** |
-| Merge gate? | Must all audits report before gate? | **Yes → Sequential** |
-
-### Spawning parallel agents in Claude Code
-
-```markdown
-# Example: spawning Track A in parallel
-When Technical BA is complete, spawn the following agents simultaneously:
-
-Agent 1 — [DEV] Backend:
-  Role: Senior Backend Developer (10+ yrs)
-  Task: Implement API endpoints, services, DB layer per Technical BA spec
-  Output: docs/sdlc/dev/backend/
-
-Agent 2 — [DEV] Frontend:
-  Role: Senior Frontend Developer (10+ yrs)
-  Task: Implement UI components per Design spec + API contract
-  Output: docs/sdlc/dev/frontend/
-
-Agent 3 — [QE]:
-  Role: Senior QA Engineer (10+ yrs)
-  Task: Write test plan + test cases per Technical BA spec
-  Output: docs/sdlc/qe/{epic-slug}/
-
-All three agents run in parallel. Do not wait for one to finish before starting the others.
-```
-
-```markdown
-# Example: spawning Track B in parallel
-When [DEV] implementation is complete, spawn the following agents simultaneously:
-
-Agent 1 — [QE]:
-  Role: QE Lead (15+ yrs automation)
-  Task: Execute all test suites, report bugs, enforce 100% coverage gate
-  Output: docs/sdlc/qe/{epic-slug}/test-execution-report.md
-
-Agent 2 — [SEC]:
-  Role: Security Auditor
-  Task: OWASP Top 10, STRIDE threat model, CVE scan, compliance review
-  Output: docs/sdlc/security/security-assessment-report.md
-
-Agent 3 — [PERF]:
-  Role: Performance Auditor
-  Task: Latency benchmarks (p95<500ms), N+1 detection, k6 load test
-  Output: docs/sdlc/security/performance-assessment-report.md
-
-All three agents run in parallel on the same artifact. Merge gate activates after all three report.
-```
+`git log --oneline` then reads as the pipeline timeline; revert a phase with `git revert <hash>` and let the remediation loop redo it. This complements — does not replace — the quality gates.

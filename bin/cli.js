@@ -913,6 +913,8 @@ description: Multi-role SDLC workflow from user requirements through PO, Busines
 
 **Note:** In Cursor there is a single agent per conversation. Adopt one role per sequential phase; spawn parallel tasks for Track A and Track B.
 
+**Version control (opt-in):** If the user says "auto-commit per phase", work on \`epic/{slug}\` and commit at each phase gate (only after it passes) with a conventional message; report the hash; never auto-push. See ORCHESTRATION.md → Version-control checkpoints.
+
 **Sub-agent specs**: docs/sdlc/agents/
 
 ## Flow Overview
@@ -1293,6 +1295,39 @@ Parallel Track B: Dev complete → [QE] + [SEC] + [PERF] simultaneously → merg
 - [ ] Phase 9 [OPS]: \`docs/sdlc/deploy/\`
 - [ ] Phase 10: Project Completion Package → SHIPPED ✅
 - [ ] Phase 11 Maintenance
+
+## Version-control checkpoints (opt-in)
+
+**Off by default.** Enable by telling the agent **"auto-commit per phase"** (aka checkpoint commits); disable with **"stop auto-commit"**. When on, the agent commits at each phase gate so you can track, review, and revert per phase.
+
+### How to use
+1. Say "auto-commit per phase" (optionally name a base branch).
+2. The agent creates/uses a branch \`epic/{epic-slug}\` and commits at each phase gate.
+3. After each commit it reports the **hash** so you can review (\`git show <hash>\`) or revert (\`git revert <hash>\`).
+4. **Push and PR stay manual** — the agent never pushes or tags on its own.
+5. Say "stop auto-commit" to go back to a single commit at the end.
+
+### Rules when enabled
+- **Branch per epic** (\`epic/{epic-slug}\` off the default branch) — never commit the pipeline straight to main/master.
+- **Commit only when the phase gate passes** — never commit a red/incomplete state (Dev: build+tests green; QE: 0 open bugs; SEC/PE: 0 Critical/High or documented accepted-risk).
+- **One commit per docs phase**; inside Dev, **one commit per task** (each green). Keep diffs atomic (≤ ~400 lines).
+- **No auto-push, no auto-tag.** **Secret-scan + respect .gitignore** before every commit — never commit secrets/PII or test credentials.
+
+### Conventional messages (phase + epic + issue/TC id)
+| Phase | Example |
+|-------|---------|
+| PO | \`docs(po): {epic} — PRD, user stories, feasibility\` |
+| Business BA | \`docs(ba): {epic} — FRS/NFR + Gherkin AC\` |
+| Design | \`docs(design): {epic} — spec + states + a11y\` |
+| Architect | \`docs(arch): {epic} — ADRs + C4\` |
+| Technical BA | \`docs(tech-ba): {epic} — API spec + schema\` |
+| Dev | \`feat(dev): {epic} — <task> (tests green)\` |
+| QE | \`test(qe): {epic} — suite + evidence (0 bugs)\` |
+| Security/PE | \`fix(sec): {epic} — SEC-001 …\` / \`docs(audit): {epic} — report\` |
+| Deploy | \`chore(deploy): {epic} — compose + k8s\` |
+| Guideline | \`docs(guideline): {epic} — feature guideline\` |
+
+\`git log --oneline\` then reads as the pipeline timeline; revert a phase with \`git revert <hash>\` and let the remediation loop redo it. This complements — does not replace — the quality gates.
 `;
 
 const REFERENCE_MD = `# SDLC Workflow — Reference
@@ -2610,6 +2645,7 @@ Mandatory quality bar for **all implementation roles**. Tech Lead enforces at re
 - **Conventional Commits**; atomic commits; **PR ≤ ~400 lines** of diff (split larger ones).
 - Each PR maps to one user story / issue ID; do **not** mix refactor + feature in one PR.
 - Branch protection: no merge while CI is red; squash to keep history clean.
+- **Phase checkpoint commits (opt-in)**: when "auto-commit per phase" is enabled, commit at each phase gate on \`epic/{slug}\` with a conventional message — only after the gate passes, never auto-push (see ORCHESTRATION.md → Version-control checkpoints).
 
 ## 8. Dependencies
 - **Pin versions** (commit the lockfile); \`npm/pip audit\` blocks High/Critical.
