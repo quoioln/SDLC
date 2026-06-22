@@ -360,6 +360,13 @@ async function pluginCommand(cwd) {
   await writeFile(join(sc, "SKILL.md"), PLUGIN_SCAFFOLD_SKILL, "utf8");
   console.log("  + plugin/skills/scaffold/SKILL.md");
 
+  for (const cmd of PLUGIN_COMMAND_SKILLS) {
+    const d = join(pluginDir, "skills", cmd.name);
+    await mkdir(d, { recursive: true });
+    await writeFile(join(d, "SKILL.md"), cmd.body, "utf8");
+  }
+  console.log("  + plugin/skills/{init,tech,scan}/ (command skills)");
+
   // Bundle the CLI so the plugin runs offline without npx (skill calls
   // node "${CLAUDE_PLUGIN_ROOT}/cli/bin/cli.js" <cmd>). PKG_ROOT resolves
   // to plugin/cli/, so package.json sits at plugin/cli/package.json.
@@ -394,6 +401,65 @@ This plugin **bundles the \`sdlc-workflow\` CLI**, so run it directly with the p
 
 Then drive the pipeline with the \`workflow\` skill (one role per phase; parallel where independent).
 `;
+
+// Discrete user commands → /sdlc-workflow:init, :tech, :scan. Each runs the
+// bundled CLI (no npx). disable-model-invocation keeps them user-triggered;
+// the model-invocable `scaffold` skill covers agent-driven flows.
+const PLUGIN_COMMAND_SKILLS = [
+  {
+    name: "init",
+    body: `---
+name: init
+description: Scaffold the SDLC workflow docs/templates into the current project via the bundled CLI (no npx). Explicit user command.
+disable-model-invocation: true
+---
+
+# /sdlc-workflow:init
+
+Run in the project root and report the summary:
+
+\`node "\${CLAUDE_PLUGIN_ROOT}/cli/bin/cli.js" init $ARGUMENTS\`
+
+- Non-destructive: existing files are skipped. Pass \`--force\` to overwrite managed docs.
+- On an existing repo it also writes \`docs/sdlc/project-profile.md\` and suggests stack rules.
+- Fallback if Node is unavailable: \`npx sdlc-workflow init\`.
+`,
+  },
+  {
+    name: "tech",
+    body: `---
+name: tech
+description: Generate stack-specific SDLC rules (or detect/list) via the bundled CLI (no npx). Pass stacks as arguments. Explicit user command.
+disable-model-invocation: true
+---
+
+# /sdlc-workflow:tech
+
+Run in the project root with the requested stacks (or \`detect\` / \`list\`):
+
+\`node "\${CLAUDE_PLUGIN_ROOT}/cli/bin/cli.js" tech $ARGUMENTS\`
+
+Examples: \`/sdlc-workflow:tech detect\` · \`/sdlc-workflow:tech java spring-boot kafka\` · \`/sdlc-workflow:tech list\`. Fallback: \`npx sdlc-workflow tech $ARGUMENTS\`.
+`,
+  },
+  {
+    name: "scan",
+    body: `---
+name: scan
+description: Scan the existing repo into docs/sdlc/project-profile.md via the bundled CLI (no npx). Explicit user command.
+disable-model-invocation: true
+---
+
+# /sdlc-workflow:scan
+
+Run in the project root:
+
+\`node "\${CLAUDE_PLUGIN_ROOT}/cli/bin/cli.js" scan\`
+
+Writes \`docs/sdlc/project-profile.md\` (languages, structure, signals, deps). Then follow \`docs/sdlc/reverse-engineering.md\` for the as-is understanding. Fallback: \`npx sdlc-workflow scan\`.
+`,
+  },
+];
 
 async function main() {
   const cwd = process.cwd();

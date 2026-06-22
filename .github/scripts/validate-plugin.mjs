@@ -41,6 +41,9 @@ for (const f of [
   "plugin/skills/workflow/SKILL.md",
   "plugin/skills/workflow/reference.md",
   "plugin/skills/scaffold/SKILL.md",
+  "plugin/skills/init/SKILL.md",
+  "plugin/skills/tech/SKILL.md",
+  "plugin/skills/scan/SKILL.md",
   "plugin/cli/bin/cli.js",
   "plugin/cli/package.json",
 ]) {

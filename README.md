@@ -160,7 +160,17 @@ This repo is also a single-plugin Claude Code **marketplace**, so you can instal
 /plugin install sdlc-workflow@sdlc-workflow
 ```
 
-**No `npx` needed:** the plugin **bundles the CLI** at `plugin/cli/bin/cli.js`. Invoking `/sdlc-workflow:scaffold` has Claude run it via `node "${CLAUDE_PLUGIN_ROOT}/cli/bin/cli.js" init|tech|scan` — offline, with the version pinned to the installed plugin (`npx` remains a fallback).
+**No `npx` needed:** the plugin **bundles the CLI** at `plugin/cli/bin/cli.js` and exposes discrete slash commands that run it offline (version pinned to the installed plugin):
+
+| Intent | Plugin command (no npx) | npx fallback |
+|--------|--------------------------|--------------|
+| Scaffold docs/templates | `/sdlc-workflow:init` (`--force` to overwrite) | `npx sdlc-workflow init` |
+| Detect / add stack rules | `/sdlc-workflow:tech detect` · `/sdlc-workflow:tech java spring-boot kafka` | `npx sdlc-workflow tech …` |
+| Scan an existing repo | `/sdlc-workflow:scan` | `npx sdlc-workflow scan` |
+| Guided setup (agent picks steps) | `/sdlc-workflow:scaffold` | — |
+| Drive the full pipeline | `/sdlc-workflow:workflow` | — |
+
+The `init`/`tech`/`scan` commands are explicit (user-triggered); `scaffold` and `workflow` are model-invocable so the agent can run them during a task. All resolve `${CLAUDE_PLUGIN_ROOT}` to the installed plugin path.
 
 Layout: `.claude-plugin/marketplace.json` (root) lists the plugin at `./plugin`, which holds `plugin/.claude-plugin/plugin.json`, `plugin/skills/`, and the bundled `plugin/cli/`. These files are generated from the CLI's source of truth — run `npx sdlc-workflow plugin` to (re)generate them.
 
