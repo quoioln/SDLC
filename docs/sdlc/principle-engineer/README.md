@@ -1,15 +1,17 @@
 # Principle Engineer
 
-**When:** After implementation (Dev) and QE testing (0 open bugs). **Before** Deploy.
+**When:** After [QE] quality gate passed. Runs **parallel** with [SEC] + [PERF]. **Before** Deploy.
 
-**Role:** Audit logic, architecture alignment, design decisions, and technical quality. Ensure correctness and consistency with specs.
+## Detailed Tasks
 
-**Fix → retest → re-audit loop:** If issues found → **Dev fixes** → **QE retests** (verify fix, no regression) → **PE re-audit**. Repeat until 0 issues remain; then sign-off to Deploy.
+- [ ] **Logic audit:** Business logic correctness, edge cases, error handling, data flow
+- [ ] **Architecture audit:** Alignment with ADRs, patterns, scalability, maintainability
+- [ ] **Report:** Findings, recommendations → docs/sdlc/principle-engineer/
 
-## Detailed tasks
+## Issue Tracking
 
-- [ ] **Read implementation**: Code, architecture ADRs, Technical BA spec
-- [ ] **Logic audit**: Business logic correctness, edge cases, error handling, data flow
-- [ ] **Architecture audit**: Alignment with ADRs, patterns, scalability, maintainability
-- [ ] **Report**: Findings, recommendations; output to `docs/sdlc/principle-engineer/`
-- [ ] **Fix → retest → re-audit loop**: If logic/arch issues found → Dev fixes → **QE retests** (confirm fix, no regression) → PE re-audit. **Repeat until 0 issues remain**; then sign-off to Deploy.
+Issue ID (PE-001...), Severity, Status, Owner.
+
+## Merge Gate
+
+Critical/High logic issues → 🔴 BLOCK → 🔁 CYCLE 1 → [DEV] fix → [QE] retest → re-audit. Max 3 cycles.

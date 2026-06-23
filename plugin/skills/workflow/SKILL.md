@@ -20,7 +20,12 @@ description: Multi-role SDLC workflow from user requirements through PO, Busines
 
 **Note:** In Cursor there is a single agent per conversation. Adopt one role per sequential phase; spawn parallel tasks for Track A and Track B.
 
-**Version control (opt-in):** If the user says "auto-commit per phase", work on `epic/{slug}` and commit at each phase gate (only after it passes) with a conventional message; report the hash; never auto-push. See ORCHESTRATION.md → Version-control checkpoints.
+**Version control (opt-in):** Phase checkpoint commits are **off by default**.
+- **Enable:** user says "auto-commit per phase" → work on `epic/{slug}`, commit at each phase gate (only after it passes), report the hash, never auto-push.
+- **Disable:** user says "stop auto-commit" → return to default (single commit at end or none).
+- **Skip one phase:** user says "skip commit this phase" → skip the checkpoint for this phase only.
+- Acknowledge the current mode (armed / disarmed) at the start of each phase.
+See ORCHESTRATION.md → Version-control checkpoints for the full toggle guide and conventional message table.
 
 **Sub-agent specs**: docs/sdlc/agents/
 

@@ -913,7 +913,12 @@ description: Multi-role SDLC workflow from user requirements through PO, Busines
 
 **Note:** In Cursor there is a single agent per conversation. Adopt one role per sequential phase; spawn parallel tasks for Track A and Track B.
 
-**Version control (opt-in):** If the user says "auto-commit per phase", work on \`epic/{slug}\` and commit at each phase gate (only after it passes) with a conventional message; report the hash; never auto-push. See ORCHESTRATION.md → Version-control checkpoints.
+**Version control (opt-in):** Phase checkpoint commits are **off by default**.
+- **Enable:** user says "auto-commit per phase" → work on \`epic/{slug}\`, commit at each phase gate (only after it passes), report the hash, never auto-push.
+- **Disable:** user says "stop auto-commit" → return to default (single commit at end or none).
+- **Skip one phase:** user says "skip commit this phase" → skip the checkpoint for this phase only.
+- Acknowledge the current mode (armed / disarmed) at the start of each phase.
+See ORCHESTRATION.md → Version-control checkpoints for the full toggle guide and conventional message table.
 
 **Sub-agent specs**: docs/sdlc/agents/
 
@@ -1300,12 +1305,23 @@ Parallel Track B: Dev complete → [QE] + [SEC] + [PERF] simultaneously → merg
 
 **Off by default.** Enable by telling the agent **"auto-commit per phase"** (aka checkpoint commits); disable with **"stop auto-commit"**. When on, the agent commits at each phase gate so you can track, review, and revert per phase.
 
+### Quick toggle
+
+| Action | What to say to the agent |
+|--------|--------------------------|
+| ✅ Enable | **"auto-commit per phase"** (optionally: "auto-commit per phase, branch base: develop") |
+| 🛑 Disable | **"stop auto-commit"** |
+| ⏸ Pause one phase | **"skip commit this phase"** |
+
+The agent acknowledges the current mode at the start of each phase so you always know whether commits are armed.
+
 ### How to use
-1. Say "auto-commit per phase" (optionally name a base branch).
+1. Say **"auto-commit per phase"** (optionally specify a base branch, e.g. "base: develop").
 2. The agent creates/uses a branch \`epic/{epic-slug}\` and commits at each phase gate.
 3. After each commit it reports the **hash** so you can review (\`git show <hash>\`) or revert (\`git revert <hash>\`).
 4. **Push and PR stay manual** — the agent never pushes or tags on its own.
-5. Say "stop auto-commit" to go back to a single commit at the end.
+5. Say **"stop auto-commit"** to return to a single commit at the end (default mode).
+6. Say **"skip commit this phase"** to skip the checkpoint for just the current phase without disabling the mode.
 
 ### Rules when enabled
 - **Branch per epic** (\`epic/{epic-slug}\` off the default branch) — never commit the pipeline straight to main/master.
