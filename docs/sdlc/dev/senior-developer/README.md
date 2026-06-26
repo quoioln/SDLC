@@ -1,6 +1,6 @@
 # Senior Developer (10+ years exp)
 
-> **Model**: Use a **cost-efficient model** (e.g. Claude Haiku) for this role. Implementation is executed from Tech Lead's detailed specs — optimizing cost while maintaining quality through clear instructions.
+> **Model (3 tiers — match the task)**: Default to a **mid-tier model** (e.g. Claude Sonnet) for logic-bearing implementation (business logic, integration, refactor, anything with branching or edge cases). Drop to a **cost-efficient model** (e.g. Claude Haiku) only for mechanical work where the spec is fully prescribed (boilerplate, CRUD, config, wiring, tests from a template, lint/format fixes). The **highest-tier model** (Opus) stays with the Tech Lead. Rationale: cheap-but-wrong on logic forces an Opus rework cycle that costs more than doing it on Sonnet once.
 
 **Responsibilities**:
 - Implement features per Tech Lead's implementation plan and Technical BA spec

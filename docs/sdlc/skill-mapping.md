@@ -1,6 +1,8 @@
 # SDLC Skill & Agent Mapping
 
-Đề xuất **skill** (gọi qua `/`) và **sub-agent** (gọi qua Agent tool) cho từng vai trò trong pipeline. Tier model theo quy ước workflow: **lead = model mạnh nhất (Opus)**, **execution = model tiết kiệm (Haiku)**.
+Đề xuất **skill** (gọi qua `/`) và **sub-agent** (gọi qua Agent tool) cho từng vai trò trong pipeline. Tier model theo quy ước workflow (3 mức, chọn theo độ khó của task): **lead = model mạnh nhất (Opus)** cho plan/logic/review; **execution logic vừa = model tầm trung (Sonnet)** cho business logic, integration, refactor; **execution cơ học = model tiết kiệm (Haiku)** cho boilerplate, CRUD, config, test theo mẫu. Đừng mặc định Haiku cho mọi việc — sai logic thì phải nhờ Opus sửa lại, tổng chi phí còn cao hơn làm đúng một lần trên Sonnet.
+
+> **Đổi model giữa session sẽ phá prompt cache.** Để tiết kiệm đúng cách: giữ mỗi agent ở một model, và **spawn sub-agent ở tier rẻ hơn** cho subtask (Tech Lead chạy Opus → giao việc cơ học cho sub-agent Haiku) thay vì đổi model của agent đang chạy.
 
 > **Lưu ý:** Tên skill/agent dưới đây theo bộ skill của Claude Code; tùy môi trường (Cursor/Codex/Antigravity) tên gọi có thể khác — ánh xạ theo *mục đích* của từng cột.
 
@@ -47,13 +49,13 @@
 | Thiết kế test suite, chiến lược ⭐ | agent `agent-skills:test-engineer` |
 | TDD/BDD plan | `/test` (test-driven-development) |
 
-> QE Lead = Opus, Senior QE = Haiku.
+> QE Lead = Opus; Senior QE = Sonnet cho test logic-bearing (E2E, integration), Haiku cho test cơ học/theo mẫu.
 
 ## Phase 5b / 7 — Dev (Tech Lead + Senior Dev)
 | Vai trò | Skill / Agent |
 |---|---|
 | **Tech Lead** (Opus): plan, review | agent `Plan`, `/plan`, `/code-review-and-quality` |
-| **Senior Dev** (Haiku): code từng bước | `/build`, `/incremental-implementation` |
+| **Senior Dev** (Sonnet cho logic, Haiku cho code cơ học): code từng bước | `/build`, `/incremental-implementation` |
 | TDD bắt buộc (coverage 100%) | `/test-driven-development` |
 | Bám docs framework | `/source-driven-development` |
 | FE | `/frontend-ui-engineering` |

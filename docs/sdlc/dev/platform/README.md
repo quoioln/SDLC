@@ -1,6 +1,6 @@
 # Senior Platform (10+ years exp) — infra, CI/CD
 
-> **Model**: Use a **cost-efficient model** (e.g. Claude Haiku). Execute from Tech Lead's specs.
+> **Model**: Default to a **mid-tier model** (e.g. Claude Sonnet) for logic-bearing work; drop to a **cost-efficient model** (e.g. Claude Haiku) for mechanical work (boilerplate, CRUD, config, wiring, tests from a template). Reserve the **highest-tier model** (Opus) for the Tech Lead. Execute from Tech Lead's specs.
 
 **Responsibilities**:
 - Implement CI/CD, infra as code, observability per spec

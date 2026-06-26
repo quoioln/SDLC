@@ -105,6 +105,8 @@ Parallel Track B: Dev complete → [QE] + [SEC] + [PERF] simultaneously → merg
 - **Senior Data/ML (10+ yrs)**: ETL, models, analytics.
 - **Senior Platform (10+ yrs)**: CI/CD, infra.
 
+**Model tier (all implementation roles, 3 mức theo độ khó):** default **mid-tier** (e.g. Sonnet) for logic-bearing work (business logic, integration, refactor, edge cases); drop to **cost-efficient** (e.g. Haiku) for mechanical work (boilerplate, CRUD, config, tests from a template). Opus stays with the Tech Lead. To realize the saving without breaking the prompt cache, spawn a cheaper-tier sub-agent for the delegated subtask rather than switching a running agent's model.
+
 **⚡ All implementation roles run in parallel** — frontend does NOT wait for backend; they coordinate via API contract from Technical BA.
 
 **Requirements**: Unit Test coverage **100%** (TDD/BDD); Clean Code, SOLID, DRY, KISS, SoC, POLS.

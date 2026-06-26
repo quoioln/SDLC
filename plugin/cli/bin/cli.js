@@ -998,6 +998,8 @@ Parallel Track B: Dev complete → [QE] + [SEC] + [PERF] simultaneously → merg
 - **Senior Data/ML (10+ yrs)**: ETL, models, analytics.
 - **Senior Platform (10+ yrs)**: CI/CD, infra.
 
+**Model tier (all implementation roles, 3 mức theo độ khó):** default **mid-tier** (e.g. Sonnet) for logic-bearing work (business logic, integration, refactor, edge cases); drop to **cost-efficient** (e.g. Haiku) for mechanical work (boilerplate, CRUD, config, tests from a template). Opus stays with the Tech Lead. To realize the saving without breaking the prompt cache, spawn a cheaper-tier sub-agent for the delegated subtask rather than switching a running agent's model.
+
 **⚡ All implementation roles run in parallel** — frontend does NOT wait for backend; they coordinate via API contract from Technical BA.
 
 **Requirements**: Unit Test coverage **100%** (TDD/BDD); Clean Code, SOLID, DRY, KISS, SoC, POLS.
@@ -1083,12 +1085,12 @@ TC-001: [Scenario] — Precondition, Steps, Expected, Links to AC
 
 ## QE Team (one folder per epic: qe/{epic-slug}/)
 - QE Lead (15+ yrs automation) — **highest model** (e.g. Opus): test strategy, framework, automation architecture, review → docs/sdlc/qe/{epic-slug}/
-- Senior QE (10+ yrs) — **cost-efficient model** (e.g. Haiku): write automation tests per QE Lead's strategy → docs/sdlc/qe/{epic-slug}/
+- Senior QE (10+ yrs) — **mid-tier model** (e.g. Sonnet) for logic-bearing tests, **cost-efficient model** (e.g. Haiku) for mechanical/templated tests: write automation tests per QE Lead's strategy → docs/sdlc/qe/{epic-slug}/
 
 ## Dev Team
 - Tech Lead (15+ yrs) — **highest model** (e.g. Opus): planning, logic, architecture decisions, code review → docs/sdlc/dev/tech-lead/
-- Senior Dev (10+ yrs) — **cost-efficient model** (e.g. Haiku): execute code from Tech Lead specs, Unit Test 100% → docs/sdlc/dev/senior-developer/
-- By project (all Senior 10+ yrs, cost-efficient model): Senior Frontend, Backend, Mobile, Embedded, Data/ML, Platform → docs/sdlc/dev/{role}/
+- Senior Dev (10+ yrs) — **mid-tier model** (e.g. Sonnet) for logic-bearing code, **cost-efficient model** (e.g. Haiku) for mechanical/templated code: execute Tech Lead specs, Unit Test 100% → docs/sdlc/dev/senior-developer/
+- By project (all Senior 10+ yrs; same 3-tier rule — Sonnet by default, Haiku for mechanical work): Senior Frontend, Backend, Mobile, Embedded, Data/ML, Platform → docs/sdlc/dev/{role}/
 
 ## Security + Principle Engineer + Performance (after implementation)
 - Security team [SEC]: OWASP Top 10, STRIDE, CVE, compliance → docs/sdlc/security/
@@ -1456,7 +1458,9 @@ Use this when adding the SDLC workflow to a codebase that already exists and may
 
 const SKILL_MAPPING_MD = `# SDLC Skill & Agent Mapping
 
-Đề xuất **skill** (gọi qua \`/\`) và **sub-agent** (gọi qua Agent tool) cho từng vai trò trong pipeline. Tier model theo quy ước workflow: **lead = model mạnh nhất (Opus)**, **execution = model tiết kiệm (Haiku)**.
+Đề xuất **skill** (gọi qua \`/\`) và **sub-agent** (gọi qua Agent tool) cho từng vai trò trong pipeline. Tier model theo quy ước workflow (3 mức, chọn theo độ khó của task): **lead = model mạnh nhất (Opus)** cho plan/logic/review; **execution logic vừa = model tầm trung (Sonnet)** cho business logic, integration, refactor; **execution cơ học = model tiết kiệm (Haiku)** cho boilerplate, CRUD, config, test theo mẫu. Đừng mặc định Haiku cho mọi việc — sai logic thì phải nhờ Opus sửa lại, tổng chi phí còn cao hơn làm đúng một lần trên Sonnet.
+
+> **Đổi model giữa session sẽ phá prompt cache.** Để tiết kiệm đúng cách: giữ mỗi agent ở một model, và **spawn sub-agent ở tier rẻ hơn** cho subtask (Tech Lead chạy Opus → giao việc cơ học cho sub-agent Haiku) thay vì đổi model của agent đang chạy.
 
 > **Lưu ý:** Tên skill/agent dưới đây theo bộ skill của Claude Code; tùy môi trường (Cursor/Codex/Antigravity) tên gọi có thể khác — ánh xạ theo *mục đích* của từng cột.
 
@@ -1503,13 +1507,13 @@ const SKILL_MAPPING_MD = `# SDLC Skill & Agent Mapping
 | Thiết kế test suite, chiến lược ⭐ | agent \`agent-skills:test-engineer\` |
 | TDD/BDD plan | \`/test\` (test-driven-development) |
 
-> QE Lead = Opus, Senior QE = Haiku.
+> QE Lead = Opus; Senior QE = Sonnet cho test logic-bearing (E2E, integration), Haiku cho test cơ học/theo mẫu.
 
 ## Phase 5b / 7 — Dev (Tech Lead + Senior Dev)
 | Vai trò | Skill / Agent |
 |---|---|
 | **Tech Lead** (Opus): plan, review | agent \`Plan\`, \`/plan\`, \`/code-review-and-quality\` |
-| **Senior Dev** (Haiku): code từng bước | \`/build\`, \`/incremental-implementation\` |
+| **Senior Dev** (Sonnet cho logic, Haiku cho code cơ học): code từng bước | \`/build\`, \`/incremental-implementation\` |
 | TDD bắt buộc (coverage 100%) | \`/test-driven-development\` |
 | Bám docs framework | \`/source-driven-development\` |
 | FE | \`/frontend-ui-engineering\` |
@@ -2215,7 +2219,7 @@ const QE_LEAD_README = `# QE Lead (15+ years exp in test automation)
 
 const QE_SENIOR_README = `# Senior QE (10+ years exp)
 
-> **Model**: Use a **cost-efficient model** (e.g. Claude Haiku). Execute test implementation from QE Lead's strategy and specs.
+> **Model (3 tiers — match the task)**: Default to a **mid-tier model** (e.g. Claude Sonnet) for logic-bearing tests (E2E flows, integration, data setup, assertions with branching). Drop to a **cost-efficient model** (e.g. Claude Haiku) for mechanical tests where the case is fully prescribed (repetitive cases from a template, simple smoke/CRUD checks). The **highest-tier model** (Opus) stays with the QE Lead. Execute test implementation from QE Lead's strategy and specs.
 
 **Responsibilities**:
 - Write automation tests per test plan
@@ -2402,7 +2406,7 @@ const DEV_TECH_LEAD_README = `# Tech Lead (15+ years exp)
 
 const DEV_SENIOR_README = `# Senior Developer (10+ years exp)
 
-> **Model**: Use a **cost-efficient model** (e.g. Claude Haiku) for this role. Implementation is executed from Tech Lead's detailed specs — optimizing cost while maintaining quality through clear instructions.
+> **Model (3 tiers — match the task)**: Default to a **mid-tier model** (e.g. Claude Sonnet) for logic-bearing implementation (business logic, integration, refactor, anything with branching or edge cases). Drop to a **cost-efficient model** (e.g. Claude Haiku) only for mechanical work where the spec is fully prescribed (boilerplate, CRUD, config, wiring, tests from a template, lint/format fixes). The **highest-tier model** (Opus) stays with the Tech Lead. Rationale: cheap-but-wrong on logic forces an Opus rework cycle that costs more than doing it on Sonnet once.
 
 **Responsibilities**:
 - Implement features per Tech Lead's implementation plan and Technical BA spec
@@ -2424,14 +2428,19 @@ const DEV_IMPLEMENTATION_ROLES_TEMPLATE = `# Implementation roles by project typ
 
 Use only the roles that apply. Remove or ignore the rest. Tech Lead is cross-cutting; add discipline roles as needed.
 
-## Model optimization strategy
+## Model optimization strategy (3 tiers)
 
-| Role | Model tier | Why |
-|------|-----------|-----|
-| Tech Lead | **Highest** (e.g. Opus) | Planning, logic analysis, architecture decisions, code review |
-| All implementation roles | **Cost-efficient** (e.g. Haiku) | Execute code from Tech Lead's detailed specs |
+Pick the model by **task difficulty**, not by a fixed per-role rule:
 
-Tech Lead defines all critical steps, logic, and specs first → implementation roles execute them. This maximizes quality on thinking while reducing cost on execution.
+| Role / task | Model tier | Why |
+|-------------|-----------|-----|
+| Tech Lead (lead) | **Highest** (e.g. Opus) | Planning, logic analysis, architecture decisions, code review |
+| Implementation — **logic-bearing** (business logic, integration, refactor, branching/edge cases) | **Mid-tier** (e.g. Sonnet) | Needs real reasoning; cheap-but-wrong here forces an Opus rework cycle that costs more |
+| Implementation — **mechanical** (boilerplate, CRUD, config, wiring, tests from a template, lint/format fixes) | **Cost-efficient** (e.g. Haiku) | Spec is fully prescribed → just execute; cheapest tier is enough |
+
+Tech Lead defines all critical steps, logic, and specs first → implementation roles execute them. **Default implementation to the mid-tier (Sonnet) and drop to Haiku only when the work is purely mechanical** — this maximizes quality on thinking, keeps a safe default on execution, and reserves the cheapest tier for work that genuinely can't go wrong. Avoid defaulting everything to Haiku: the rework loop (Haiku writes → Opus fixes) usually costs more than getting it right once on Sonnet.
+
+> **Switching models mid-session breaks the prompt cache.** To realize these savings cleanly, keep one agent on one model and **spawn a sub-agent on the cheaper tier** for the delegated subtask (the Tech Lead, on Opus, dispatches mechanical work to a Haiku sub-agent) rather than swapping the model of a running agent.
 
 > **All roles must satisfy [Developer Quality Rules](./quality-rules.md) before opening a PR** (DoD, test quality, type-safety, error handling, performance budget, security, and i18n for UI). Tech Lead enforces it at review.
 
@@ -2463,7 +2472,7 @@ Tech Lead defines all critical steps, logic, and specs first → implementation 
 
 const DEV_FRONTEND_README = `# Senior Frontend (10+ years exp) — Web UI
 
-> **Model**: Use a **cost-efficient model** (e.g. Claude Haiku). Execute from Tech Lead's specs.
+> **Model**: Default to a **mid-tier model** (e.g. Claude Sonnet) for logic-bearing work; drop to a **cost-efficient model** (e.g. Claude Haiku) for mechanical work (boilerplate, CRUD, config, wiring, tests from a template). Reserve the **highest-tier model** (Opus) for the Tech Lead. Execute from Tech Lead's specs.
 
 **Responsibilities**:
 - Implement web UI per design and API contract
@@ -2483,7 +2492,7 @@ const DEV_FRONTEND_README = `# Senior Frontend (10+ years exp) — Web UI
 
 const DEV_BACKEND_README = `# Senior Backend (10+ years exp) — API, services
 
-> **Model**: Use a **cost-efficient model** (e.g. Claude Haiku). Execute from Tech Lead's specs.
+> **Model**: Default to a **mid-tier model** (e.g. Claude Sonnet) for logic-bearing work; drop to a **cost-efficient model** (e.g. Claude Haiku) for mechanical work (boilerplate, CRUD, config, wiring, tests from a template). Reserve the **highest-tier model** (Opus) for the Tech Lead. Execute from Tech Lead's specs.
 
 **Responsibilities**:
 - Implement API, services, DB layer per Technical BA spec
@@ -2503,7 +2512,7 @@ const DEV_BACKEND_README = `# Senior Backend (10+ years exp) — API, services
 
 const DEV_MOBILE_README = `# Senior Mobile (10+ years exp) — iOS / Android / cross-platform
 
-> **Model**: Use a **cost-efficient model** (e.g. Claude Haiku). Execute from Tech Lead's specs.
+> **Model**: Default to a **mid-tier model** (e.g. Claude Sonnet) for logic-bearing work; drop to a **cost-efficient model** (e.g. Claude Haiku) for mechanical work (boilerplate, CRUD, config, wiring, tests from a template). Reserve the **highest-tier model** (Opus) for the Tech Lead. Execute from Tech Lead's specs.
 
 **Responsibilities**:
 - Implement app UI and API integration per spec
@@ -2523,7 +2532,7 @@ const DEV_MOBILE_README = `# Senior Mobile (10+ years exp) — iOS / Android / c
 
 const DEV_EMBEDDED_README = `# Senior Embedded (10+ years exp) — firmware, IoT
 
-> **Model**: Use a **cost-efficient model** (e.g. Claude Haiku). Execute from Tech Lead's specs.
+> **Model**: Default to a **mid-tier model** (e.g. Claude Sonnet) for logic-bearing work; drop to a **cost-efficient model** (e.g. Claude Haiku) for mechanical work (boilerplate, CRUD, config, wiring, tests from a template). Reserve the **highest-tier model** (Opus) for the Tech Lead. Execute from Tech Lead's specs.
 
 **Responsibilities**:
 - Implement firmware, drivers, hardware interfaces per spec
@@ -2542,7 +2551,7 @@ const DEV_EMBEDDED_README = `# Senior Embedded (10+ years exp) — firmware, IoT
 
 const DEV_DATA_ML_README = `# Senior Data/ML (10+ years exp)
 
-> **Model**: Use a **cost-efficient model** (e.g. Claude Haiku). Execute from Tech Lead's specs.
+> **Model**: Default to a **mid-tier model** (e.g. Claude Sonnet) for logic-bearing work; drop to a **cost-efficient model** (e.g. Claude Haiku) for mechanical work (boilerplate, CRUD, config, wiring, tests from a template). Reserve the **highest-tier model** (Opus) for the Tech Lead. Execute from Tech Lead's specs.
 
 **Responsibilities**:
 - Implement ETL, models, analytics pipelines per spec
@@ -2562,7 +2571,7 @@ const DEV_DATA_ML_README = `# Senior Data/ML (10+ years exp)
 
 const DEV_PLATFORM_README = `# Senior Platform (10+ years exp) — infra, CI/CD
 
-> **Model**: Use a **cost-efficient model** (e.g. Claude Haiku). Execute from Tech Lead's specs.
+> **Model**: Default to a **mid-tier model** (e.g. Claude Sonnet) for logic-bearing work; drop to a **cost-efficient model** (e.g. Claude Haiku) for mechanical work (boilerplate, CRUD, config, wiring, tests from a template). Reserve the **highest-tier model** (Opus) for the Tech Lead. Execute from Tech Lead's specs.
 
 **Responsibilities**:
 - Implement CI/CD, infra as code, observability per spec

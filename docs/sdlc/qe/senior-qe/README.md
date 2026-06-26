@@ -1,6 +1,6 @@
 # Senior QE (10+ years exp)
 
-> **Model**: Use a **cost-efficient model** (e.g. Claude Haiku). Execute test implementation from QE Lead's strategy and specs.
+> **Model (3 tiers — match the task)**: Default to a **mid-tier model** (e.g. Claude Sonnet) for logic-bearing tests (E2E flows, integration, data setup, assertions with branching). Drop to a **cost-efficient model** (e.g. Claude Haiku) for mechanical tests where the case is fully prescribed (repetitive cases from a template, simple smoke/CRUD checks). The **highest-tier model** (Opus) stays with the QE Lead. Execute test implementation from QE Lead's strategy and specs.
 
 **Responsibilities**:
 - Write automation tests per test plan

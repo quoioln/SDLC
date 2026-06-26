@@ -39,12 +39,12 @@ TC-001: [Scenario] — Precondition, Steps, Expected, Links to AC
 
 ## QE Team (one folder per epic: qe/{epic-slug}/)
 - QE Lead (15+ yrs automation) — **highest model** (e.g. Opus): test strategy, framework, automation architecture, review → docs/sdlc/qe/{epic-slug}/
-- Senior QE (10+ yrs) — **cost-efficient model** (e.g. Haiku): write automation tests per QE Lead's strategy → docs/sdlc/qe/{epic-slug}/
+- Senior QE (10+ yrs) — **mid-tier model** (e.g. Sonnet) for logic-bearing tests, **cost-efficient model** (e.g. Haiku) for mechanical/templated tests: write automation tests per QE Lead's strategy → docs/sdlc/qe/{epic-slug}/
 
 ## Dev Team
 - Tech Lead (15+ yrs) — **highest model** (e.g. Opus): planning, logic, architecture decisions, code review → docs/sdlc/dev/tech-lead/
-- Senior Dev (10+ yrs) — **cost-efficient model** (e.g. Haiku): execute code from Tech Lead specs, Unit Test 100% → docs/sdlc/dev/senior-developer/
-- By project (all Senior 10+ yrs, cost-efficient model): Senior Frontend, Backend, Mobile, Embedded, Data/ML, Platform → docs/sdlc/dev/{role}/
+- Senior Dev (10+ yrs) — **mid-tier model** (e.g. Sonnet) for logic-bearing code, **cost-efficient model** (e.g. Haiku) for mechanical/templated code: execute Tech Lead specs, Unit Test 100% → docs/sdlc/dev/senior-developer/
+- By project (all Senior 10+ yrs; same 3-tier rule — Sonnet by default, Haiku for mechanical work): Senior Frontend, Backend, Mobile, Embedded, Data/ML, Platform → docs/sdlc/dev/{role}/
 
 ## Security + Principle Engineer + Performance (after implementation)
 - Security team [SEC]: OWASP Top 10, STRIDE, CVE, compliance → docs/sdlc/security/
