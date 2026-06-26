@@ -473,13 +473,13 @@ Writes \`docs/sdlc/project-profile.md\` (languages, structure, signals, deps). T
 // (Claude does the work per the scaffolded role docs), not CLI wrappers — the
 // way to "execute" a role (e.g. QE testing) from the plugin.
 const PLUGIN_PHASE_COMMANDS = [
-  { name: "po", title: "Product Owner", description: "Run the Product Owner phase: PRD, user stories, feasibility, measurable success metrics for an epic.", readme: "po/README.md", reads: "the idea / feature request", out: "docs/sdlc/po/{epic-slug}/" },
-  { name: "ba", title: "Business BA", description: "Run the Business BA phase: functional + non-functional requirements, Gherkin acceptance criteria, process flows, traceability.", readme: "ba/business/README.md", reads: "the PO outputs in docs/sdlc/po/{epic-slug}/", out: "docs/sdlc/ba/business/{epic-slug}/" },
+  { name: "po", title: "Product Owner", description: "Run the Product Owner phase: PRD, user stories, feasibility, measurable success metrics for an epic.", readme: "po/README.md", reads: "the idea / feature request", out: "docs/sdlc/po/{epic-slug}/", extra: "First run the Analysis lenses in po/README.md (Jobs-to-be-Done, 5 Whys, Impact Mapping, Opportunity-Solution Tree, assumption mapping, Kano, RICE/WSJF) — methods first, then write. Classify the domain and pull obligations from docs/sdlc/domain-packs.md into intake (compliance + must-have requirements + domain risks)." },
+  { name: "ba", title: "Business BA", description: "Run the Business BA phase: functional + non-functional requirements, Gherkin acceptance criteria, process flows, traceability.", readme: "ba/business/README.md", reads: "the PO outputs in docs/sdlc/po/{epic-slug}/", out: "docs/sdlc/ba/business/{epic-slug}/", extra: "First run the Analysis lenses in ba/business/README.md (Event Storming, decision tables, state machines, CRUD/authority matrix, edge-case taxonomy, data-flow + classification). For the epic's domain(s), turn each applicable row of docs/sdlc/domain-packs.md into FR/NFR + Gherkin AC + a compliance-matrix entry (regulation <-> requirement ID <-> test ID)." },
   { name: "design", title: "Design / UX", description: "Run the Design/UX phase (app/web): design spec, all UI states, WCAG 2.1 AA, i18n-ready, anti-AI aesthetics; PO+BA review.", readme: "design/README.md", reads: "the PO + Business BA outputs", out: "docs/sdlc/design/{epic-slug}/" },
   { name: "architect", title: "Architect", description: "Run the Architect phase: ADRs (with alternatives + trade-offs), C4 diagrams, security & observability by design, fitness functions.", readme: "architecture/README.md", reads: "Business BA (+ Design if app/web)", out: "docs/sdlc/architecture/" },
   { name: "tech-ba", title: "Technical BA", description: "Run the Technical BA phase: API specs (OpenAPI), DB schema, team breakdown, traceability to FRs.", readme: "ba/technical/README.md", reads: "the Architect (+ Design) outputs", out: "docs/sdlc/ba/technical/" },
   { name: "dev", title: "Dev (Tech Lead + Senior)", description: "Run the Dev phase: implement per spec with the full quality bar, 100% tests, and the living feature guideline.", readme: "dev/tech-lead/README.md", reads: "the Technical BA spec; the rules in docs/sdlc/dev/quality-rules.md and any docs/sdlc/dev/tech/ stack files", out: "code + tests; notes in docs/sdlc/dev/{role}/" },
-  { name: "test", title: "QE (test execution)", description: "Run the QE phase: test plan/cases, execute unit/integration/E2E + visual-regression & layout checks, capture evidence, run the bug-fix loop to zero bugs, UAT + sign-off.", readme: "qe/README.md", reads: "the Technical BA spec, the implemented code, and the QE rules in qe/qe-lead/README.md + qe/senior-qe/README.md", out: "docs/sdlc/qe/{epic-slug}/ — test-plan, test-cases, automation, evidence/ (screenshots/video/trace + report), uat-results, sign-off", extra: "Use provisioned test accounts/data (secrets from env/CI, never hardcoded; seed + isolate + clean up). Verify no broken/misaligned layout, dropped columns, or broken inputs (visual regression + layout-integrity assertions per breakpoint). Loop with Dev until 0 open bugs, then sign off." },
+  { name: "test", title: "QE (test execution)", description: "Run the QE phase: test plan/cases, execute unit/integration/E2E + visual-regression & layout checks, capture evidence, run the bug-fix loop to zero bugs, UAT + sign-off.", readme: "qe/README.md", reads: "the Technical BA spec, the implemented code, and the QE rules in qe/qe-lead/README.md + qe/senior-qe/README.md", out: "docs/sdlc/qe/{epic-slug}/ — test-plan, test-cases, automation, evidence/ (screenshots/video/trace + report), uat-results, sign-off", extra: "Use provisioned test accounts/data (secrets from env/CI, never hardcoded; seed + isolate + tear down test data/accounts after the run). Cleanup is scoped to test data/accounts ONLY — evidence (screenshots/video/trace/report) is a deliverable: keep it in qe/{epic-slug}/evidence/, never delete it (even on passing runs). Verify no broken/misaligned layout, dropped columns, or broken inputs (visual regression + layout-integrity assertions per breakpoint). Loop with Dev until 0 open bugs, then sign off." },
   { name: "security", title: "Security + Principle Engineer + Performance", description: "Run the audit phase: OWASP/STRIDE/CVE, logic/architecture audit, performance (p95, N+1) with the remediation loop.", readme: "security/README.md", reads: "the implemented code and architecture", out: "docs/sdlc/security/ and docs/sdlc/principle-engineer/", extra: "Give every finding an issue ID; loop Dev fix -> QE retest -> re-audit until 0 Critical/High (max 3 cycles)." },
   { name: "deploy", title: "OPS (deploy)", description: "Run the Deploy phase: Docker Compose + Kubernetes + IaC after sign-off.", readme: "deploy/README.md", reads: "the security/PE sign-off", out: "docs/sdlc/deploy/" },
   { name: "guideline", title: "Technical Writer (guideline)", description: "Write or update the living feature guideline for a new or changed feature (Definition of Done).", readme: "guideline/README.md", reads: "the feature's PO/BA/Technical BA docs and the implemented behavior", out: "docs/sdlc/guideline/{epic-slug}.md + index" },
@@ -758,6 +758,7 @@ async function generateFromInline(cwd) {
     ["ORCHESTRATION.md", ORCHESTRATION_MD],
     ["reference.md", REFERENCE_MD],
     ["skill-mapping.md", SKILL_MAPPING_MD],
+    ["domain-packs.md", DOMAIN_PACKS_MD],
     ["ADOPTION.md", ADOPTION_MD],
     ["reverse-engineering.md", REVERSE_ENGINEERING_MD],
     ["po/epic-brief.template.md", PO_EPIC_TEMPLATE],
@@ -1469,14 +1470,18 @@ const SKILL_MAPPING_MD = `# SDLC Skill & Agent Mapping
 ## Phase 1 — PO (Product Owner) · Opus
 | Mục đích | Skill / Agent |
 |---|---|
-| Tinh chỉnh ý tưởng thô | \`/idea-refine\` |
+| **Phân tích bài bản (built-in, không cần cài)** ⭐ | \`/sdlc-workflow:po\` → chạy **Analysis lenses** trong \`po/README.md\` (JTBD, 5 Whys, Impact Mapping, Opportunity-Solution Tree, assumption mapping, Kano, RICE/WSJF) |
+| **Tuân thủ theo ngành (built-in)** | \`domain-packs.md\` — phân loại domain → kéo nghĩa vụ compliance + must-have requirements |
+| Tinh chỉnh ý tưởng thô (external, nếu đã cài) | \`/idea-refine\` |
 | Đào yêu cầu khi đề bài mơ hồ ("build me X") | \`/interview-me\` |
 | Viết spec/PRD có cấu trúc | \`/spec\` (spec-driven-development) |
 
 ## Phase 2 — Business BA
 | Mục đích | Skill / Agent |
 |---|---|
-| FRS, NFR, use case dạng spec | \`/spec\` (spec-driven-development) |
+| **Phân tích bài bản (built-in, không cần cài)** ⭐ | \`/sdlc-workflow:ba\` → chạy **Analysis lenses** trong \`ba/business/README.md\` (Event Storming, decision tables, state machine, CRUD/authority matrix, edge-case taxonomy, data-flow + classification) |
+| **Compliance matrix theo ngành (built-in)** | \`domain-packs.md\` → mỗi dòng áp dụng thành FR/NFR + Gherkin AC + entry (regulation ↔ requirement ↔ test) |
+| FRS, NFR, use case dạng spec (external) | \`/spec\` (spec-driven-development) |
 | Ghi lại quyết định nghiệp vụ | \`/documentation-and-adrs\` |
 
 ## Phase 3 — Design / UX (chỉ app/web)
@@ -1838,6 +1843,74 @@ Must have / Should have / Could have
 - ...
 `;
 
+const DOMAIN_PACKS_MD = `# Domain packs — industry analysis & compliance
+
+Self-contained reference for **PO** (intake/feasibility) and **Business BA** (requirements/compliance). When an epic touches one of these domains, **apply the matching pack**: pull its must-have requirements into the FRS/NFR, map its regulations in the compliance matrix, and add its risks to the assumptions/risk log. No external plugin or skill is required — this is the checklist.
+
+> **How to use:** 1) PO classifies the domain(s) at intake and flags obligations early. 2) BA turns each applicable row into concrete FR/NFR + Gherkin AC + a compliance-matrix entry (regulation ↔ requirement ↔ test). 3) If a domain is not listed, reuse the closest pack and note the gap in the assumptions log.
+
+## Quick domain classifier
+Pick all that apply by what the system **does with data/money/people**:
+- Moves or stores **money / cardholder data** → Fintech / Payments
+- Handles **patient / health** data → Healthcare
+- Sells goods, **cart + checkout + fulfilment** → E-commerce / Retail
+- **Multi-tenant subscription** software → SaaS / B2B
+- **Children / students** as users → EdTech (+ minors)
+- **Citizen services / records** → Government / Public sector
+- **Devices / firmware / telemetry** → IoT / Embedded
+- **Ad targeting / tracking** → AdTech
+
+## Packs
+
+### Fintech / Payments
+- **Regulations**: PCI-DSS (card data), PSD2/SCA (EU strong customer auth), KYC/AML, SOX (if listed), local e-money licensing.
+- **Must-have requirements**: never store full PAN/CVV (tokenize/vault); **idempotency keys** on every money-moving call; **double-entry ledger** + immutable audit trail; reconciliation job; transaction state machine (pending→authorized→captured→settled→refunded/failed); per-currency rounding rules; limits/velocity checks; fraud-risk hooks.
+- **NFR**: strong consistency on balances; p99 latency budget on auth; RPO≈0 for ledger; segregation of duties.
+- **Risks to log**: double-spend / race on debit; partial failure between payment provider and ledger; chargeback handling.
+
+### Healthcare
+- **Regulations**: HIPAA (US), GDPR special-category data (EU), HL7/FHIR interop, HITECH, local medical-device rules if clinical.
+- **Must-have requirements**: PHI access control (role + purpose); **break-glass** access with audit; consent management; de-identification for analytics; audit log of every PHI read/write; data retention + legal hold.
+- **NFR**: encryption at rest/in transit; availability for clinical workflows; auditability.
+- **Risks**: over-broad PHI access; analytics leaking re-identifiable data; consent not enforced downstream.
+
+### E-commerce / Retail
+- **Regulations**: PCI-DSS (payments), consumer-protection / distance-selling, tax (VAT/GST) by jurisdiction, GDPR/CCPA for accounts.
+- **Must-have requirements**: cart + **inventory reservation** (oversell prevention); checkout state machine; pricing/promo/coupon rules with precedence; tax + shipping calculation; **refund / return / cancellation** flows; order-status notifications; idempotent order placement.
+- **NFR**: peak-load (sale events) scaling; cart availability; eventual consistency where safe, strong on stock decrement.
+- **Risks**: oversell on concurrent checkout; promo stacking abuse; tax miscalculation by region.
+
+### SaaS / B2B (multi-tenant)
+- **Regulations**: SOC2, GDPR/CCPA (DPA, sub-processors), data residency, ISO 27001.
+- **Must-have requirements**: **tenant isolation** (row/schema/DB) stated explicitly; RBAC + org/role model; SSO/SCIM provisioning; per-tenant config & limits; usage metering/billing; audit log per tenant; data export + **right-to-erasure**.
+- **NFR**: noisy-neighbor isolation; per-tenant rate limits; backup/restore per tenant.
+- **Risks**: cross-tenant data leak; tenant-scoped queries missing a filter; billing drift.
+
+### EdTech (+ minors)
+- **Regulations**: COPPA (US, under-13), FERPA (US student records), GDPR-K (EU minors), local age-of-consent.
+- **Must-have requirements**: age gate + verifiable parental consent; minimized data collection; no behavioral ad targeting to minors; guardian/teacher roles; content-safety controls.
+- **Risks**: collecting PII from minors without consent; third-party SDKs tracking minors.
+
+### Government / Public sector
+- **Regulations**: accessibility mandates (WCAG 2.1 AA / Section 508 / EN 301 549), records-retention law, FOIA/transparency, data-sovereignty.
+- **Must-have requirements**: full accessibility; audit & records retention; identity assurance levels; multilingual where mandated; open-data/export.
+- **Risks**: accessibility non-compliance; records not retained per schedule.
+
+### IoT / Embedded
+- **Regulations**: device-security baselines (e.g. ETSI EN 303 645), radio/safety certs, data-protection for telemetry.
+- **Must-have requirements**: secure boot + signed OTA updates; device identity/provisioning; offline/degraded operation; telemetry schema + backpressure; remote revocation.
+- **NFR**: power/memory budgets; OTA rollback; connectivity-loss resilience.
+- **Risks**: unsigned firmware; fleet-wide bad update; telemetry flooding.
+
+### AdTech
+- **Regulations**: GDPR/ePrivacy consent (TCF), CCPA opt-out, platform tracking policies (ATT).
+- **Must-have requirements**: consent capture + propagation; opt-out honoring end-to-end; data-minimization; frequency capping; auditability of targeting.
+- **Risks**: tracking without consent; opt-out not enforced in downstream pipelines.
+
+---
+**Cross-domain baseline (always apply):** data classification (PII/sensitive) + retention; encryption in transit/at rest; authn/authz model; audit logging of sensitive actions; GDPR/CCPA data-subject rights (access, erasure, portability) if any personal data is processed.
+`;
+
 const PO_README = `# PO (Product Owner)
 
 **One folder per epic/feature.** Do not put all epics in one file.
@@ -1845,6 +1918,19 @@ const PO_README = `# PO (Product Owner)
 - Create a folder per epic: \`docs/sdlc/po/{epic-slug}/\`
 - Folder name = epic/feature slug (e.g. \`job-scheduler-event-bus\`, \`user-auth\`).
 - Inside that folder: \`epic-brief.md\`, \`user-stories.md\`, \`prd.md\` (or similar) for that epic only.
+
+## Analysis lenses (run these BEFORE writing the brief)
+
+Apply each lens explicitly — these are the *methods*, the checklist below is the *output*. Don't skip to solutions.
+
+- [ ] **Jobs-to-be-Done**: Frame the need as "When [situation], I want to [motivation], so I can [outcome]." Separate the **job** from any proposed solution. A feature that doesn't serve a job is a non-goal.
+- [ ] **5 Whys / root cause**: Drill the stated problem down to its underlying cause before scoping — you often solve a different (cheaper) problem than first asked.
+- [ ] **Impact Mapping**: Goal → Actors → Impacts (the behaviour change you want) → Deliverables. Every proposed deliverable must trace back to a measurable goal; cut the ones that don't.
+- [ ] **Opportunity–Solution Tree**: Outcome → Opportunities (real user needs) → candidate Solutions → Experiments. Forces ≥2 options per opportunity instead of locking the first idea.
+- [ ] **Assumption mapping**: List assumptions; plot desirability × viability × feasibility against evidence; the **riskiest, least-evidenced** assumption is what you validate first (cheapest test).
+- [ ] **Kano**: Classify each candidate feature as Basic / Performance / Delighter to size the MVP honestly (Basics are non-negotiable; defer Delighters).
+- [ ] **Prioritisation scoring**: Quantify with **RICE** (Reach × Impact × Confidence ÷ Effort) or **WSJF** (Cost of Delay ÷ Job Size) — not MoSCoW alone.
+- [ ] **Domain pack**: Classify the domain(s) and pull obligations from [domain-packs.md](../domain-packs.md) into intake (compliance, must-have requirements, domain risks). Flag GDPR/PCI/HIPAA/COPPA/etc. **now**, not at build time.
 
 ## Detailed tasks
 
@@ -1931,6 +2017,18 @@ docs/sdlc/ba/business/
   user-auth/
     functional-requirements.md
 \`\`\`
+
+## Analysis lenses (run these BEFORE writing FRs)
+
+Apply each lens explicitly to find requirements you'd otherwise miss. These are the *methods*; the checklist below is the *output*.
+
+- [ ] **Event Storming / process decomposition**: Map domain events ("OrderPlaced"), the commands that cause them, the actors, and the aggregates — before writing FRs. Surfaces flows and rules that prose requirements hide.
+- [ ] **Decision tables**: For any rule with multiple conditions, build an exhaustive condition × action matrix. The empty cells are your missing requirements / undefined behaviour.
+- [ ] **State machine per key entity**: Enumerate states, allowed transitions, and guards. Any transition not listed is explicitly forbidden — write that as a rule.
+- [ ] **CRUD / authority matrix**: Actor × Entity × operation (Create/Read/Update/Delete). Each cell is an authz requirement; blanks reveal missing permission rules.
+- [ ] **Edge-case taxonomy** (per input/field): boundary, null/empty, max length/size, wrong type, duplicate, **concurrency/race**, idempotency, partial failure, timeout. Each becomes a negative AC.
+- [ ] **Data-flow + classification**: Trace each data element source → store → sink; classify PII/sensitivity and retention at each hop (feeds the data dictionary + compliance matrix).
+- [ ] **Domain pack**: For the epic's domain(s), turn each applicable row of [domain-packs.md](../../domain-packs.md) into concrete FR/NFR + Gherkin AC, and add a **compliance-matrix** entry: regulation ↔ requirement ID ↔ test ID.
 
 ## Detailed tasks
 
@@ -2161,7 +2259,7 @@ const QE_README = `# QE (Quality Engineering)
 - [ ] **QE Lead**: Test strategy, framework, review test code
 - [ ] **Senior QE**: Write automation tests per test plan
 - [ ] **UAT (User Acceptance Testing)**: Verify against original user stories and acceptance criteria from PO; confirm business requirements are met from end-user perspective. Document UAT results in \`qe/{epic-slug}/uat-results.md\`
-- [ ] **Test accounts & data**: Provision per-environment test accounts/roles (secrets via env/CI store, never hardcoded); seed + isolate + clean up test data (no prod data/PII)
+- [ ] **Test accounts & data**: Provision per-environment test accounts/roles (secrets via env/CI store, never hardcoded); seed + isolate + clean up **test data** (no prod data/PII). Cleanup is scoped to data/accounts only — **evidence (screenshots/video/trace) is kept, never deleted**
 - [ ] **Evidence**: Capture screenshot/video/trace for UI/E2E (request-response logs for API), publish an HTML report, retain as CI artifacts linked to TC IDs → \`qe/{epic-slug}/evidence/\`
 - [ ] **Bug-fix loop**: If bugs or test failures found → **Dev fixes** → **QE retests**. **Repeat until all tests pass and UAT approved (0 open bugs)**. Only then → handoff to Security + PE
 - [ ] **Sign-off**: Regression pass, coverage met, UAT approved, evidence attached, 0 open bugs → release readiness in \`qe/{epic-slug}/\`
@@ -2210,7 +2308,7 @@ const QE_LEAD_README = `# QE Lead (15+ years exp in test automation)
 - [ ] **Quality gates**: Define thresholds (coverage, required suites before merge), regression criteria
 - [ ] **UI / E2E browser strategy**: Cross-browser (Chromium/Firefox/WebKit), headed vs headless, viewport/responsive, **stable selectors** (role/test-id, not brittle CSS); decide which journeys are E2E vs API-level
 - [ ] **Test account & data provisioning**: Define per-environment **test accounts/roles** and how they are provisioned; **secrets via secure store / CI secrets — never hardcoded or committed**; **test-data strategy** (seed fixtures, isolation per run, teardown/cleanup, no prod data/PII)
-- [ ] **Evidence policy**: Require **screenshot on failure, video, and trace** for E2E; publish an **HTML test report**; retain all as **CI artifacts** linked to TC IDs; define retention period
+- [ ] **Evidence policy**: Require **screenshot on failure, video, and trace** for E2E; publish an **HTML test report**; retain all as **CI artifacts** linked to TC IDs; define retention period. **Evidence is a deliverable — never delete screenshots/video/trace, even on green runs; only test data/accounts are torn down (see test-data strategy above).**
 - [ ] **Visual regression**: Baseline screenshot + diff (with tolerance) **per breakpoint**; tool (Playwright \`toHaveScreenshot\` / Percy / Chromatic / Applitools); baselines are **review-gated**; mask dynamic regions (dates, avatars) to avoid flake
 - [ ] **Layout integrity assertions**: No overflow/clipping, no overlapping elements, **no horizontal scroll**, correct column count/alignment per breakpoint, elements within viewport; wait for fonts/images before asserting
 - [ ] **Responsive & resilience matrix**: Viewport set (mobile/tablet/desktop) × cross-browser; verify **long-text / i18n (+30–40%)** and **200% zoom** don't break the layout (ties to i18n + a11y)
@@ -2232,8 +2330,8 @@ const QE_SENIOR_README = `# Senior QE (10+ years exp)
 - [ ] **Implement E2E tests**: UI flows, critical paths per QE Lead's framework
 - [ ] **Implement API/integration tests**: Request/response, contracts
 - [ ] **Implement regression suite**: Add to CI; ensure stability (retries, waits)
-- [ ] **Use provisioned test accounts/data**: Read credentials from env / CI secrets (never hardcode); seed required test data and clean up after the run
-- [ ] **Capture evidence**: Screenshot on failure, video, and trace for UI/E2E; request-response logs for API; attach to the HTML report and link to TC IDs → \`qe/{epic-slug}/evidence/\`
+- [ ] **Use provisioned test accounts/data**: Read credentials from env / CI secrets (never hardcode); seed required test data and **tear down the test data/accounts** after the run. **Cleanup is scoped to test data/accounts only — NEVER delete evidence (screenshots/video/trace/report).**
+- [ ] **Capture evidence**: Screenshot on failure, video, and trace for UI/E2E; request-response logs for API; attach to the HTML report and link to TC IDs → \`qe/{epic-slug}/evidence/\`. **Evidence is a deliverable — keep it after the run (even on green/passing runs); do not delete.**
 - [ ] **Form / input integrity**: Every field renders; **label↔control** association; validation + error states shown; focus/tab order; disabled/readonly; no overlap or clipping
 - [ ] **Visual & layout checks**: Run visual-regression + layout-integrity assertions in CI per breakpoint; on diff, save **baseline / actual / diff** images as artifacts linked to TC IDs
 - [ ] **a11y tree (axe)**: Run an accessibility scan (heading order, landmarks, labels) as a semantic-layout guard

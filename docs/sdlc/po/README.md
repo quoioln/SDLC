@@ -6,6 +6,19 @@
 - Folder name = epic/feature slug (e.g. `job-scheduler-event-bus`, `user-auth`).
 - Inside that folder: `epic-brief.md`, `user-stories.md`, `prd.md` (or similar) for that epic only.
 
+## Analysis lenses (run these BEFORE writing the brief)
+
+Apply each lens explicitly — these are the *methods*, the checklist below is the *output*. Don't skip to solutions.
+
+- [ ] **Jobs-to-be-Done**: Frame the need as "When [situation], I want to [motivation], so I can [outcome]." Separate the **job** from any proposed solution. A feature that doesn't serve a job is a non-goal.
+- [ ] **5 Whys / root cause**: Drill the stated problem down to its underlying cause before scoping — you often solve a different (cheaper) problem than first asked.
+- [ ] **Impact Mapping**: Goal → Actors → Impacts (the behaviour change you want) → Deliverables. Every proposed deliverable must trace back to a measurable goal; cut the ones that don't.
+- [ ] **Opportunity–Solution Tree**: Outcome → Opportunities (real user needs) → candidate Solutions → Experiments. Forces ≥2 options per opportunity instead of locking the first idea.
+- [ ] **Assumption mapping**: List assumptions; plot desirability × viability × feasibility against evidence; the **riskiest, least-evidenced** assumption is what you validate first (cheapest test).
+- [ ] **Kano**: Classify each candidate feature as Basic / Performance / Delighter to size the MVP honestly (Basics are non-negotiable; defer Delighters).
+- [ ] **Prioritisation scoring**: Quantify with **RICE** (Reach × Impact × Confidence ÷ Effort) or **WSJF** (Cost of Delay ÷ Job Size) — not MoSCoW alone.
+- [ ] **Domain pack**: Classify the domain(s) and pull obligations from [domain-packs.md](../domain-packs.md) into intake (compliance, must-have requirements, domain risks). Flag GDPR/PCI/HIPAA/COPPA/etc. **now**, not at build time.
+
 ## Detailed tasks
 
 - [ ] **Feasibility study**: Assess technical feasibility (can we build it?), operational feasibility (can we run it?), economic feasibility (is the ROI worth it?). Document go/no-go recommendation

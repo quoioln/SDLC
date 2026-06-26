@@ -17,7 +17,7 @@
 - [ ] **QE Lead**: Test strategy, framework, review test code
 - [ ] **Senior QE**: Write automation tests per test plan
 - [ ] **UAT (User Acceptance Testing)**: Verify against original user stories and acceptance criteria from PO; confirm business requirements are met from end-user perspective. Document UAT results in `qe/{epic-slug}/uat-results.md`
-- [ ] **Test accounts & data**: Provision per-environment test accounts/roles (secrets via env/CI store, never hardcoded); seed + isolate + clean up test data (no prod data/PII)
+- [ ] **Test accounts & data**: Provision per-environment test accounts/roles (secrets via env/CI store, never hardcoded); seed + isolate + clean up **test data** (no prod data/PII). Cleanup is scoped to data/accounts only — **evidence (screenshots/video/trace) is kept, never deleted**
 - [ ] **Evidence**: Capture screenshot/video/trace for UI/E2E (request-response logs for API), publish an HTML report, retain as CI artifacts linked to TC IDs → `qe/{epic-slug}/evidence/`
 - [ ] **Bug-fix loop**: If bugs or test failures found → **Dev fixes** → **QE retests**. **Repeat until all tests pass and UAT approved (0 open bugs)**. Only then → handoff to Security + PE
 - [ ] **Sign-off**: Regression pass, coverage met, UAT approved, evidence attached, 0 open bugs → release readiness in `qe/{epic-slug}/`

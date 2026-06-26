@@ -11,14 +11,18 @@
 ## Phase 1 — PO (Product Owner) · Opus
 | Mục đích | Skill / Agent |
 |---|---|
-| Tinh chỉnh ý tưởng thô | `/idea-refine` |
+| **Phân tích bài bản (built-in, không cần cài)** ⭐ | `/sdlc-workflow:po` → chạy **Analysis lenses** trong `po/README.md` (JTBD, 5 Whys, Impact Mapping, Opportunity-Solution Tree, assumption mapping, Kano, RICE/WSJF) |
+| **Tuân thủ theo ngành (built-in)** | `domain-packs.md` — phân loại domain → kéo nghĩa vụ compliance + must-have requirements |
+| Tinh chỉnh ý tưởng thô (external, nếu đã cài) | `/idea-refine` |
 | Đào yêu cầu khi đề bài mơ hồ ("build me X") | `/interview-me` |
 | Viết spec/PRD có cấu trúc | `/spec` (spec-driven-development) |
 
 ## Phase 2 — Business BA
 | Mục đích | Skill / Agent |
 |---|---|
-| FRS, NFR, use case dạng spec | `/spec` (spec-driven-development) |
+| **Phân tích bài bản (built-in, không cần cài)** ⭐ | `/sdlc-workflow:ba` → chạy **Analysis lenses** trong `ba/business/README.md` (Event Storming, decision tables, state machine, CRUD/authority matrix, edge-case taxonomy, data-flow + classification) |
+| **Compliance matrix theo ngành (built-in)** | `domain-packs.md` → mỗi dòng áp dụng thành FR/NFR + Gherkin AC + entry (regulation ↔ requirement ↔ test) |
+| FRS, NFR, use case dạng spec (external) | `/spec` (spec-driven-development) |
 | Ghi lại quyết định nghiệp vụ | `/documentation-and-adrs` |
 
 ## Phase 3 — Design / UX (chỉ app/web)

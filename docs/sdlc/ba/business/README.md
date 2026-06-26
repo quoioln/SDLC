@@ -15,6 +15,18 @@ docs/sdlc/ba/business/
     functional-requirements.md
 ```
 
+## Analysis lenses (run these BEFORE writing FRs)
+
+Apply each lens explicitly to find requirements you'd otherwise miss. These are the *methods*; the checklist below is the *output*.
+
+- [ ] **Event Storming / process decomposition**: Map domain events ("OrderPlaced"), the commands that cause them, the actors, and the aggregates — before writing FRs. Surfaces flows and rules that prose requirements hide.
+- [ ] **Decision tables**: For any rule with multiple conditions, build an exhaustive condition × action matrix. The empty cells are your missing requirements / undefined behaviour.
+- [ ] **State machine per key entity**: Enumerate states, allowed transitions, and guards. Any transition not listed is explicitly forbidden — write that as a rule.
+- [ ] **CRUD / authority matrix**: Actor × Entity × operation (Create/Read/Update/Delete). Each cell is an authz requirement; blanks reveal missing permission rules.
+- [ ] **Edge-case taxonomy** (per input/field): boundary, null/empty, max length/size, wrong type, duplicate, **concurrency/race**, idempotency, partial failure, timeout. Each becomes a negative AC.
+- [ ] **Data-flow + classification**: Trace each data element source → store → sink; classify PII/sensitivity and retention at each hop (feeds the data dictionary + compliance matrix).
+- [ ] **Domain pack**: For the epic's domain(s), turn each applicable row of [domain-packs.md](../../domain-packs.md) into concrete FR/NFR + Gherkin AC, and add a **compliance-matrix** entry: regulation ↔ requirement ID ↔ test ID.
+
 ## Detailed tasks
 
 - [ ] **Read PO outputs**: Epic brief, user stories, acceptance criteria, feasibility assessment
