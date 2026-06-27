@@ -12,8 +12,23 @@
 - [ ] **Test cases**: TC-001, TC-002... — precondition, steps, expected, links to AC
 - [ ] **Handoff to Dev**: Test plan + test cases in `qe/{epic-slug}/` → Dev runs implementation
 
+## Test depth tier — CHOOSE FIRST (right-size the rigor to the feature)
+
+**Do NOT run the full enterprise matrix on a small feature** — that is the #1 cause of a tiny change burning a huge token/context budget. Pick the lowest tier the feature's risk allows and state it at the start:
+
+| Tier | When | Scope | Model |
+|------|------|-------|-------|
+| **Smoke** | Small / low-risk change, non-UI or trivial UI, internal tooling | Happy path + 1–2 negative/edge cases. **No** cross-browser, **no** visual regression, **no** responsive matrix. Evidence = screenshot on failure only | **Haiku**, effort low |
+| **Standard** (default) | Normal feature | Unit + integration + key edge cases; for UI, **one** representative breakpoint check. Evidence on failures + final report | **Sonnet**, effort medium |
+| **Full** | Critical path, money/auth/PII, or UI-heavy/public | Full matrix: cross-browser × responsive breakpoints × visual regression × layout integrity × a11y; full evidence (screenshot/video/trace) | QE Lead (**Opus**) designs → Senior QE (**Sonnet**) executes |
+
+- **Default to Smoke/Standard.** Escalate to **Full** only when the feature is genuinely critical or UI-heavy — never by default.
+- **Cost guard:** offload the heavy test execution to a **sub-agent** on the tier's model. Browser/trace/screenshot output is large; running it in a sub-agent keeps it out of the main session context (this is what prevents a small feature from eating ~40% of the session).
+- The cross-browser / visual-regression / responsive-matrix items in qe-lead/README.md apply to **Full tier only**; Smoke/Standard skip them.
+
 ## Detailed tasks (Testing phase — Phase 6)
 
+- [ ] **Pick the test depth tier** (Smoke / Standard / Full) per the table above and state it + the model used up front
 - [ ] **QE Lead**: Test strategy, framework, review test code
 - [ ] **Senior QE**: Write automation tests per test plan
 - [ ] **UAT (User Acceptance Testing)**: Verify against original user stories and acceptance criteria from PO; confirm business requirements are met from end-user perspective. Document UAT results in `qe/{epic-slug}/uat-results.md`

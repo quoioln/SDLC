@@ -1,7 +1,7 @@
 {
   "name": "sdlc-workflow",
   "description": "Multi-role SDLC workflow (PO → BA → Design → Architect → Dev → QE → Security → Deploy) with a quality bar, stack-specific rules, and brownfield onboarding.",
-  "version": "1.16.5",
+  "version": "1.16.6",
   "homepage": "https://www.npmjs.com/package/sdlc-workflow",
   "keywords": [
     "sdlc",

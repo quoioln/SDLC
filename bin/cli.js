@@ -479,7 +479,7 @@ const PLUGIN_PHASE_COMMANDS = [
   { name: "architect", title: "Architect", description: "Run the Architect phase: ADRs (with alternatives + trade-offs), C4 diagrams, security & observability by design, fitness functions.", readme: "architecture/README.md", reads: "Business BA (+ Design if app/web)", out: "docs/sdlc/architecture/" },
   { name: "tech-ba", title: "Technical BA", description: "Run the Technical BA phase: API specs (OpenAPI), DB schema, team breakdown, traceability to FRs.", readme: "ba/technical/README.md", reads: "the Architect (+ Design) outputs", out: "docs/sdlc/ba/technical/" },
   { name: "dev", title: "Dev (Tech Lead + Senior)", description: "Run the Dev phase: implement per spec with the full quality bar, 100% tests, and the living feature guideline.", readme: "dev/tech-lead/README.md", reads: "the Technical BA spec; the rules in docs/sdlc/dev/quality-rules.md and any docs/sdlc/dev/tech/ stack files", out: "code + tests; notes in docs/sdlc/dev/{role}/" },
-  { name: "test", title: "QE (test execution)", description: "Run the QE phase: test plan/cases, execute unit/integration/E2E + visual-regression & layout checks, capture evidence, run the bug-fix loop to zero bugs, UAT + sign-off.", readme: "qe/README.md", reads: "the Technical BA spec, the implemented code, and the QE rules in qe/qe-lead/README.md + qe/senior-qe/README.md", out: "docs/sdlc/qe/{epic-slug}/ — test-plan, test-cases, automation, evidence/ (screenshots/video/trace + report), uat-results, sign-off", extra: "Use provisioned test accounts/data (secrets from env/CI, never hardcoded; seed + isolate + tear down test data/accounts after the run). Cleanup is scoped to test data/accounts ONLY — evidence (screenshots/video/trace/report) is a deliverable: keep it in qe/{epic-slug}/evidence/, never delete it (even on passing runs). Verify no broken/misaligned layout, dropped columns, or broken inputs (visual regression + layout-integrity assertions per breakpoint). Loop with Dev until 0 open bugs, then sign off." },
+  { name: "test", title: "QE (test execution)", description: "Run the QE phase: test plan/cases, execute unit/integration/E2E + visual-regression & layout checks, capture evidence, run the bug-fix loop to zero bugs, UAT + sign-off.", readme: "qe/README.md", reads: "the Technical BA spec, the implemented code, and the QE rules in qe/qe-lead/README.md + qe/senior-qe/README.md", out: "docs/sdlc/qe/{epic-slug}/ — test-plan, test-cases, automation, evidence/ (screenshots/video/trace + report), uat-results, sign-off", extra: "FIRST pick a test depth tier (Smoke / Standard / Full — see qe/README.md) and right-size the rigor: Smoke (small/low-risk) = happy path + 1-2 edge cases on Haiku, NO cross-browser/visual-regression/responsive matrix; Standard (default) = unit+integration+key edges on Sonnet; Full (critical/UI-heavy) = full matrix, QE Lead (Opus) designs + Senior QE (Sonnet) executes. Do NOT run the Full enterprise matrix on a small feature — that is what burns a huge share of the session. Cost guard: run the heavy execution (browser automation, evidence capture) in a SUB-AGENT on the tier's model so its large output stays out of the main session context. Use provisioned test accounts/data (secrets from env/CI, never hardcoded; seed + isolate + tear down test data/accounts after the run). Cleanup is scoped to test data/accounts ONLY — evidence (screenshots/video/trace/report) is a deliverable: keep it in qe/{epic-slug}/evidence/, never delete it (even on passing runs). For Full tier verify no broken/misaligned layout, dropped columns, or broken inputs (visual regression + layout-integrity assertions per breakpoint). Loop with Dev until 0 open bugs, then sign off." },
   { name: "security", title: "Security + Principle Engineer + Performance", description: "Run the audit phase: OWASP/STRIDE/CVE, logic/architecture audit, performance (p95, N+1) with the remediation loop.", readme: "security/README.md", reads: "the implemented code and architecture", out: "docs/sdlc/security/ and docs/sdlc/principle-engineer/", extra: "Give every finding an issue ID; loop Dev fix -> QE retest -> re-audit until 0 Critical/High (max 3 cycles)." },
   { name: "deploy", title: "OPS (deploy)", description: "Run the Deploy phase: Docker Compose + Kubernetes + IaC after sign-off.", readme: "deploy/README.md", reads: "the security/PE sign-off", out: "docs/sdlc/deploy/" },
   { name: "guideline", title: "Technical Writer (guideline)", description: "Write or update the living feature guideline for a new or changed feature (Definition of Done).", readme: "guideline/README.md", reads: "the feature's PO/BA/Technical BA docs and the implemented behavior", out: "docs/sdlc/guideline/{epic-slug}.md + index" },
@@ -493,7 +493,7 @@ const PHASE_META = {
   architect: { badge: "[ARCH]",    tier: "Opus — architecture & logic" },
   "tech-ba": { badge: "[TECH-BA]", tier: "Opus — API/contract design; Sonnet for routine spec filling" },
   dev:       { badge: "[DEV]",     tier: "Opus (Tech Lead: plan/review) / Sonnet (logic-bearing code) / Haiku (mechanical: boilerplate, CRUD, config)" },
-  test:      { badge: "[QE]",      tier: "Opus (QE Lead: strategy/review) / Sonnet (logic-bearing tests) / Haiku (templated/smoke)" },
+  test:      { badge: "[QE]",      tier: "depth-tier: Smoke→Haiku / Standard→Sonnet / Full→Opus(Lead)+Sonnet(exec) — right-size to the feature; offload heavy execution to a sub-agent" },
   security:  { badge: "[SEC/PE]",  tier: "Opus — security & logic audit" },
   deploy:    { badge: "[OPS]",     tier: "Sonnet (default) / Haiku (boilerplate manifests)" },
   guideline: { badge: "[DOC]",     tier: "Sonnet — technical writing" },
@@ -2292,8 +2292,23 @@ const QE_README = `# QE (Quality Engineering)
 - [ ] **Test cases**: TC-001, TC-002... — precondition, steps, expected, links to AC
 - [ ] **Handoff to Dev**: Test plan + test cases in \`qe/{epic-slug}/\` → Dev runs implementation
 
+## Test depth tier — CHOOSE FIRST (right-size the rigor to the feature)
+
+**Do NOT run the full enterprise matrix on a small feature** — that is the #1 cause of a tiny change burning a huge token/context budget. Pick the lowest tier the feature's risk allows and state it at the start:
+
+| Tier | When | Scope | Model |
+|------|------|-------|-------|
+| **Smoke** | Small / low-risk change, non-UI or trivial UI, internal tooling | Happy path + 1–2 negative/edge cases. **No** cross-browser, **no** visual regression, **no** responsive matrix. Evidence = screenshot on failure only | **Haiku**, effort low |
+| **Standard** (default) | Normal feature | Unit + integration + key edge cases; for UI, **one** representative breakpoint check. Evidence on failures + final report | **Sonnet**, effort medium |
+| **Full** | Critical path, money/auth/PII, or UI-heavy/public | Full matrix: cross-browser × responsive breakpoints × visual regression × layout integrity × a11y; full evidence (screenshot/video/trace) | QE Lead (**Opus**) designs → Senior QE (**Sonnet**) executes |
+
+- **Default to Smoke/Standard.** Escalate to **Full** only when the feature is genuinely critical or UI-heavy — never by default.
+- **Cost guard:** offload the heavy test execution to a **sub-agent** on the tier's model. Browser/trace/screenshot output is large; running it in a sub-agent keeps it out of the main session context (this is what prevents a small feature from eating ~40% of the session).
+- The cross-browser / visual-regression / responsive-matrix items in qe-lead/README.md apply to **Full tier only**; Smoke/Standard skip them.
+
 ## Detailed tasks (Testing phase — Phase 6)
 
+- [ ] **Pick the test depth tier** (Smoke / Standard / Full) per the table above and state it + the model used up front
 - [ ] **QE Lead**: Test strategy, framework, review test code
 - [ ] **Senior QE**: Write automation tests per test plan
 - [ ] **UAT (User Acceptance Testing)**: Verify against original user stories and acceptance criteria from PO; confirm business requirements are met from end-user perspective. Document UAT results in \`qe/{epic-slug}/uat-results.md\`
@@ -2344,21 +2359,25 @@ const QE_LEAD_README = `# QE Lead (15+ years exp in test automation)
 - [ ] **Automation architecture**: Design folder structure, layers, fixtures, reporting, retries, env handling
 - [ ] **Review checklist**: Coverage, maintainability, naming, alignment with framework
 - [ ] **Quality gates**: Define thresholds (coverage, required suites before merge), regression criteria
-- [ ] **UI / E2E browser strategy**: Cross-browser (Chromium/Firefox/WebKit), headed vs headless, viewport/responsive, **stable selectors** (role/test-id, not brittle CSS); decide which journeys are E2E vs API-level
+> **Right-size first (Full-tier items below).** Cross-browser strategy, visual regression, layout-integrity, and the responsive matrix are **Full-tier only** (critical / UI-heavy features). For **Smoke** (small/low-risk) and **Standard** features, skip them — happy path + key edge cases is enough. See the Test depth tier table in qe/README.md. Match the model to the tier: Smoke → Haiku, Standard → Sonnet, Full → Opus (Lead) designs / Sonnet executes.
+
+- [ ] **UI / E2E browser strategy** (Full tier): Cross-browser (Chromium/Firefox/WebKit), headed vs headless, viewport/responsive, **stable selectors** (role/test-id, not brittle CSS); decide which journeys are E2E vs API-level
 - [ ] **Test account & data provisioning**: Define per-environment **test accounts/roles** and how they are provisioned; **secrets via secure store / CI secrets — never hardcoded or committed**; **test-data strategy** (seed fixtures, isolation per run, teardown/cleanup, no prod data/PII)
 - [ ] **Evidence policy**: Require **screenshot on failure, video, and trace** for E2E; publish an **HTML test report**; retain all as **CI artifacts** linked to TC IDs; define retention period. **Evidence is a deliverable — never delete screenshots/video/trace, even on green runs; only test data/accounts are torn down (see test-data strategy above).**
-- [ ] **Visual regression**: Baseline screenshot + diff (with tolerance) **per breakpoint**; tool (Playwright \`toHaveScreenshot\` / Percy / Chromatic / Applitools); baselines are **review-gated**; mask dynamic regions (dates, avatars) to avoid flake
-- [ ] **Layout integrity assertions**: No overflow/clipping, no overlapping elements, **no horizontal scroll**, correct column count/alignment per breakpoint, elements within viewport; wait for fonts/images before asserting
-- [ ] **Responsive & resilience matrix**: Viewport set (mobile/tablet/desktop) × cross-browser; verify **long-text / i18n (+30–40%)** and **200% zoom** don't break the layout (ties to i18n + a11y)
+- [ ] **Visual regression** (Full tier): Baseline screenshot + diff (with tolerance) **per breakpoint**; tool (Playwright \`toHaveScreenshot\` / Percy / Chromatic / Applitools); baselines are **review-gated**; mask dynamic regions (dates, avatars) to avoid flake
+- [ ] **Layout integrity assertions** (Full tier): No overflow/clipping, no overlapping elements, **no horizontal scroll**, correct column count/alignment per breakpoint, elements within viewport; wait for fonts/images before asserting
+- [ ] **Responsive & resilience matrix** (Full tier): Viewport set (mobile/tablet/desktop) × cross-browser; verify **long-text / i18n (+30–40%)** and **200% zoom** don't break the layout (ties to i18n + a11y)
 - [ ] **Per-epic guidance**: Output to \`qe/{epic-slug}/\` per epic
 `;
 
 const QE_SENIOR_README = `# Senior QE (10+ years exp)
 
-> **Model (3 tiers — match the task)**: Default to a **mid-tier model** (e.g. Claude Sonnet) for logic-bearing tests (E2E flows, integration, data setup, assertions with branching). Drop to a **cost-efficient model** (e.g. Claude Haiku) for mechanical tests where the case is fully prescribed (repetitive cases from a template, simple smoke/CRUD checks). The **highest-tier model** (Opus) stays with the QE Lead. Execute test implementation from QE Lead's strategy and specs.
+> **Model (match the test depth tier — see qe/README.md)**: **Smoke** tier (small/low-risk feature) → **Haiku**, effort low. **Standard** tier (normal feature, logic-bearing tests) → **Sonnet**, effort medium. **Full** tier items (cross-browser, visual regression, responsive matrix) are designed by the QE Lead (**Opus**) and executed on **Sonnet**. The highest-tier model (Opus) is for the QE Lead's strategy/review, not for writing routine tests.
+>
+> **Cost guard — offload to a sub-agent.** Run the actual test execution (browser automation, evidence capture) in a **sub-agent on the tier's model**, not in the main session. Browser/trace/screenshot output is large and fills context fast; a sub-agent keeps it isolated so a small feature doesn't consume a big share of the session.
 
 **Responsibilities**:
-- Write automation tests per test plan
+- Write automation tests per test plan, **scoped to the chosen test depth tier** (don't run the Full matrix on a Smoke/Standard feature)
 - Implement E2E, integration, regression tests
 - Follow QE Lead's framework decisions
 

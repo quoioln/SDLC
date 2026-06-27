@@ -1,9 +1,11 @@
 # Senior QE (10+ years exp)
 
-> **Model (3 tiers — match the task)**: Default to a **mid-tier model** (e.g. Claude Sonnet) for logic-bearing tests (E2E flows, integration, data setup, assertions with branching). Drop to a **cost-efficient model** (e.g. Claude Haiku) for mechanical tests where the case is fully prescribed (repetitive cases from a template, simple smoke/CRUD checks). The **highest-tier model** (Opus) stays with the QE Lead. Execute test implementation from QE Lead's strategy and specs.
+> **Model (match the test depth tier — see qe/README.md)**: **Smoke** tier (small/low-risk feature) → **Haiku**, effort low. **Standard** tier (normal feature, logic-bearing tests) → **Sonnet**, effort medium. **Full** tier items (cross-browser, visual regression, responsive matrix) are designed by the QE Lead (**Opus**) and executed on **Sonnet**. The highest-tier model (Opus) is for the QE Lead's strategy/review, not for writing routine tests.
+>
+> **Cost guard — offload to a sub-agent.** Run the actual test execution (browser automation, evidence capture) in a **sub-agent on the tier's model**, not in the main session. Browser/trace/screenshot output is large and fills context fast; a sub-agent keeps it isolated so a small feature doesn't consume a big share of the session.
 
 **Responsibilities**:
-- Write automation tests per test plan
+- Write automation tests per test plan, **scoped to the chosen test depth tier** (don't run the Full matrix on a Smoke/Standard feature)
 - Implement E2E, integration, regression tests
 - Follow QE Lead's framework decisions
 

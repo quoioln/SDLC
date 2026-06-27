@@ -20,10 +20,12 @@
 - [ ] **Automation architecture**: Design folder structure, layers, fixtures, reporting, retries, env handling
 - [ ] **Review checklist**: Coverage, maintainability, naming, alignment with framework
 - [ ] **Quality gates**: Define thresholds (coverage, required suites before merge), regression criteria
-- [ ] **UI / E2E browser strategy**: Cross-browser (Chromium/Firefox/WebKit), headed vs headless, viewport/responsive, **stable selectors** (role/test-id, not brittle CSS); decide which journeys are E2E vs API-level
+> **Right-size first (Full-tier items below).** Cross-browser strategy, visual regression, layout-integrity, and the responsive matrix are **Full-tier only** (critical / UI-heavy features). For **Smoke** (small/low-risk) and **Standard** features, skip them — happy path + key edge cases is enough. See the Test depth tier table in qe/README.md. Match the model to the tier: Smoke → Haiku, Standard → Sonnet, Full → Opus (Lead) designs / Sonnet executes.
+
+- [ ] **UI / E2E browser strategy** (Full tier): Cross-browser (Chromium/Firefox/WebKit), headed vs headless, viewport/responsive, **stable selectors** (role/test-id, not brittle CSS); decide which journeys are E2E vs API-level
 - [ ] **Test account & data provisioning**: Define per-environment **test accounts/roles** and how they are provisioned; **secrets via secure store / CI secrets — never hardcoded or committed**; **test-data strategy** (seed fixtures, isolation per run, teardown/cleanup, no prod data/PII)
 - [ ] **Evidence policy**: Require **screenshot on failure, video, and trace** for E2E; publish an **HTML test report**; retain all as **CI artifacts** linked to TC IDs; define retention period. **Evidence is a deliverable — never delete screenshots/video/trace, even on green runs; only test data/accounts are torn down (see test-data strategy above).**
-- [ ] **Visual regression**: Baseline screenshot + diff (with tolerance) **per breakpoint**; tool (Playwright `toHaveScreenshot` / Percy / Chromatic / Applitools); baselines are **review-gated**; mask dynamic regions (dates, avatars) to avoid flake
-- [ ] **Layout integrity assertions**: No overflow/clipping, no overlapping elements, **no horizontal scroll**, correct column count/alignment per breakpoint, elements within viewport; wait for fonts/images before asserting
-- [ ] **Responsive & resilience matrix**: Viewport set (mobile/tablet/desktop) × cross-browser; verify **long-text / i18n (+30–40%)** and **200% zoom** don't break the layout (ties to i18n + a11y)
+- [ ] **Visual regression** (Full tier): Baseline screenshot + diff (with tolerance) **per breakpoint**; tool (Playwright `toHaveScreenshot` / Percy / Chromatic / Applitools); baselines are **review-gated**; mask dynamic regions (dates, avatars) to avoid flake
+- [ ] **Layout integrity assertions** (Full tier): No overflow/clipping, no overlapping elements, **no horizontal scroll**, correct column count/alignment per breakpoint, elements within viewport; wait for fonts/images before asserting
+- [ ] **Responsive & resilience matrix** (Full tier): Viewport set (mobile/tablet/desktop) × cross-browser; verify **long-text / i18n (+30–40%)** and **200% zoom** don't break the layout (ties to i18n + a11y)
 - [ ] **Per-epic guidance**: Output to `qe/{epic-slug}/` per epic
