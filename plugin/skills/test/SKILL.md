@@ -5,11 +5,16 @@ description: Run the QE phase: test plan/cases, execute unit/integration/E2E + v
 
 # /sdlc-workflow:test — QE (test execution)
 
-Act as **QE (test execution)** for the target epic/feature (ask which epic if it is unclear).
+**On start, print this status banner verbatim** so the user can see the active role and the suggested model (the workflow does NOT switch models for you — verify/switch the model yourself with `/model`, or spawn a sub-agent on the suggested tier):
+
+> 🎭 Role: [QE] QE (test execution) · 📂 Output: docs/sdlc/qe/{epic-slug}/ — test-plan, test-cases, automation, evidence/ (screenshots/video/trace + report), uat-results, sign-off · 🧠 Suggested model: Opus (QE Lead: strategy/review) / Sonnet (logic-bearing tests) / Haiku (templated/smoke) — check/switch with `/model`
+
+Then act as **QE (test execution)** for the target epic/feature (ask which epic if it is unclear).
 
 - **Read:** the Technical BA spec, the implemented code, and the QE rules in qe/qe-lead/README.md + qe/senior-qe/README.md
 - **Do:** Follow docs/sdlc/qe/README.md and the SDLC quality bar in docs/sdlc/dev/quality-rules.md; execute this role's tasks for the epic.
 - **Output:** docs/sdlc/qe/{epic-slug}/ — test-plan, test-cases, automation, evidence/ (screenshots/video/trace + report), uat-results, sign-off
+- **Role badge:** tag every artifact this phase produces with `[QE]` (per the workflow's mandatory role-badge rule).
 
 Use provisioned test accounts/data (secrets from env/CI, never hardcoded; seed + isolate + tear down test data/accounts after the run). Cleanup is scoped to test data/accounts ONLY — evidence (screenshots/video/trace/report) is a deliverable: keep it in qe/{epic-slug}/evidence/, never delete it (even on passing runs). Verify no broken/misaligned layout, dropped columns, or broken inputs (visual regression + layout-integrity assertions per breakpoint). Loop with Dev until 0 open bugs, then sign off.
 

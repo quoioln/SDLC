@@ -8,6 +8,7 @@ For Cursor, see .cursor/rules/sdlc-workflow.mdc
 - **When the user sends an idea, feature request, or requirement:** Start the pipeline and run it **continuously through deployment** (Phase 1 → 2 → … → 7). Do not handle everything in one main-agent response.
 - **Memory requirement:** Before executing any new action, recall relevant memories (project context, user preferences, past decisions) to ensure continuity and avoid repeating mistakes.
 - **One role per phase:** Execute each phase as that role only; write artifacts to the right folder; then continue to the next phase. In Cursor there is one agent — it simulates the pipeline by adopting one role per phase in sequence.
+- **Announce each phase (mandatory):** At the start of every phase / role switch, print a one-line banner — `🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model`. Tiers: lead/analysis/audit roles → **Opus**; logic-bearing code & tests → **Sonnet**; mechanical work → **Haiku**. The workflow does not change the model for you (use `/model`, or spawn a sub-agent on that tier — switching a running agent's model breaks the prompt cache). Current model is visible via `/model` or `/status`.
 - **Do not stop** after PO or any single phase unless the user explicitly asks to stop. Run through to Deploy.
 
 ## Flow

@@ -5,7 +5,8 @@
 When the user sends an **idea**, **feature request**, or **requirement**:
 1. **Trigger the full pipeline** and run continuously through deployment.
 2. **One role per phase** for sequential phases. **Spawn parallel workstreams** when dependencies are independent.
-3. **Run through to Maintenance.** Do not stop after PO, BA, or Dev unless the user explicitly says to stop.
+3. **Announce each phase (mandatory):** print a one-line banner at the start of every phase / role switch — `🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model`. Tiers: lead/analysis/audit → **Opus**; logic-bearing code & tests → **Sonnet**; mechanical work → **Haiku**. The workflow does not change the model for you (use `/model` or spawn a sub-agent on that tier — switching a running agent's model breaks the prompt cache). Current model: `/model` or `/status`.
+4. **Run through to Maintenance.** Do not stop after PO, BA, or Dev unless the user explicitly says to stop.
 
 ## 🚦 The Orchestrator's Most Important Rule
 

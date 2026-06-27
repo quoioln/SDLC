@@ -486,8 +486,23 @@ const PLUGIN_PHASE_COMMANDS = [
   { name: "maintain", title: "Maintenance", description: "Run Maintenance: monitoring, bug triage/fix, dependency updates, performance tuning, guideline updates.", readme: "maintenance/README.md", reads: "production signals and the existing docs", out: "docs/sdlc/maintenance/" },
 ];
 
+const PHASE_META = {
+  po:        { badge: "[PO]",      tier: "Opus — analysis & planning" },
+  ba:        { badge: "[BA]",      tier: "Opus — analysis & planning" },
+  design:    { badge: "[DESIGN]",  tier: "Opus — design judgment; Sonnet for production component code" },
+  architect: { badge: "[ARCH]",    tier: "Opus — architecture & logic" },
+  "tech-ba": { badge: "[TECH-BA]", tier: "Opus — API/contract design; Sonnet for routine spec filling" },
+  dev:       { badge: "[DEV]",     tier: "Opus (Tech Lead: plan/review) / Sonnet (logic-bearing code) / Haiku (mechanical: boilerplate, CRUD, config)" },
+  test:      { badge: "[QE]",      tier: "Opus (QE Lead: strategy/review) / Sonnet (logic-bearing tests) / Haiku (templated/smoke)" },
+  security:  { badge: "[SEC/PE]",  tier: "Opus — security & logic audit" },
+  deploy:    { badge: "[OPS]",     tier: "Sonnet (default) / Haiku (boilerplate manifests)" },
+  guideline: { badge: "[DOC]",     tier: "Sonnet — technical writing" },
+  maintain:  { badge: "[MAINT]",   tier: "Sonnet (triage/fixes) / Haiku (routine dep bumps)" },
+};
+
 function buildPhaseCommandSkill(c) {
   const extra = c.extra ? "\n" + c.extra + "\n" : "";
+  const meta = PHASE_META[c.name] || { badge: "[" + c.name.toUpperCase() + "]", tier: "Sonnet (default)" };
   return `---
 name: ${c.name}
 description: ${c.description}
@@ -495,11 +510,16 @@ description: ${c.description}
 
 # /sdlc-workflow:${c.name} — ${c.title}
 
-Act as **${c.title}** for the target epic/feature (ask which epic if it is unclear).
+**On start, print this status banner verbatim** so the user can see the active role and the suggested model (the workflow does NOT switch models for you — verify/switch the model yourself with \`/model\`, or spawn a sub-agent on the suggested tier):
+
+> 🎭 Role: ${meta.badge} ${c.title} · 📂 Output: ${c.out} · 🧠 Suggested model: ${meta.tier} — check/switch with \`/model\`
+
+Then act as **${c.title}** for the target epic/feature (ask which epic if it is unclear).
 
 - **Read:** ${c.reads}
 - **Do:** Follow docs/sdlc/${c.readme} and the SDLC quality bar in docs/sdlc/dev/quality-rules.md; execute this role's tasks for the epic.
 - **Output:** ${c.out}
+- **Role badge:** tag every artifact this phase produces with \`${meta.badge}\` (per the workflow's mandatory role-badge rule).
 ${extra}
 If the SDLC docs are not scaffolded yet, run \`/sdlc-workflow:init\` first.
 `;
@@ -814,6 +834,8 @@ globs: docs/sdlc/**/*, **/*.md
 
 **On idea/feature request:** Trigger full pipeline continuously through deployment. Do not stop after one phase unless the user asks.
 
+**Announce each phase (mandatory):** print a one-line banner at the start of every phase / role switch — \`🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model\`. Tiers: lead/analysis/audit → **Opus**; logic-bearing code & tests → **Sonnet**; mechanical work → **Haiku**. The workflow does not change the model for you (use \`/model\` or spawn a sub-agent on that tier — switching a running agent's model breaks the prompt cache). Current model: \`/model\` or \`/status\`.
+
 **Memory requirement:** Before executing any new action, recall relevant memories (project context, user preferences, past decisions) to ensure continuity and avoid repeating mistakes.
 
 **Parallel by default, sequential only when required:** If two workstreams do NOT depend on each other's output, they MUST run in parallel.
@@ -907,6 +929,10 @@ description: Multi-role SDLC workflow from user requirements through PO, Busines
 1. **Recall memory** — Before executing any new action, recall relevant memories (project context, user preferences, past decisions) to ensure continuity and avoid repeating mistakes.
 2. **Trigger the pipeline** and run it **continuously through deployment**.
 3. **One role per phase** for sequential phases. **Spawn parallel workstreams** when dependencies are independent.
+4. **Announce each phase with a status banner (mandatory).** At the start of every phase — and on every role switch in a single-agent run — print this one line first, so the user always sees the active role and the suggested model:
+   > 🎭 Role: \`[ROLE]\` <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with \`/model\`
+
+   **Suggested model tiers:** lead / analysis / audit roles ([PO], [BA], [ARCH], Tech Lead, QE Lead, [SEC/PE]) → **Opus**; logic-bearing implementation & tests → **Sonnet**; mechanical work (boilerplate, CRUD, config, templated tests) → **Haiku**. The workflow does **NOT** change the model for you — switch with \`/model\` or spawn a sub-agent on the suggested tier (switching a running agent's model breaks the prompt cache; a sub-agent does not). You can see the current model anytime via \`/model\` or \`/status\` (and the Claude Code status line).
 
 **Parallel tracks:**
 - Track A (after Technical BA): [DEV] implementation + [QE] test plan — run SIMULTANEOUSLY
@@ -1110,6 +1136,8 @@ const AGENTS_MD_CONTENT = `## SDLC Workflow
 
 **Trigger:** When the user sends an **idea**, **feature request**, or **requirement**, run the full pipeline continuously through deployment. Do not stop after one phase unless the user asks.
 
+**Announce each phase (mandatory):** print a one-line banner at the start of every phase / role switch — \`🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model\`. Tiers: lead/analysis/audit → **Opus**; logic-bearing code & tests → **Sonnet**; mechanical work → **Haiku**. The workflow does not change the model for you (use \`/model\` or spawn a sub-agent on that tier — switching a running agent's model breaks the prompt cache). Current model: \`/model\` or \`/status\`.
+
 **Memory requirement:** Before executing any new action, recall relevant memories (project context, user preferences, past decisions) to ensure continuity and avoid repeating mistakes.
 
 **Parallel by default, sequential only when required.**
@@ -1131,6 +1159,8 @@ Design before Architect (UX drives tech). After Technical BA, [DEV] runs immedia
 const CLAUDE_SDLC_CONTENT = `## SDLC Workflow
 
 **Trigger on idea:** When the user sends an idea, feature request, or requirement, run the pipeline continuously: Phase 1 (PO) → 2 → … → Deploy → Maintenance. One role per phase (single agent = switch role each phase). Do not stop after one phase unless the user asks.
+
+**Announce each phase (mandatory):** At the start of every phase / role switch, print a one-line banner — \`🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model\`. Tiers: lead/analysis/audit roles → **Opus**; logic-bearing code & tests → **Sonnet**; mechanical work (boilerplate/CRUD/config/templated tests) → **Haiku**. The workflow does not change the model for you — use \`/model\` (or spawn a sub-agent on that tier; switching a running agent's model breaks the prompt cache). See the current model via \`/model\` or \`/status\`.
 
 **Memory requirement:** Before executing any new action, recall relevant memories (project context, user preferences, past decisions) to ensure continuity and avoid repeating mistakes.
 
@@ -1165,6 +1195,7 @@ For Cursor, see .cursor/rules/sdlc-workflow.mdc
 - **When the user sends an idea, feature request, or requirement:** Start the pipeline and run it **continuously through deployment** (Phase 1 → 2 → … → 7). Do not handle everything in one main-agent response.
 - **Memory requirement:** Before executing any new action, recall relevant memories (project context, user preferences, past decisions) to ensure continuity and avoid repeating mistakes.
 - **One role per phase:** Execute each phase as that role only; write artifacts to the right folder; then continue to the next phase. In Cursor there is one agent — it simulates the pipeline by adopting one role per phase in sequence.
+- **Announce each phase (mandatory):** At the start of every phase / role switch, print a one-line banner — \`🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model\`. Tiers: lead/analysis/audit roles → **Opus**; logic-bearing code & tests → **Sonnet**; mechanical work → **Haiku**. The workflow does not change the model for you (use \`/model\`, or spawn a sub-agent on that tier — switching a running agent's model breaks the prompt cache). Current model is visible via \`/model\` or \`/status\`.
 - **Do not stop** after PO or any single phase unless the user explicitly asks to stop. Run through to Deploy.
 
 ## Flow
@@ -1262,7 +1293,8 @@ const ORCHESTRATION_MD = `# Pipeline Orchestration
 When the user sends an **idea**, **feature request**, or **requirement**:
 1. **Trigger the full pipeline** and run continuously through deployment.
 2. **One role per phase** for sequential phases. **Spawn parallel workstreams** when dependencies are independent.
-3. **Run through to Maintenance.** Do not stop after PO, BA, or Dev unless the user explicitly says to stop.
+3. **Announce each phase (mandatory):** print a one-line banner at the start of every phase / role switch — \`🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model\`. Tiers: lead/analysis/audit → **Opus**; logic-bearing code & tests → **Sonnet**; mechanical work → **Haiku**. The workflow does not change the model for you (use \`/model\` or spawn a sub-agent on that tier — switching a running agent's model breaks the prompt cache). Current model: \`/model\` or \`/status\`.
+4. **Run through to Maintenance.** Do not stop after PO, BA, or Dev unless the user explicitly says to stop.
 
 ## 🚦 The Orchestrator's Most Important Rule
 
@@ -1578,6 +1610,12 @@ const AGENTS_README = `# Sub-Agents
 
 Every role in the SDLC runs as a **sub-agent**. Each phase is assigned to a corresponding sub-agent.
 **Role badges are mandatory** — every artifact must identify which \`[ROLE]\` produced it.
+
+**Announce on every role switch.** When entering a phase (or switching role in a single-agent run), first print a one-line banner so the user always knows the active role and the suggested model:
+
+> 🎭 Role: \`[ROLE]\` <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with \`/model\`
+
+Suggested model tiers: lead/analysis/audit roles (PO, BA, Architect, Tech Lead, QE Lead, Security/PE) → **Opus**; logic-bearing implementation/tests → **Sonnet**; mechanical work (boilerplate, CRUD, config, templated tests) → **Haiku**. The workflow does NOT change the model for you — use \`/model\` or spawn a sub-agent on the suggested tier. You see the current model anytime via \`/model\` or \`/status\` (and the Claude Code status line).
 
 ## 🚦 Parallel vs Sequential Orchestrator Rules
 

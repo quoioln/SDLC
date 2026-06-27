@@ -13,6 +13,10 @@ description: Multi-role SDLC workflow from user requirements through PO, Busines
 1. **Recall memory** — Before executing any new action, recall relevant memories (project context, user preferences, past decisions) to ensure continuity and avoid repeating mistakes.
 2. **Trigger the pipeline** and run it **continuously through deployment**.
 3. **One role per phase** for sequential phases. **Spawn parallel workstreams** when dependencies are independent.
+4. **Announce each phase with a status banner (mandatory).** At the start of every phase — and on every role switch in a single-agent run — print this one line first, so the user always sees the active role and the suggested model:
+   > 🎭 Role: `[ROLE]` <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with `/model`
+
+   **Suggested model tiers:** lead / analysis / audit roles ([PO], [BA], [ARCH], Tech Lead, QE Lead, [SEC/PE]) → **Opus**; logic-bearing implementation & tests → **Sonnet**; mechanical work (boilerplate, CRUD, config, templated tests) → **Haiku**. The workflow does **NOT** change the model for you — switch with `/model` or spawn a sub-agent on the suggested tier (switching a running agent's model breaks the prompt cache; a sub-agent does not). You can see the current model anytime via `/model` or `/status` (and the Claude Code status line).
 
 **Parallel tracks:**
 - Track A (after Technical BA): [DEV] implementation + [QE] test plan — run SIMULTANEOUSLY

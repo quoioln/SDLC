@@ -3,6 +3,12 @@
 Every role in the SDLC runs as a **sub-agent**. Each phase is assigned to a corresponding sub-agent.
 **Role badges are mandatory** — every artifact must identify which `[ROLE]` produced it.
 
+**Announce on every role switch.** When entering a phase (or switching role in a single-agent run), first print a one-line banner so the user always knows the active role and the suggested model:
+
+> 🎭 Role: `[ROLE]` <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with `/model`
+
+Suggested model tiers: lead/analysis/audit roles (PO, BA, Architect, Tech Lead, QE Lead, Security/PE) → **Opus**; logic-bearing implementation/tests → **Sonnet**; mechanical work (boilerplate, CRUD, config, templated tests) → **Haiku**. The workflow does NOT change the model for you — use `/model` or spawn a sub-agent on the suggested tier. You see the current model anytime via `/model` or `/status` (and the Claude Code status line).
+
 ## 🚦 Parallel vs Sequential Orchestrator Rules
 
 **The cardinal rule:** If two workstreams do NOT depend on each other's output, they MUST run in parallel.
