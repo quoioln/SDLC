@@ -79,6 +79,8 @@ docs/sdlc/
 ├── SDLC-WORKFLOW.md          # Main workflow (use with Claude)
 ├── reference.md
 ├── skill-mapping.md          # Recommended skills/agents per SDLC role
+├── INTEGRATION.md            # Combine SDLC with Superpowers + feature-dev plugins (per-phase engine + model tiers)
+├── domain-packs.md           # Industry analysis & compliance packs (fintech/health/e-commerce…) for PO/BA
 ├── ADOPTION.md               # Brownfield adoption guide (existing projects)
 ├── reverse-engineering.md    # Agent prompt: derive as-is architecture from code
 ├── project-profile.md        # Auto-generated repo scan (created by init/scan on existing repos)
