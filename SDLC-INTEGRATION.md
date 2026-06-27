@@ -2,7 +2,7 @@
 
 > SDLC là **orchestrator** toàn bộ vòng đời (business → ops). Superpowers và feature-dev là **engine kỹ thuật** chạy *bên trong* một số phase. Plugin **bổ sung sức mạnh**, không thay thế khung SDLC.
 
-> ⚠️ **Đọc mục 0 trước khi làm bất cứ gì.** Mọi tên skill/command/marketplace và hành vi plugin dưới đây là **giả định cần verify trong bản bạn đã cài** — chúng phụ thuộc version và có thể đổi. Nếu một plugin chưa cài → phase đó **fallback về template SDLC**, pipeline không được hard-fail.
+> ⚠️ **Đọc mục 0 trước khi làm bất cứ gì.** Tên plugin/marketplace/skill dưới đây đã **verify trên `claude-plugins-official` (06/2026)** — xem mục 6. Tuy nhiên *hành vi chi tiết* vẫn phụ thuộc version (re-verify khi cập nhật). Nếu một plugin chưa cài → phase đó **fallback về template SDLC**, pipeline không được hard-fail.
 
 ---
 
@@ -19,17 +19,23 @@
 ## 1. Cài đặt plugin
 
 ```bash
-# Bắt buộc (verify tên marketplace thực tế bằng: /plugin marketplace list)
-/plugin install superpowers@<marketplace>
-/plugin install feature-dev@<marketplace>
-/plugin install code-review@<marketplace>
-/plugin install security-guidance@<marketplace>
+# Bắt buộc — đã verify trên claude-plugins-official (06/2026)
+/plugin install feature-dev@claude-plugins-official
+/plugin install code-review@claude-plugins-official
+/plugin install security-guidance@claude-plugins-official
+/plugin install superpowers@claude-plugins-official
 
 # Khuyến nghị
-/plugin install context7@<marketplace>
+/plugin install context7@claude-plugins-official
 ```
 
-> 🔎 **Verify slug:** `superpowers` (của obra/Jesse Vincent) và `feature-dev` có thể KHÔNG nằm cùng một marketplace `claude-plugins-official`. Chạy `/plugin marketplace list` rồi `/plugin` để lấy slug đúng. Sai slug = install fail.
+> 🔎 **superpowers — 2 nguồn, cùng plugin:** có trên `claude-plugins-official` (lệnh trên) **hoặc** marketplace gốc của tác giả (obra/Jesse Vincent):
+> ```bash
+> /plugin marketplace add obra/superpowers-marketplace
+> /plugin install superpowers@superpowers-marketplace
+> ```
+> Dùng marketplace gốc nếu muốn bản mới nhất sớm nhất. `feature-dev`, `code-review`, `security-guidance`, `context7` đều là **plugin official của Anthropic**.
+> ⚠️ **`code-review` nhập nhằng:** Claude Code có sẵn skill built-in `/code-review` **lẫn** plugin official `code-review` — chọn 1, ghi rõ trong CLAUDE.md (xem Phase 8).
 > 🔁 **Fallback:** Plugin nào chưa cài → phase tương ứng (mục 3) tự dùng template SDLC.
 
 ---
@@ -113,7 +119,7 @@ feature-dev và subagent-driven-development spawn nhiều sub-agent. **Chạy ex
 - **Evidence:** screenshot/video/trace là **deliverable** trong `qe/{epic-slug}/evidence/` — **không xóa**, kể cả run pass. Cleanup chỉ áp cho test data/accounts.
 
 ### Phase 9 — Security + Principle Engineer · Opus
-- **Lớp 1 (realtime, bật từ Phase 7):** `Security Guidance` hook (verify pattern set trong bản bạn cài) — cảnh báo injection/XSS/eval/secrets… ngay lúc code.
+- **Lớp 1 (realtime, bật từ Phase 7):** `security-guidance` (Anthropic official) — chạy tự động, **three-layer**: (a) regex check mỗi edit (~25 lớp lỗ hổng, zero-cost), (b) LLM diff review cuối turn (Opus 4.7, bắt logic flaw), (c) agentic cross-file review lúc commit. Là tool hỗ trợ best-effort, **không thay** SAST/DAST/pen-test.
 - **Lớp 2 (audit chính thức):** Security Agent + PE Agent theo SDLC → `security/{epic-slug}/` + `principle-engineer/{epic-slug}/`.
 - **Fix loop:** issue → Dev fix → QE retest → re-audit đến 0 issue → sign-off. *(Đây là lợi thế riêng SDLC — không plugin nào có.)*
 
@@ -181,17 +187,19 @@ Plugin bổ sung, KHÔNG thay khung SDLC. Thiếu plugin → fallback template S
 
 ## 6. Verify-first checklist (chạy 1 lần trước khi dùng)
 
-| Cần verify | Cách |
-|------------|------|
-| Plugin đã cài + slug đúng | `/plugin marketplace list` → `/plugin` |
-| Tên skill/command chính xác | mở plugin, đọc skill list (tên dễ lệch version) |
-| `brainstorming` / `writing-plans` thực sự tồn tại trong superpowers bản bạn cài | thử trigger thử |
-| `feature-dev` có đúng các phase/sub-agent (code-explorer/architect/reviewer) | đọc doc plugin |
-| `code-review`: đang dùng plugin official **hay** skill built-in `/code-review` | xác định 1, ghi vào CLAUDE.md |
-| `Security Guidance`: pattern set + hook point (PreToolUse?) | đọc doc plugin |
-| TDD có thật sự "xóa code viết trước test" không | xác nhận hành vi trước khi dựa vào nó |
+**Trạng thái verify (06/2026)** — re-verify khi version đổi:
 
-> Nếu một mục không verify được → coi như **chưa có**, dùng fallback SDLC cho phase đó.
+| Mục | Trạng thái | Ghi chú |
+|-----|-----------|---------|
+| `feature-dev@claude-plugins-official` | ✅ verified | 7-phase: Discovery → Codebase Exploration → Clarifying Questions → Architecture Design → Implementation → Quality Review → Summary |
+| `code-review@claude-plugins-official` | ✅ verified | **Lưu ý:** Claude Code cũng có skill built-in `/code-review` — chọn 1, ghi vào CLAUDE.md |
+| `context7@claude-plugins-official` | ✅ verified | docs lookup framework-accurate |
+| `security-guidance@claude-plugins-official` | ✅ verified | ~25 lớp lỗ hổng, three-layer (regex/edit + LLM diff Opus 4.7 + agentic cross-file commit); chạy tự động |
+| `superpowers` | ✅ verified | `@claude-plugins-official` **hoặc** `obra/superpowers-marketplace` |
+| superpowers skill names (9) | ✅ verified | brainstorming, writing-plans, test-driven-development, subagent-driven-development, requesting-code-review, systematic-debugging, verification-before-completion, finishing-a-development-branch (+using-git-worktrees) |
+| TDD "xóa code viết trước test" | ⚠️ chưa verify hành vi | xác nhận trong bản bạn cài trước khi dựa vào |
+
+> Mục nào chưa verify được → coi như **chưa có**, dùng fallback SDLC cho phase đó. Tên/hành vi phụ thuộc version — đây là ảnh chụp 06/2026.
 
 ---
 
