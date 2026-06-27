@@ -1,0 +1,230 @@
+# SDLC + Superpowers + feature-dev — Hướng dẫn triển khai
+
+> SDLC là **orchestrator** toàn bộ vòng đời (business → ops). Superpowers và feature-dev là **engine kỹ thuật** chạy *bên trong* một số phase. Plugin **bổ sung sức mạnh**, không thay thế khung SDLC.
+
+> ⚠️ **Đọc mục 0 trước khi làm bất cứ gì.** Mọi tên skill/command/marketplace và hành vi plugin dưới đây là **giả định cần verify trong bản bạn đã cài** — chúng phụ thuộc version và có thể đổi. Nếu một plugin chưa cài → phase đó **fallback về template SDLC**, pipeline không được hard-fail.
+
+---
+
+## 0. Nguyên tắc nền (bắt buộc)
+
+1. **Orchestrator vs engine.** SDLC quyết định *phase nào, role nào, output ra đâu, gate nào*. Plugin chỉ *thực thi* phần kỹ thuật trong phase. Không để plugin tự ý nhảy phase.
+2. **Verify-first (chống lệch version).** Trước lần chạy đầu, xác nhận từng plugin: đã cài chưa, tên skill/command chính xác, hành vi cốt lõi. Xem checklist ở **mục 6**. Đừng tin các claim hành vi trong tài liệu này như chân lý.
+3. **Graceful degradation.** Thiếu plugin → dùng template SDLC tương ứng và ghi chú "ran without <plugin>". Không chặn pipeline.
+4. **Một chủ sở hữu Git.** SDLC nắm quyền branch + phase-gate commit; TDD chỉ micro-commit *trong* phase Dev trên cùng branch; `finishing-a-development-branch` lo merge cuối. Xem **mục 4** để tránh 4 cơ chế giẫm chân.
+5. **Lớp model & chi phí (mục 2) áp cho TẤT CẢ phase.** feature-dev + subagent-driven spawn rất nhiều sub-agent — không gắn tier model + không offload là cách nhanh nhất đốt session. Mỗi phase phải nêu rõ **model tier** và (với QE) **depth tier**.
+
+---
+
+## 1. Cài đặt plugin
+
+```bash
+# Bắt buộc (verify tên marketplace thực tế bằng: /plugin marketplace list)
+/plugin install superpowers@<marketplace>
+/plugin install feature-dev@<marketplace>
+/plugin install code-review@<marketplace>
+/plugin install security-guidance@<marketplace>
+
+# Khuyến nghị
+/plugin install context7@<marketplace>
+```
+
+> 🔎 **Verify slug:** `superpowers` (của obra/Jesse Vincent) và `feature-dev` có thể KHÔNG nằm cùng một marketplace `claude-plugins-official`. Chạy `/plugin marketplace list` rồi `/plugin` để lấy slug đúng. Sai slug = install fail.
+> 🔁 **Fallback:** Plugin nào chưa cài → phase tương ứng (mục 3) tự dùng template SDLC.
+
+---
+
+## 2. Lớp model & chi phí (áp mọi phase)
+
+### 2.1 — 3 tier model theo độ khó (không phải theo role cứng)
+
+| Tier | Dùng cho | Model |
+|------|----------|-------|
+| **Lead / analysis / audit** | PO, BA, Architect, Tech Lead, QE Lead, Security/PE — planning, logic, review | **Opus** |
+| **Logic-bearing execution** | business logic, integration, refactor, test có nhánh | **Sonnet** |
+| **Cơ học** | boilerplate, CRUD, config, wiring, test theo mẫu | **Haiku** |
+
+Đừng mặc định Haiku cho mọi thứ: sai logic → Opus phải sửa lại, tổng chi phí cao hơn làm đúng một lần trên Sonnet.
+
+### 2.2 — QE depth tier (right-size độ kỹ theo quy mô feature)
+
+| Depth | Khi nào | Phạm vi | Model |
+|-------|---------|---------|-------|
+| **Smoke** | Feature nhỏ/low-risk | Happy path + 1–2 edge; KHÔNG cross-browser/visual-regression/responsive matrix | Haiku |
+| **Standard** (mặc định) | Feature thường | Unit + integration + key edges; UI: 1 breakpoint | Sonnet |
+| **Full** | Critical / money-auth-PII / UI-heavy | Full matrix | Opus design → Sonnet exec |
+
+### 2.3 — Sub-agent offload (chống đốt session)
+
+feature-dev và subagent-driven-development spawn nhiều sub-agent. **Chạy execution nặng (browser automation, evidence, test run, code-explore) trong sub-agent ở model của tier**, đừng chạy trong session chính — output lớn (trace/screenshot/log) sẽ không nuốt context của orchestrator. Đổi model giữa một agent đang chạy sẽ **phá prompt cache**; spawn sub-agent thì không.
+
+---
+
+## 3. Pipeline tích hợp theo phase
+
+> Mỗi phase: **Plugin (engine) · Model tier · Output · Fallback**. Thứ tự theo SDLC canonical — **Design TRƯỚC Architect** (UX dẫn tech).
+
+### Phase 1 — PO (Product Owner) · Opus
+- **Engine:** Superpowers `brainstorming` (Socratic, tách requirement, validate scope) — **bổ sung**, không thay role PO.
+- **Quy trình:** brainstorming → lưu `po/{epic-slug}/brainstorm.md` → PO approve → điền `epic-brief.template.md`. Áp **Analysis lenses** của SDLC (JTBD, 5 Whys, Impact Mapping…).
+- **Output:** `docs/sdlc/po/{epic-slug}/epic-brief.md`
+- **Fallback:** điền epic-brief bằng Analysis lenses của SDLC.
+
+### Phase 2 — Business BA · Opus
+- **Engine:** Template SDLC + **`domain-packs.md`** (phân loại ngành → nghĩa vụ compliance + must-have requirements).
+- **Output:** `docs/sdlc/ba/business/{epic-slug}/functional-requirement.md` + compliance matrix (regulation ↔ requirement ↔ test).
+- **Fallback:** (đây là native SDLC — không phụ thuộc plugin).
+
+### Phase 3 — Design (chỉ app/web) · Opus (judgment) / Sonnet (component code)
+- **Engine:** SDLC (anti-AI design spec + wireframe + PO/BA review loop). Không plugin nào cover phần này.
+- **Output:** `docs/sdlc/design/{epic-slug}/design-spec.md` + wireframe.
+
+### Phase 4 — Architect · Opus
+- **Engine:** feature-dev *architecture phase* (sub-agent explore codebase → đề xuất approach + trade-offs) + `context7` / `source-driven-development` để bám API framework chính thống.
+- **Giữ nguyên:** ADR vẫn là deliverable SDLC (`adr.template.md`) — feature-dev chỉ cung cấp phân tích, Architect review & chốt ADR.
+- **Output:** `docs/sdlc/architecture/{epic-slug}/adr.md`
+- **Fallback:** Architect điền ADR thủ công theo template.
+
+### Phase 5 — Technical BA · Opus (contract) / Sonnet (điền routine)
+- **Engine:** Superpowers `writing-plans` — **BỔ SUNG, KHÔNG thay thế.**
+  - `writing-plans` tạo **implementation-plan** (task 2–5 phút, file path cụ thể, snippet đầy đủ, verification steps).
+  - **GIỮ NGUYÊN** `api-spec.template.md` (OpenAPI/contract) + `team-breakdown.template.md` — chính API contract mới cho phép **FE/BE chạy song song**. Mất nó là mất parallelism.
+- **Output:** `ba/technical/{epic-slug}/` → `api-spec.md` + `team-breakdown.md` + `implementation-plan.md`
+- **Fallback:** điền cả 3 bằng template.
+
+### Phase 6 — QE (docs) · Sonnet
+- **Engine:** Template SDLC. `writing-plans` đã có verification steps; QE Lead nâng thành test-plan + test-cases chính thức. **Chọn depth tier ở đây** (Smoke/Standard/Full) để định hình độ kỹ.
+- **Output:** `qe/{epic-slug}/test-plan.md` + `test-cases.md`
+
+### Phase 7 — Dev · Opus (Tech Lead) / Sonnet (logic) / Haiku (cơ học)
+- **Engine:** feature-dev + Superpowers `test-driven-development` + `subagent-driven-development` (+ `context7` cho code đúng framework).
+- **Tech Lead (Opus):** chạy feature-dev (discovery → explore → clarify → architecture → implementation → review → summary). Plan/review giữ ở Opus.
+- **Senior Dev (Sonnet, hoặc Haiku cho task cơ học):** implement theo TDD **RED → GREEN → REFACTOR**. Task song song → mỗi task một sub-agent (spec + file paths + verification), two-stage review (spec → quality).
+- **Coverage:** **100% branch (TDD/BDD)** — theo quality bar SDLC, KHÔNG hạ xuống 90%.
+- **Guideline (DoD):** mỗi feature mới/đổi phải tạo/cập nhật `guideline/{epic-slug}.md` trong cùng PR — feature chưa "done" nếu guideline stale.
+- **Output:** code + tests + `dev/{epic-slug}/implementation-notes.md` + guideline.
+- **Git:** xem mục 4 (một chủ sở hữu).
+
+### Phase 8 — QE (testing + UAT + bug-fix loop) · theo depth tier
+- **Chọn depth tier TRƯỚC** (mục 2.2) — đừng chạy Full matrix cho feature nhỏ; offload execution sang sub-agent.
+- **Bước 1 — spec compliance:** Superpowers `requesting-code-review` (đúng spec? edge case đã handle?).
+- **Bước 2 — quality gate:** code-review (phân biệt rõ: plugin official `code-review` **hay** skill built-in `/code-review` của Claude Code — chọn 1, đừng nhầm). Chỉ nhận finding confidence cao.
+- **Bug-fix loop:** bug → Dev fix bằng `systematic-debugging` (4 phase: Reproduce → Isolate → Hypothesize → Fix+Verify) + `verification-before-completion` (cấm claim "fixed" trước khi verify pass) → QE retest → lặp đến **0 open bug** → QE Lead sign-off.
+- **Evidence:** screenshot/video/trace là **deliverable** trong `qe/{epic-slug}/evidence/` — **không xóa**, kể cả run pass. Cleanup chỉ áp cho test data/accounts.
+
+### Phase 9 — Security + Principle Engineer · Opus
+- **Lớp 1 (realtime, bật từ Phase 7):** `Security Guidance` hook (verify pattern set trong bản bạn cài) — cảnh báo injection/XSS/eval/secrets… ngay lúc code.
+- **Lớp 2 (audit chính thức):** Security Agent + PE Agent theo SDLC → `security/{epic-slug}/` + `principle-engineer/{epic-slug}/`.
+- **Fix loop:** issue → Dev fix → QE retest → re-audit đến 0 issue → sign-off. *(Đây là lợi thế riêng SDLC — không plugin nào có.)*
+
+### Phase 10 — Deploy · Sonnet
+- **Gate:** Superpowers `finishing-a-development-branch` (verify tests pass → merge/PR/keep/discard → dọn worktree).
+- **Deploy:** template SDLC — `docker-compose` (staging) / `kubectl apply -f k8s/` (prod) → smoke test.
+
+### Phase 11 — Maintenance · Sonnet / Haiku
+- **Engine:** SDLC (monitoring, bug fix, patch, dependency update, perf tuning, runbooks). Không plugin nào có.
+- **Output:** `docs/sdlc/maintenance/{epic-slug}/`
+
+### Cross-cutting — Guideline (living docs)
+Mọi feature mới/đổi tạo/cập nhật `guideline/{epic-slug}.md` (Definition of Done; Tech Lead enforce ở review). Đừng để rơi như bản tích hợp trước.
+
+---
+
+## 4. Quản lý Git (giải xung đột 4 cơ chế)
+
+Có 4 thứ đụng nhau: SDLC auto-commit-per-phase · TDD micro-commit · feature-dev tự xử git · `finishing-a-development-branch` dọn worktree. Chốt **một mô hình**:
+
+1. **Branch:** SDLC tạo `epic/{slug}` (một branch cho cả epic).
+2. **Trong Phase 7 (Dev):** TDD micro-commit sau mỗi RED-GREEN-REFACTOR **trên chính branch đó** — coi như checkpoint nhỏ.
+3. **Phase gate:** SDLC commit checkpoint khi mỗi phase **pass** (nếu bật auto-commit-per-phase). Không trùng lặp với TDD vì TDD chỉ trong Dev.
+4. **Cuối:** `finishing-a-development-branch` lo merge/PR. **Không auto-push** — người dùng push/tag khi release.
+5. Nếu feature-dev đề nghị tự tạo branch/worktree riêng → **để SDLC branch thắng**, feature-dev chạy trong branch đó.
+
+---
+
+## 5. Cập nhật `.claude/CLAUDE.md`
+
+```markdown
+## Plugin Integration — SDLC Workflow
+
+Khi chạy SDLC pipeline, mỗi phase nêu rõ ENGINE + MODEL TIER + FALLBACK.
+Plugin bổ sung, KHÔNG thay khung SDLC. Thiếu plugin → fallback template SDLC.
+
+| Phase | Engine (verify version) | Model tier | Fallback |
+|-------|-------------------------|------------|----------|
+| PO | Superpowers: brainstorming | Opus | epic-brief template |
+| Business BA | SDLC + domain-packs | Opus | native |
+| Design | SDLC | Opus/Sonnet | native |
+| Architect | feature-dev (architecture) + context7 | Opus | ADR template |
+| Technical BA | + writing-plans (BỔ SUNG, giữ api-spec + team-breakdown) | Opus/Sonnet | templates |
+| QE (docs) | SDLC (chọn depth tier) | Sonnet | native |
+| Dev | feature-dev + TDD + subagent + context7 | Opus/Sonnet/Haiku | manual impl |
+| QE (testing) | depth tier → requesting-code-review + code-review | theo depth | native QE |
+| Bug-fix | systematic-debugging + verification-before-completion | Sonnet | native loop |
+| Security + PE | Security Guidance (realtime) + SDLC audit | Opus | SDLC audit |
+| Deploy | finishing-a-development-branch → SDLC templates | Sonnet | docker/k8s |
+| Maintenance | SDLC | Sonnet/Haiku | native |
+
+### Quy tắc bắt buộc
+- Gắn MODEL TIER cho mỗi phase; offload execution nặng sang SUB-AGENT (không phá cache, không đốt session).
+- QE: chọn DEPTH TIER trước (Smoke/Standard/Full) — KHÔNG chạy Full matrix cho feature nhỏ.
+- 100% branch coverage (TDD/BDD) trước khi sang QE — KHÔNG hạ 90%.
+- KHÔNG viết implementation code trước test (TDD enforce).
+- KHÔNG claim "fixed" trước khi verification-before-completion pass.
+- KHÔNG deploy trước khi finishing-a-development-branch gate pass.
+- KHÔNG bỏ Security + PE audit. KHÔNG bỏ Guideline (DoD).
+- Một chủ sở hữu Git (mục 4); không auto-push.
+- Thiếu plugin → fallback template SDLC, ghi chú lại; không hard-fail.
+```
+
+---
+
+## 6. Verify-first checklist (chạy 1 lần trước khi dùng)
+
+| Cần verify | Cách |
+|------------|------|
+| Plugin đã cài + slug đúng | `/plugin marketplace list` → `/plugin` |
+| Tên skill/command chính xác | mở plugin, đọc skill list (tên dễ lệch version) |
+| `brainstorming` / `writing-plans` thực sự tồn tại trong superpowers bản bạn cài | thử trigger thử |
+| `feature-dev` có đúng các phase/sub-agent (code-explorer/architect/reviewer) | đọc doc plugin |
+| `code-review`: đang dùng plugin official **hay** skill built-in `/code-review` | xác định 1, ghi vào CLAUDE.md |
+| `Security Guidance`: pattern set + hook point (PreToolUse?) | đọc doc plugin |
+| TDD có thật sự "xóa code viết trước test" không | xác nhận hành vi trước khi dựa vào nó |
+
+> Nếu một mục không verify được → coi như **chưa có**, dùng fallback SDLC cho phase đó.
+
+---
+
+## 7. Tóm tắt: ai giữ, ai bổ sung (đã chỉnh)
+
+| Phase | Trạng thái | Engine |
+|-------|------------|--------|
+| PO | 🔵 Bổ sung | Superpowers `brainstorming` |
+| Business BA | ✅ Giữ + domain-packs | SDLC |
+| Design | ✅ Giữ nguyên | SDLC |
+| Architect | 🔵 Bổ sung | feature-dev + context7 (ADR vẫn của SDLC) |
+| Technical BA | 🔵 **Bổ sung** (KHÔNG thay thế) | writing-plans + **giữ api-spec/team-breakdown** |
+| QE (docs) | ✅ Giữ + depth tier | SDLC |
+| Dev | 🔵 Tăng cường | feature-dev + TDD + subagent + context7 |
+| QE (testing) | 🔵 Bổ sung | depth tier → requesting-code-review + code-review |
+| Bug-fix | 🔵 Bổ sung (trong loop QE) | systematic-debugging + verification |
+| Security + PE | 🔵 Bổ sung | Security Guidance + SDLC audit |
+| Deploy | 🔵 Bổ sung | finishing-a-development-branch → SDLC |
+| Maintenance | ✅ Giữ nguyên | SDLC |
+| Guideline | ✅ Cross-cutting | SDLC (DoD) |
+
+**Sửa quan trọng so với bản cũ:** Technical BA = **bổ sung** (giữ API contract), coverage = **100%**, thêm lớp **model/cost + QE depth + sub-agent offload**, thêm **fallback** + **verify-first**, giữ lại **Guideline**.
+
+---
+
+## 8. Lợi thế riêng của SDLC (không plugin nào thay thế)
+
+1. **Business roles** — PO, Business BA, Design, Architect với templates chuyên biệt.
+2. **Security + PE audit phase** — gate bảo mật sau implementation, trước deploy.
+3. **Maintenance phase** — monitoring, runbooks, patches.
+4. **Deploy templates** — Docker Compose + K8s sinh sẵn.
+5. **Domain packs** — checklist compliance theo ngành (fintech/health/e-commerce…).
+6. **Model/cost governance** — 3-tier + QE depth tier + sub-agent offload + role/model banner mỗi phase.
+7. **Guideline (living docs)** — Definition of Done cho mọi feature.
+
+Superpowers và feature-dev là framework thuần kỹ thuật cho developer. SDLC cover toàn bộ vòng đời từ business đến ops, cộng lớp governance model/chi phí — đây là phần plugin không thay thế được.
