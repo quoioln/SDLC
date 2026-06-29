@@ -17,6 +17,7 @@ description: Multi-role SDLC workflow from user requirements through PO, Busines
    > 🎭 Role: `[ROLE]` <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with `/model`
 
    **Suggested model tiers:** lead / analysis / audit roles ([PO], [BA], [ARCH], Tech Lead, QE Lead, [SEC/PE]) → **Opus**; logic-bearing implementation & tests → **Sonnet**; mechanical work (boilerplate, CRUD, config, templated tests) → **Haiku**. The workflow does **NOT** change the model for you — switch with `/model` or spawn a sub-agent on the suggested tier (switching a running agent's model breaks the prompt cache; a sub-agent does not). You can see the current model anytime via `/model` or `/status` (and the Claude Code status line).
+5. **Phase handoff — ask, then auto-advance.** When a phase completes and its gate (if any) passes: (a) **recap** the output in one line; (b) **ask a checkpoint** so the user can steer — "✅ <phase> done → next: <next phase>. Reply `stop` or `adjust <note>` to intervene; otherwise I continue"; (c) **commit** the checkpoint if auto-commit per phase is armed; (d) **auto-trigger the next phase** by running `/sdlc-workflow:<next>` (print its banner). Don't idle — run continuously unless told to stop. **Gates before advancing:** Design→Architect needs PO+BA approval; QE→Security needs 0 open bugs + sign-off; Security→Deploy needs 0 Critical/High + sign-off.
 
 **Parallel tracks:**
 - Track A (after Technical BA): [DEV] implementation + [QE] test plan — run SIMULTANEOUSLY

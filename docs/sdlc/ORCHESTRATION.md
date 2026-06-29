@@ -6,7 +6,8 @@ When the user sends an **idea**, **feature request**, or **requirement**:
 1. **Trigger the full pipeline** and run continuously through deployment.
 2. **One role per phase** for sequential phases. **Spawn parallel workstreams** when dependencies are independent.
 3. **Announce each phase (mandatory):** print a one-line banner at the start of every phase / role switch — `🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model`. Tiers: lead/analysis/audit → **Opus**; logic-bearing code & tests → **Sonnet**; mechanical work → **Haiku**. The workflow does not change the model for you (use `/model` or spawn a sub-agent on that tier — switching a running agent's model breaks the prompt cache). Current model: `/model` or `/status`.
-4. **Run through to Maintenance.** Do not stop after PO, BA, or Dev unless the user explicitly says to stop.
+4. **Phase handoff — ask, then auto-advance.** When a phase completes and its gate (if any) passes: recap the output in one line → ask a checkpoint ("✅ <phase> done → next: <next>. Reply `stop`/`adjust` to intervene; else I continue") → commit if auto-commit per phase is armed → **auto-trigger the next phase** (`/sdlc-workflow:<next>` with its banner). Gates: Design→Architect (PO+BA approve); QE→Security (0 open bugs + sign-off); Security→Deploy (0 Critical/High + sign-off).
+5. **Run through to Maintenance.** Do not stop after PO, BA, or Dev unless the user explicitly says to stop.
 
 ## 🚦 The Orchestrator's Most Important Rule
 

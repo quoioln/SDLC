@@ -16,4 +16,12 @@ Then act as **Design / UX** for the target epic/feature (ask which epic if it is
 - **Output:** docs/sdlc/design/{epic-slug}/
 - **Role badge:** tag every artifact this phase produces with `[DESIGN]` (per the workflow's mandatory role-badge rule).
 
+## Next action — ask, then auto-advance
+
+When this phase's output is complete and its gate passes (**PO + BA approve the design**):
+1. **Recap** in one line — what was produced + the output path.
+2. **Ask a checkpoint** (give the user a chance to steer): `✅ Design / UX done → next: Architect. Reply \`stop\` or \`adjust <note>\` to intervene; otherwise I continue.`
+3. **If auto-commit per phase is armed**, commit the checkpoint first (only after the gate passes).
+4. **Auto-trigger the next phase** unless the user intervened: run `/sdlc-workflow:architect` and print its role banner. Do not idle — the pipeline runs continuously unless told to stop.
+
 If the SDLC docs are not scaffolded yet, run `/sdlc-workflow:init` first.

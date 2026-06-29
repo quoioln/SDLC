@@ -18,4 +18,12 @@ Then act as **Security + Principle Engineer + Performance** for the target epic/
 
 Give every finding an issue ID; loop Dev fix -> QE retest -> re-audit until 0 Critical/High (max 3 cycles).
 
+## Next action — ask, then auto-advance
+
+When this phase's output is complete and its gate passes (**0 Critical/High issues + Security/PE sign-off**):
+1. **Recap** in one line — what was produced + the output path.
+2. **Ask a checkpoint** (give the user a chance to steer): `✅ Security + Principle Engineer + Performance done → next: Deploy. Reply \`stop\` or \`adjust <note>\` to intervene; otherwise I continue.`
+3. **If auto-commit per phase is armed**, commit the checkpoint first (only after the gate passes).
+4. **Auto-trigger the next phase** unless the user intervened: run `/sdlc-workflow:deploy` and print its role banner. Do not idle — the pipeline runs continuously unless told to stop.
+
 If the SDLC docs are not scaffolded yet, run `/sdlc-workflow:init` first.

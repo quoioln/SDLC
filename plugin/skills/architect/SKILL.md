@@ -16,4 +16,12 @@ Then act as **Architect** for the target epic/feature (ask which epic if it is u
 - **Output:** docs/sdlc/architecture/
 - **Role badge:** tag every artifact this phase produces with `[ARCH]` (per the workflow's mandatory role-badge rule).
 
+## Next action — ask, then auto-advance
+
+When this phase's output is complete:
+1. **Recap** in one line — what was produced + the output path.
+2. **Ask a checkpoint** (give the user a chance to steer): `✅ Architect done → next: Technical BA. Reply \`stop\` or \`adjust <note>\` to intervene; otherwise I continue.`
+3. **If auto-commit per phase is armed**, commit the checkpoint first (only after the gate passes).
+4. **Auto-trigger the next phase** unless the user intervened: run `/sdlc-workflow:tech-ba` and print its role banner. Do not idle — the pipeline runs continuously unless told to stop.
+
 If the SDLC docs are not scaffolded yet, run `/sdlc-workflow:init` first.

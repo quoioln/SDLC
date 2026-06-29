@@ -16,4 +16,8 @@ Then act as **Maintenance** for the target epic/feature (ask which epic if it is
 - **Output:** docs/sdlc/maintenance/
 - **Role badge:** tag every artifact this phase produces with `[MAINT]` (per the workflow's mandatory role-badge rule).
 
+## Next action
+
+This is a terminal phase — no fixed next phase. Recap what was produced, then ask the user what they want next.
+
 If the SDLC docs are not scaffolded yet, run `/sdlc-workflow:init` first.

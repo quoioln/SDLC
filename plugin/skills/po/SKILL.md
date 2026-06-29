@@ -18,4 +18,12 @@ Then act as **Product Owner** for the target epic/feature (ask which epic if it 
 
 First run the Analysis lenses in po/README.md (Jobs-to-be-Done, 5 Whys, Impact Mapping, Opportunity-Solution Tree, assumption mapping, Kano, RICE/WSJF) — methods first, then write. Classify the domain and pull obligations from docs/sdlc/domain-packs.md into intake (compliance + must-have requirements + domain risks).
 
+## Next action — ask, then auto-advance
+
+When this phase's output is complete:
+1. **Recap** in one line — what was produced + the output path.
+2. **Ask a checkpoint** (give the user a chance to steer): `✅ Product Owner done → next: Business BA. Reply \`stop\` or \`adjust <note>\` to intervene; otherwise I continue.`
+3. **If auto-commit per phase is armed**, commit the checkpoint first (only after the gate passes).
+4. **Auto-trigger the next phase** unless the user intervened: run `/sdlc-workflow:ba` and print its role banner. Do not idle — the pipeline runs continuously unless told to stop.
+
 If the SDLC docs are not scaffolded yet, run `/sdlc-workflow:init` first.

@@ -500,9 +500,37 @@ const PHASE_META = {
   maintain:  { badge: "[MAINT]",   tier: "Sonnet (triage/fixes) / Haiku (routine dep bumps)" },
 };
 
+// Next phase in the pipeline (for the ask + auto-advance handoff). Phases not
+// listed (guideline, maintain) are cross-cutting/terminal — no auto-next.
+const PHASE_NEXT = {
+  po:        { cmd: "ba",        label: "Business BA" },
+  ba:        { cmd: "design",    label: "Design (if app/web) — otherwise skip to /sdlc-workflow:architect" },
+  design:    { cmd: "architect", label: "Architect", gate: "PO + BA approve the design" },
+  architect: { cmd: "tech-ba",   label: "Technical BA" },
+  "tech-ba": { cmd: "dev",       label: "Dev (QE docs run in parallel)" },
+  dev:       { cmd: "test",      label: "QE (test + UAT)" },
+  test:      { cmd: "security",  label: "Security + PE audit", gate: "0 open bugs + QE sign-off" },
+  security:  { cmd: "deploy",    label: "Deploy", gate: "0 Critical/High issues + Security/PE sign-off" },
+  deploy:    { cmd: "maintain",  label: "Maintenance" },
+};
+
 function buildPhaseCommandSkill(c) {
   const extra = c.extra ? "\n" + c.extra + "\n" : "";
   const meta = PHASE_META[c.name] || { badge: "[" + c.name.toUpperCase() + "]", tier: "Sonnet (default)" };
+  const next = PHASE_NEXT[c.name];
+  const nextBlock = next
+    ? `## Next action — ask, then auto-advance
+
+When this phase's output is complete${next.gate ? ` and its gate passes (**${next.gate}**)` : ""}:
+1. **Recap** in one line — what was produced + the output path.
+2. **Ask a checkpoint** (give the user a chance to steer): \`✅ ${c.title} done → next: ${next.label}. Reply \\\`stop\\\` or \\\`adjust <note>\\\` to intervene; otherwise I continue.\`
+3. **If auto-commit per phase is armed**, commit the checkpoint first (only after the gate passes).
+4. **Auto-trigger the next phase** unless the user intervened: run \`/sdlc-workflow:${next.cmd}\` and print its role banner. Do not idle — the pipeline runs continuously unless told to stop.
+`
+    : `## Next action
+
+This is a ${c.name === "maintain" ? "terminal" : "cross-cutting"} phase — no fixed next phase. Recap what was produced, then ask the user what they want next.
+`;
   return `---
 name: ${c.name}
 description: ${c.description}
@@ -521,6 +549,7 @@ Then act as **${c.title}** for the target epic/feature (ask which epic if it is 
 - **Output:** ${c.out}
 - **Role badge:** tag every artifact this phase produces with \`${meta.badge}\` (per the workflow's mandatory role-badge rule).
 ${extra}
+${nextBlock}
 If the SDLC docs are not scaffolded yet, run \`/sdlc-workflow:init\` first.
 `;
 }
@@ -934,6 +963,7 @@ description: Multi-role SDLC workflow from user requirements through PO, Busines
    > 🎭 Role: \`[ROLE]\` <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with \`/model\`
 
    **Suggested model tiers:** lead / analysis / audit roles ([PO], [BA], [ARCH], Tech Lead, QE Lead, [SEC/PE]) → **Opus**; logic-bearing implementation & tests → **Sonnet**; mechanical work (boilerplate, CRUD, config, templated tests) → **Haiku**. The workflow does **NOT** change the model for you — switch with \`/model\` or spawn a sub-agent on the suggested tier (switching a running agent's model breaks the prompt cache; a sub-agent does not). You can see the current model anytime via \`/model\` or \`/status\` (and the Claude Code status line).
+5. **Phase handoff — ask, then auto-advance.** When a phase completes and its gate (if any) passes: (a) **recap** the output in one line; (b) **ask a checkpoint** so the user can steer — "✅ <phase> done → next: <next phase>. Reply \`stop\` or \`adjust <note>\` to intervene; otherwise I continue"; (c) **commit** the checkpoint if auto-commit per phase is armed; (d) **auto-trigger the next phase** by running \`/sdlc-workflow:<next>\` (print its banner). Don't idle — run continuously unless told to stop. **Gates before advancing:** Design→Architect needs PO+BA approval; QE→Security needs 0 open bugs + sign-off; Security→Deploy needs 0 Critical/High + sign-off.
 
 **Parallel tracks:**
 - Track A (after Technical BA): [DEV] implementation + [QE] test plan — run SIMULTANEOUSLY
@@ -1295,7 +1325,8 @@ When the user sends an **idea**, **feature request**, or **requirement**:
 1. **Trigger the full pipeline** and run continuously through deployment.
 2. **One role per phase** for sequential phases. **Spawn parallel workstreams** when dependencies are independent.
 3. **Announce each phase (mandatory):** print a one-line banner at the start of every phase / role switch — \`🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model\`. Tiers: lead/analysis/audit → **Opus**; logic-bearing code & tests → **Sonnet**; mechanical work → **Haiku**. The workflow does not change the model for you (use \`/model\` or spawn a sub-agent on that tier — switching a running agent's model breaks the prompt cache). Current model: \`/model\` or \`/status\`.
-4. **Run through to Maintenance.** Do not stop after PO, BA, or Dev unless the user explicitly says to stop.
+4. **Phase handoff — ask, then auto-advance.** When a phase completes and its gate (if any) passes: recap the output in one line → ask a checkpoint ("✅ <phase> done → next: <next>. Reply \`stop\`/\`adjust\` to intervene; else I continue") → commit if auto-commit per phase is armed → **auto-trigger the next phase** (\`/sdlc-workflow:<next>\` with its banner). Gates: Design→Architect (PO+BA approve); QE→Security (0 open bugs + sign-off); Security→Deploy (0 Critical/High + sign-off).
+5. **Run through to Maintenance.** Do not stop after PO, BA, or Dev unless the user explicitly says to stop.
 
 ## 🚦 The Orchestrator's Most Important Rule
 
@@ -1617,6 +1648,8 @@ Every role in the SDLC runs as a **sub-agent**. Each phase is assigned to a corr
 > 🎭 Role: \`[ROLE]\` <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with \`/model\`
 
 Suggested model tiers: lead/analysis/audit roles (PO, BA, Architect, Tech Lead, QE Lead, Security/PE) → **Opus**; logic-bearing implementation/tests → **Sonnet**; mechanical work (boilerplate, CRUD, config, templated tests) → **Haiku**. The workflow does NOT change the model for you — use \`/model\` or spawn a sub-agent on the suggested tier. You see the current model anytime via \`/model\` or \`/status\` (and the Claude Code status line).
+
+**Phase handoff — ask, then auto-advance.** When a phase completes and its gate (if any) passes: (1) recap the output in one line; (2) ask a checkpoint so the user can steer — "✅ <phase> done → next: <next phase>. Reply \`stop\` or \`adjust <note>\` to intervene; otherwise I continue"; (3) commit the checkpoint if auto-commit per phase is armed; (4) **auto-trigger the next phase** by running \`/sdlc-workflow:<next>\` (print its banner). Don't idle — run continuously unless told to stop. **Gates before advancing:** Design→Architect (PO+BA approve the design); QE→Security (0 open bugs + QE sign-off); Security→Deploy (0 Critical/High + Security/PE sign-off).
 
 ## 🚦 Parallel vs Sequential Orchestrator Rules
 

@@ -18,4 +18,12 @@ Then act as **QE (test execution)** for the target epic/feature (ask which epic 
 
 FIRST pick a test depth tier (Smoke / Standard / Full — see qe/README.md) and right-size the rigor: Smoke (small/low-risk) = happy path + 1-2 edge cases on Haiku, NO cross-browser/visual-regression/responsive matrix; Standard (default) = unit+integration+key edges on Sonnet; Full (critical/UI-heavy) = full matrix, QE Lead (Opus) designs + Senior QE (Sonnet) executes. Do NOT run the Full enterprise matrix on a small feature — that is what burns a huge share of the session. Cost guard: run the heavy execution (browser automation, evidence capture) in a SUB-AGENT on the tier's model so its large output stays out of the main session context. Use provisioned test accounts/data (secrets from env/CI, never hardcoded; seed + isolate + tear down test data/accounts after the run). Cleanup is scoped to test data/accounts ONLY — evidence (screenshots/video/trace/report) is a deliverable: keep it in qe/{epic-slug}/evidence/, never delete it (even on passing runs). For Full tier verify no broken/misaligned layout, dropped columns, or broken inputs (visual regression + layout-integrity assertions per breakpoint). Loop with Dev until 0 open bugs, then sign off.
 
+## Next action — ask, then auto-advance
+
+When this phase's output is complete and its gate passes (**0 open bugs + QE sign-off**):
+1. **Recap** in one line — what was produced + the output path.
+2. **Ask a checkpoint** (give the user a chance to steer): `✅ QE (test execution) done → next: Security + PE audit. Reply \`stop\` or \`adjust <note>\` to intervene; otherwise I continue.`
+3. **If auto-commit per phase is armed**, commit the checkpoint first (only after the gate passes).
+4. **Auto-trigger the next phase** unless the user intervened: run `/sdlc-workflow:security` and print its role banner. Do not idle — the pipeline runs continuously unless told to stop.
+
 If the SDLC docs are not scaffolded yet, run `/sdlc-workflow:init` first.

@@ -9,6 +9,8 @@ Every role in the SDLC runs as a **sub-agent**. Each phase is assigned to a corr
 
 Suggested model tiers: lead/analysis/audit roles (PO, BA, Architect, Tech Lead, QE Lead, Security/PE) → **Opus**; logic-bearing implementation/tests → **Sonnet**; mechanical work (boilerplate, CRUD, config, templated tests) → **Haiku**. The workflow does NOT change the model for you — use `/model` or spawn a sub-agent on the suggested tier. You see the current model anytime via `/model` or `/status` (and the Claude Code status line).
 
+**Phase handoff — ask, then auto-advance.** When a phase completes and its gate (if any) passes: (1) recap the output in one line; (2) ask a checkpoint so the user can steer — "✅ <phase> done → next: <next phase>. Reply `stop` or `adjust <note>` to intervene; otherwise I continue"; (3) commit the checkpoint if auto-commit per phase is armed; (4) **auto-trigger the next phase** by running `/sdlc-workflow:<next>` (print its banner). Don't idle — run continuously unless told to stop. **Gates before advancing:** Design→Architect (PO+BA approve the design); QE→Security (0 open bugs + QE sign-off); Security→Deploy (0 Critical/High + Security/PE sign-off).
+
 ## 🚦 Parallel vs Sequential Orchestrator Rules
 
 **The cardinal rule:** If two workstreams do NOT depend on each other's output, they MUST run in parallel.

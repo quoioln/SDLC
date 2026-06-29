@@ -1,6 +1,6 @@
 {
   "name": "sdlc-workflow",
-  "version": "1.16.7",
+  "version": "1.16.8",
   "type": "module",
   "bin": {
     "sdlc-workflow": "./bin/cli.js"

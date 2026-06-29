@@ -16,4 +16,8 @@ Then act as **Technical Writer (guideline)** for the target epic/feature (ask wh
 - **Output:** docs/sdlc/guideline/{epic-slug}.md + index
 - **Role badge:** tag every artifact this phase produces with `[DOC]` (per the workflow's mandatory role-badge rule).
 
+## Next action
+
+This is a cross-cutting phase — no fixed next phase. Recap what was produced, then ask the user what they want next.
+
 If the SDLC docs are not scaffolded yet, run `/sdlc-workflow:init` first.
