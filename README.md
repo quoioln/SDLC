@@ -269,6 +269,46 @@ For example `/sdlc-workflow:test` has Claude act as QE — execute unit/integrat
 
 Layout: `.claude-plugin/marketplace.json` (root) lists the plugin at `./plugin`, which holds `plugin/.claude-plugin/plugin.json`, `plugin/skills/`, and the bundled `plugin/cli/`. These files are generated from the CLI's source of truth — run `npx sdlc-workflow plugin` to (re)generate them.
 
+## Companion plugins (Superpowers + feature-dev) — optional
+
+SDLC is the **orchestrator** (business → ops). You can plug in technical **engines** per phase: [Superpowers](https://github.com/obra/superpowers) (brainstorming, writing-plans, TDD, debugging…), `feature-dev`, `code-review`, `security-guidance`, `context7`. They **augment** the workflow — if one isn't installed, that phase falls back to the SDLC template (no hard-fail). Full guideline (per-phase engine + model tiers + fallback): **`docs/sdlc/INTEGRATION.md`**.
+
+### Install (verified on `claude-plugins-official`, 06/2026)
+
+```shell
+/plugin install feature-dev@claude-plugins-official
+/plugin install code-review@claude-plugins-official
+/plugin install security-guidance@claude-plugins-official
+/plugin install superpowers@claude-plugins-official
+/plugin install context7@claude-plugins-official        # recommended
+```
+
+- When installing, Claude Code asks for **scope** — pick **user** to load the plugin in every session on this machine (vs **project** for this repo only).
+- `claude-plugins-official` is preloaded — no `marketplace add` needed for these.
+- **superpowers** also ships from the author's marketplace (latest first): `/plugin marketplace add obra/superpowers-marketplace` then `/plugin install superpowers@superpowers-marketplace`. Pick **one** source.
+
+### Update / verify
+
+```shell
+/plugin marketplace update <marketplace>    # re-fetch catalog — required first
+/plugin install <plugin>@<marketplace>      # reinstall the bumped version
+/reload-plugins                             # apply without restarting
+```
+
+Open `/plugin` to confirm each is **enabled**.
+
+### Which plugin for which phase
+
+| Plugin | Phases | Role |
+|--------|--------|------|
+| `superpowers` | PO · Technical BA · Dev · QE · Bug-fix · Deploy | brainstorming, writing-plans, TDD, subagent-driven, requesting-code-review, systematic-debugging, finishing-a-development-branch |
+| `feature-dev` | Architect · Dev | 7-phase: explore → architecture → implement → review |
+| `code-review` | QE (testing) | quality gate on the diff |
+| `security-guidance` | Dev → Security (realtime) | three-layer vulnerability check, runs automatically |
+| `context7` | Architect · Dev | docs lookup, framework-accurate code |
+
+> ⚠️ **`code-review` is ambiguous:** Claude Code has a built-in `/code-review` skill **and** the official `code-review` plugin — pick one and note it in `.claude/CLAUDE.md`. See `docs/sdlc/INTEGRATION.md` §8 for the full per-phase mapping.
+
 ## Use with Antigravity
 
 `AGENTS.md` at project root — Antigravity reads it (priority: AGENTS.md → GEMINI.md). Universal format, works across agentic IDEs.
