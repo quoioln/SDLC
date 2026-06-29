@@ -72,6 +72,75 @@ Installs global skills (run once per machine):
 - `~/.codex/AGENTS.md` — Codex global instructions
 - `~/.agents/skills/sdlc-workflow/` — Codex global skill
 
+## Quickstart — driving the workflow (example prompts)
+
+After scaffolding (`init`) or installing the plugin, you drive the pipeline by **talking to the agent** (Claude Code / Cursor / Codex). Sending an idea triggers the full pipeline; each phase prints a `🎭 Role · 🧠 Suggested model` banner, asks a checkpoint, then auto-advances to the next phase.
+
+> **Cost tip (read this first):** the workflow suggests a model tier per phase but does **not** switch models for you — use `/model`. Lead/analysis/audit → Opus; logic-bearing code/tests → Sonnet; mechanical work → Haiku. For QE on a **small** feature, ask for the **Smoke** depth tier (Haiku, no cross-browser/visual-regression matrix) so a tiny change doesn't burn the session.
+
+### A) New project (greenfield)
+
+```bash
+# 1. Scaffold (CLI or plugin)
+npx sdlc-workflow init           # or: /sdlc-workflow:init
+```
+
+Then send an idea — example prompts:
+
+```text
+# Full pipeline, end to end
+Build a URL shortener with click analytics and a dashboard (web app).
+Run the full SDLC pipeline from PO through Deploy. Treat it as one epic.
+
+# Plugin form (explicit skill)
+/sdlc-workflow:workflow Build a REST API for task management
+(users, projects, tasks, due dates, reminders). Backend only.
+
+# Start one phase at a time
+/sdlc-workflow:po  Idea: a mobile app that splits group expenses.
+# …then let it auto-advance, or call /sdlc-workflow:ba next.
+```
+
+Tips:
+- Say **"web app"** or **"mobile"** so the Design phase (UX before Architect) kicks in.
+- Name the domain (fintech, health, e-commerce…) so PO/BA pull the matching compliance pack from `docs/sdlc/domain-packs.md`.
+- Want checkpoints between phases? The agent already asks before advancing — reply `stop` or `adjust <note>` to steer.
+
+### B) Existing project (brownfield)
+
+```bash
+# 1. init also SCANS the repo: writes project-profile.md, ADOPTION.md, reverse-engineering.md
+npx sdlc-workflow init           # or: /sdlc-workflow:init
+npx sdlc-workflow tech detect    # detect stack → add matching dev rules
+```
+
+Then point the agent at the existing code — example prompts:
+
+```text
+# Understand the codebase first (recommended on day one)
+Reverse-engineer this repo using docs/sdlc/reverse-engineering.md:
+derive the as-is architecture, a feature summary, retroactive ADRs,
+and a tech-debt register. Use docs/sdlc/project-profile.md as the facts.
+
+# Add a feature, reusing existing architecture
+Add a feature: let users export their data as CSV. Run the SDLC pipeline
+scoped to just this feature — reuse the current architecture, don't redesign.
+
+# Small change → keep QE cheap
+Fix: the login form rejects valid emails with a leading dot.
+Run the QE phase at Smoke depth (Haiku), offload test execution to a sub-agent.
+
+# Bug-fix loop
+Bug: orders occasionally double-charge under concurrent checkout.
+Use systematic debugging (reproduce → isolate → hypothesize → fix → verify),
+then QE retest until 0 open bugs.
+```
+
+Tips:
+- Run the **reverse-engineering** prompt before adding features so the agent has the as-is picture.
+- For a focused change, say **"scoped to this feature, reuse the current architecture"** so it doesn't run the whole greenfield pipeline.
+- Combine with the Superpowers + feature-dev plugins per `docs/sdlc/INTEGRATION.md` (per-phase engine + model tiers + fallback).
+
 ## Generated Structure
 
 ```
