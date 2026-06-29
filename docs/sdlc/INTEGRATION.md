@@ -16,10 +16,14 @@
 
 ---
 
-## 1. Cài đặt plugin
+## 1. Cài đặt plugin (guideline)
 
+### Bước 1 — Điều kiện
+Claude Code có sẵn lệnh `/plugin`. Marketplace **`claude-plugins-official`** được nạp sẵn khi mở Claude Code — **không cần** `marketplace add` cho các plugin official.
+
+### Bước 2 — Cài plugin official (bắt buộc)
 ```bash
-# Bắt buộc — đã verify trên claude-plugins-official (06/2026)
+# đã verify trên claude-plugins-official (06/2026)
 /plugin install feature-dev@claude-plugins-official
 /plugin install code-review@claude-plugins-official
 /plugin install security-guidance@claude-plugins-official
@@ -28,15 +32,41 @@
 # Khuyến nghị
 /plugin install context7@claude-plugins-official
 ```
+> 💡 Khi cài, Claude Code hỏi **scope**: chọn **user** để plugin nạp ở mọi session trên máy này, hoặc **project** để chỉ áp repo hiện tại. Pipeline SDLC dùng nhiều dự án → thường chọn **user**.
 
-> 🔎 **superpowers — 2 nguồn, cùng plugin:** có trên `claude-plugins-official` (lệnh trên) **hoặc** marketplace gốc của tác giả (obra/Jesse Vincent):
-> ```bash
-> /plugin marketplace add obra/superpowers-marketplace
-> /plugin install superpowers@superpowers-marketplace
-> ```
-> Dùng marketplace gốc nếu muốn bản mới nhất sớm nhất. `feature-dev`, `code-review`, `security-guidance`, `context7` đều là **plugin official của Anthropic**.
-> ⚠️ **`code-review` nhập nhằng:** Claude Code có sẵn skill built-in `/code-review` **lẫn** plugin official `code-review` — chọn 1, ghi rõ trong CLAUDE.md (xem Phase 8).
-> 🔁 **Fallback:** Plugin nào chưa cài → phase tương ứng (mục 3) tự dùng template SDLC.
+### Bước 3 — (tùy chọn) superpowers từ marketplace gốc
+Muốn bản mới nhất sớm nhất (tác giả obra/Jesse Vincent), thay vì cài từ official:
+```bash
+/plugin marketplace add obra/superpowers-marketplace
+/plugin install superpowers@superpowers-marketplace
+```
+> Chỉ chọn **một** nguồn cho superpowers (official **hoặc** obra) để tránh trùng. `feature-dev`, `code-review`, `security-guidance`, `context7` là plugin official của Anthropic.
+
+### Bước 4 — Xác nhận đã cài
+- Mở `/plugin` → tab quản lý → kiểm tra 5 plugin ở trạng thái **enabled**.
+- Hoặc chạy verify-first checklist ở **mục 6**.
+
+### Bước 5 — Cập nhật về bản mới nhất
+Plugin **version-pinned**, không tự cập nhật:
+```bash
+/plugin marketplace update <marketplace>    # re-fetch catalog — BẮT BUỘC trước
+/plugin install <plugin>@<marketplace>      # cài lại bản đã bump
+/reload-plugins                             # áp dụng, không cần restart
+```
+> Thiếu `marketplace update` thì `install` vẫn thấy version cũ. `/reload-plugins` đủ cho thay đổi text skill; thêm MCP/hook mới thì restart Claude Code.
+
+### Bước 6 — Xử lý nhập nhằng & thiếu plugin
+- ⚠️ **`code-review` nhập nhằng:** Claude Code có sẵn skill built-in `/code-review` **lẫn** plugin official `code-review`. Chọn **1**, ghi rõ trong `.claude/CLAUDE.md` (xem Phase 8). Đừng gọi cả hai.
+- 🔁 **Thiếu plugin → graceful degradation:** phase tương ứng (mục 3) tự **fallback về template SDLC**, pipeline **không hard-fail**. Ghi chú "ran without <plugin>".
+
+### Plugin nào cho phase nào (tóm tắt)
+| Plugin | Phase dùng | Vai trò |
+|--------|------------|---------|
+| `superpowers` | PO · Technical BA · Dev · QE · Bug-fix · Deploy | brainstorming, writing-plans, TDD, subagent-driven, requesting-code-review, systematic-debugging, finishing-a-development-branch |
+| `feature-dev` | Architect · Dev | 7-phase: explore → architecture → implement → review |
+| `code-review` | QE (testing) | quality gate trên diff |
+| `security-guidance` | Dev → Security (realtime) | three-layer vuln check, chạy tự động |
+| `context7` | Architect · Dev | docs lookup, code đúng API framework |
 
 ---
 
