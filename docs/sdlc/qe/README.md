@@ -18,9 +18,9 @@
 
 | Tier | When | Scope | Model |
 |------|------|-------|-------|
-| **Smoke** | Small / low-risk change, non-UI or trivial UI, internal tooling | Happy path + 1–2 negative/edge cases. **No** cross-browser, **no** visual regression, **no** responsive matrix. Evidence = screenshot on failure only | **Haiku**, effort low |
-| **Standard** (default) | Normal feature | Unit + integration + key edge cases; for UI, **one** representative breakpoint check. Evidence on failures + final report | **Sonnet**, effort medium |
-| **Full** | Critical path, money/auth/PII, or UI-heavy/public | Full matrix: cross-browser × responsive breakpoints × visual regression × layout integrity × a11y; full evidence (screenshot/video/trace) | QE Lead (**Opus**) designs → Senior QE (**Sonnet**) executes |
+| **Smoke** | Small / low-risk change, non-UI or trivial UI, internal tooling | Happy path + 1–2 negative/edge cases. **No** cross-browser, **no** visual regression, **no** responsive matrix. Evidence = screenshot on failure only | **Haiku 4.5**, effort low |
+| **Standard** (default) | Normal feature | Unit + integration + key edge cases; for UI, **one** representative breakpoint check. Evidence on failures + final report | **Sonnet 5**, effort medium |
+| **Full** | Critical path, money/auth/PII, or UI-heavy/public | Full matrix: cross-browser × responsive breakpoints × visual regression × layout integrity × a11y; full evidence (screenshot/video/trace) | QE Lead (**Opus 4.8**) designs → Senior QE (**Sonnet 5**) executes |
 
 - **Default to Smoke/Standard.** Escalate to **Full** only when the feature is genuinely critical or UI-heavy — never by default.
 - **Cost guard:** offload the heavy test execution to a **sub-agent** on the tier's model. Browser/trace/screenshot output is large; running it in a sub-agent keeps it out of the main session context (this is what prevents a small feature from eating ~40% of the session).

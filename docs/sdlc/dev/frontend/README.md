@@ -1,6 +1,6 @@
 # Senior Frontend (10+ years exp) — Web UI
 
-> **Model**: Default to a **mid-tier model** (e.g. Claude Sonnet) for logic-bearing work; drop to a **cost-efficient model** (e.g. Claude Haiku) for mechanical work (boilerplate, CRUD, config, wiring, tests from a template). Reserve the **highest-tier model** (Opus) for the Tech Lead. Execute from Tech Lead's specs.
+> **Model**: Default to a **mid-tier model** (e.g. Claude Sonnet 5) for logic-bearing work; drop to a **cost-efficient model** (e.g. Claude Haiku 4.5) for mechanical work (boilerplate, CRUD, config, wiring, tests from a template). Reserve the **highest-tier model** (Opus 4.8) for the Tech Lead. Execute from Tech Lead's specs.
 
 **Responsibilities**:
 - Implement web UI per design and API contract

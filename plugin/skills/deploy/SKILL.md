@@ -5,9 +5,11 @@ description: Run the Deploy phase: Docker Compose + Kubernetes + IaC after sign-
 
 # /sdlc-workflow:deploy — OPS (deploy)
 
+**Config check (before anything else):** if `docs/sdlc/sdlc-config.md` exists and marks this phase ⛔ disabled — and the user did not invoke this command explicitly by name — do NOT run it: print `⏭ Role: [OPS] OPS (deploy) — skipped (disabled in sdlc-config)` and hand off to the next enabled phase. An explicit user invocation always wins over the config (they asked for it by name).
+
 **On start, print this status banner verbatim** so the user can see the active role and the suggested model (the workflow does NOT switch models for you — verify/switch the model yourself with `/model`, or spawn a sub-agent on the suggested tier):
 
-> 🎭 Role: [OPS] OPS (deploy) · 📂 Output: docs/sdlc/deploy/ · 🧠 Suggested model: Sonnet (default) / Haiku (boilerplate manifests) — check/switch with `/model`
+> 🎭 Role: [OPS] OPS (deploy) · 📂 Output: docs/sdlc/deploy/ · 🧠 Suggested model: Sonnet 5 (default) / Haiku 4.5 (boilerplate manifests) — check/switch with `/model`
 
 Then act as **OPS (deploy)** for the target epic/feature (ask which epic if it is unclear).
 
@@ -22,6 +24,6 @@ When this phase's output is complete:
 1. **Recap** in one line — what was produced + the output path.
 2. **Ask a checkpoint** (give the user a chance to steer): `✅ OPS (deploy) done → next: Maintenance. Reply \`stop\` or \`adjust <note>\` to intervene; otherwise I continue.`
 3. **If auto-commit per phase is armed**, commit the checkpoint first (only after the gate passes).
-4. **Auto-trigger the next phase** unless the user intervened: run `/sdlc-workflow:maintain` and print its role banner. Do not idle — the pipeline runs continuously unless told to stop.
+4. **Auto-trigger the next ENABLED phase** unless the user intervened: consult `docs/sdlc/sdlc-config.md`, starting from `/sdlc-workflow:maintain`. If a phase is disabled there, print its skip banner — `⏭ Role: [ROLE] <title> — skipped (disabled in sdlc-config)` — and move to the phase after it. Run the first enabled phase's command and print its role banner. Do not idle — the pipeline runs continuously unless told to stop.
 
 If the SDLC docs are not scaffolded yet, run `/sdlc-workflow:init` first.

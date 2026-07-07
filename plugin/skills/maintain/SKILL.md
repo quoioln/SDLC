@@ -5,9 +5,11 @@ description: Run Maintenance: monitoring, bug triage/fix, dependency updates, pe
 
 # /sdlc-workflow:maintain — Maintenance
 
+**Config check (before anything else):** if `docs/sdlc/sdlc-config.md` exists and marks this phase ⛔ disabled — and the user did not invoke this command explicitly by name — do NOT run it: print `⏭ Role: [MAINT] Maintenance — skipped (disabled in sdlc-config)` and hand off to the next enabled phase. An explicit user invocation always wins over the config (they asked for it by name).
+
 **On start, print this status banner verbatim** so the user can see the active role and the suggested model (the workflow does NOT switch models for you — verify/switch the model yourself with `/model`, or spawn a sub-agent on the suggested tier):
 
-> 🎭 Role: [MAINT] Maintenance · 📂 Output: docs/sdlc/maintenance/ · 🧠 Suggested model: Sonnet (triage/fixes) / Haiku (routine dep bumps) — check/switch with `/model`
+> 🎭 Role: [MAINT] Maintenance · 📂 Output: docs/sdlc/maintenance/ · 🧠 Suggested model: Sonnet 5 (triage/fixes) / Haiku 4.5 (routine dep bumps) — check/switch with `/model`
 
 Then act as **Maintenance** for the target epic/feature (ask which epic if it is unclear).
 

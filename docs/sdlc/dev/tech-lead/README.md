@@ -1,6 +1,6 @@
 # Tech Lead (15+ years exp)
 
-> **Model**: Use the **highest-tier model** (e.g. Claude Opus) for this role. Tech Lead handles planning, logic analysis, architecture decisions, and code review — tasks that require maximum reasoning capability.
+> **Model**: Use the **highest-tier model** (e.g. Claude Opus 4.8) for this role. Tech Lead handles planning, logic analysis, architecture decisions, and code review — tasks that require maximum reasoning capability.
 
 **Responsibilities**:
 - Decide tech stack, frameworks, libraries

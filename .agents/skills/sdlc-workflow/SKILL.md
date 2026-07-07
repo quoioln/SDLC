@@ -16,8 +16,9 @@ description: Multi-role SDLC workflow from user requirements through PO, Busines
 4. **Announce each phase with a status banner (mandatory).** At the start of every phase — and on every role switch in a single-agent run — print this one line first, so the user always sees the active role and the suggested model:
    > 🎭 Role: `[ROLE]` <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with `/model`
 
-   **Suggested model tiers:** lead / analysis / audit roles ([PO], [BA], [ARCH], Tech Lead, QE Lead, [SEC/PE]) → **Opus**; logic-bearing implementation & tests → **Sonnet**; mechanical work (boilerplate, CRUD, config, templated tests) → **Haiku**. The workflow does **NOT** change the model for you — switch with `/model` or spawn a sub-agent on the suggested tier (switching a running agent's model breaks the prompt cache; a sub-agent does not). You can see the current model anytime via `/model` or `/status` (and the Claude Code status line).
+   **Suggested model tiers:** lead / analysis / audit roles ([PO], [BA], [ARCH], Tech Lead, QE Lead, [SEC/PE]) → **Opus 4.8**; logic-bearing implementation & tests → **Sonnet 5** (near-Opus coding quality at ~60% of the price); mechanical work (boilerplate, CRUD, config, templated tests) → **Haiku 4.5**; **Fable 5** is an escalation tier only — reserve it for the hardest problems (novel/complex architecture, security audit of critical systems) since it costs 2× Opus. The workflow does **NOT** change the model for you — switch with `/model` or spawn a sub-agent on the suggested tier (switching a running agent's model breaks the prompt cache; a sub-agent does not). You can see the current model anytime via `/model` or `/status` (and the Claude Code status line).
 5. **Phase handoff — ask, then auto-advance.** When a phase completes and its gate (if any) passes: (a) **recap** the output in one line; (b) **ask a checkpoint** so the user can steer — "✅ <phase> done → next: <next phase>. Reply `stop` or `adjust <note>` to intervene; otherwise I continue"; (c) **commit** the checkpoint if auto-commit per phase is armed; (d) **auto-trigger the next phase** by running `/sdlc-workflow:<next>` (print its banner). Don't idle — run continuously unless told to stop. **Gates before advancing:** Design→Architect needs PO+BA approval; QE→Security needs 0 open bugs + sign-off; Security→Deploy needs 0 Critical/High + sign-off.
+6. **Phase toggles (sdlc-config).** `docs/sdlc/sdlc-config.md` is the persistent per-phase on/off switch (profiles: `full` / `standard` / `hotfix` / `docs-only`). Consult it at pipeline start and at every handoff; skip disabled phases with a visible banner — `⏭ Role: [ROLE] <title> — skipped (disabled in sdlc-config)` — then continue with the next enabled phase. The user toggles by saying "disable phase qe" / "enable phase guideline" / "profile hotfix" / "skip qe for this epic" (one-epic override; file untouched) — update the file and confirm in one line. **Guard:** security cannot be disabled when the epic touches money/auth/PII (suggest lowering the QE depth tier instead).
 
 **Parallel tracks:**
 - Track A (after Technical BA): [DEV] implementation + [QE] test plan — run SIMULTANEOUSLY
@@ -102,7 +103,7 @@ Parallel Track B: Dev complete → [QE] + [SEC] + [PERF] simultaneously → merg
 **⚡ Parallel with Phase 5a**: [DEV] AND [QE] test plan run simultaneously.
 
 **Roles** (vary by project — use only what applies). All implementation roles are **Senior (10+ yrs)**:
-- **Tech Lead (15+ yrs)** — **highest model** (e.g. Opus): Planning, logic analysis, architecture decisions, tech stack, code review & merge.
+- **Tech Lead (15+ yrs)** — **highest model** (e.g. Opus 4.8): Planning, logic analysis, architecture decisions, tech stack, code review & merge.
 - **Senior Frontend (10+ yrs)**: Web UI.
 - **Senior Backend (10+ yrs)**: API, services, DB.
 - **Senior Mobile (10+ yrs)**: iOS/Android/cross-platform.
@@ -110,7 +111,7 @@ Parallel Track B: Dev complete → [QE] + [SEC] + [PERF] simultaneously → merg
 - **Senior Data/ML (10+ yrs)**: ETL, models, analytics.
 - **Senior Platform (10+ yrs)**: CI/CD, infra.
 
-**Model tier (all implementation roles, 3 mức theo độ khó):** default **mid-tier** (e.g. Sonnet) for logic-bearing work (business logic, integration, refactor, edge cases); drop to **cost-efficient** (e.g. Haiku) for mechanical work (boilerplate, CRUD, config, tests from a template). Opus stays with the Tech Lead. To realize the saving without breaking the prompt cache, spawn a cheaper-tier sub-agent for the delegated subtask rather than switching a running agent's model.
+**Model tier (all implementation roles, 3 mức theo độ khó):** default **mid-tier** (e.g. Sonnet 5) for logic-bearing work (business logic, integration, refactor, edge cases); drop to **cost-efficient** (e.g. Haiku 4.5) for mechanical work (boilerplate, CRUD, config, tests from a template). Opus 4.8 stays with the Tech Lead; escalate to Fable 5 only for the hardest problems (2× Opus price — never the default). To realize the saving without breaking the prompt cache, spawn a cheaper-tier sub-agent for the delegated subtask rather than switching a running agent's model.
 
 **⚡ All implementation roles run in parallel** — frontend does NOT wait for backend; they coordinate via API contract from Technical BA.
 

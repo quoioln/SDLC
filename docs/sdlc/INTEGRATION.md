@@ -72,23 +72,24 @@ Plugin **version-pinned**, không tự cập nhật:
 
 ## 2. Lớp model & chi phí (áp mọi phase)
 
-### 2.1 — 3 tier model theo độ khó (không phải theo role cứng)
+### 2.1 — 4 tier model theo độ khó (không phải theo role cứng)
 
-| Tier | Dùng cho | Model |
-|------|----------|-------|
-| **Lead / analysis / audit** | PO, BA, Architect, Tech Lead, QE Lead, Security/PE — planning, logic, review | **Opus** |
-| **Logic-bearing execution** | business logic, integration, refactor, test có nhánh | **Sonnet** |
-| **Cơ học** | boilerplate, CRUD, config, wiring, test theo mẫu | **Haiku** |
+| Tier | Dùng cho | Model | Giá tương đối |
+|------|----------|-------|---------------|
+| **Escalation (frontier)** | CHỈ bài toán khó nhất: kiến trúc mới/phức tạp, audit security/logic hệ thống critical (money/auth/PII), run tự trị dài | **Fable 5** | 2× Opus — không bao giờ là mặc định |
+| **Lead / analysis / audit** | PO, BA, Architect, Tech Lead, QE Lead, Security/PE — planning, logic, review | **Opus 4.8** | chuẩn lead |
+| **Logic-bearing execution** | business logic, integration, refactor, test có nhánh | **Sonnet 5** | ~60% Opus — chất lượng coding gần Opus |
+| **Cơ học** | boilerplate, CRUD, config, wiring, test theo mẫu | **Haiku 4.5** | ~20% Opus |
 
-Đừng mặc định Haiku cho mọi thứ: sai logic → Opus phải sửa lại, tổng chi phí cao hơn làm đúng một lần trên Sonnet.
+Đừng mặc định Haiku cho mọi thứ: sai logic → Opus phải sửa lại, tổng chi phí cao hơn làm đúng một lần trên Sonnet 5. Ngược lại cũng đừng mặc định Fable: phần lớn task lead Opus 4.8 xử lý tốt với nửa giá — chỉ escalate khi Opus thực sự không đủ.
 
 ### 2.2 — QE depth tier (right-size độ kỹ theo quy mô feature)
 
 | Depth | Khi nào | Phạm vi | Model |
 |-------|---------|---------|-------|
-| **Smoke** | Feature nhỏ/low-risk | Happy path + 1–2 edge; KHÔNG cross-browser/visual-regression/responsive matrix | Haiku |
-| **Standard** (mặc định) | Feature thường | Unit + integration + key edges; UI: 1 breakpoint | Sonnet |
-| **Full** | Critical / money-auth-PII / UI-heavy | Full matrix | Opus design → Sonnet exec |
+| **Smoke** | Feature nhỏ/low-risk | Happy path + 1–2 edge; KHÔNG cross-browser/visual-regression/responsive matrix | Haiku 4.5 |
+| **Standard** (mặc định) | Feature thường | Unit + integration + key edges; UI: 1 breakpoint | Sonnet 5 |
+| **Full** | Critical / money-auth-PII / UI-heavy | Full matrix | Opus 4.8 design → Sonnet 5 exec |
 
 ### 2.3 — Sub-agent offload (chống đốt session)
 
@@ -100,42 +101,42 @@ feature-dev và subagent-driven-development spawn nhiều sub-agent. **Chạy ex
 
 > Mỗi phase: **Plugin (engine) · Model tier · Output · Fallback**. Thứ tự theo SDLC canonical — **Design TRƯỚC Architect** (UX dẫn tech).
 
-### Phase 1 — PO (Product Owner) · Opus
+### Phase 1 — PO (Product Owner) · Opus 4.8
 - **Engine:** Superpowers `brainstorming` (Socratic, tách requirement, validate scope) — **bổ sung**, không thay role PO.
 - **Quy trình:** brainstorming → lưu `po/{epic-slug}/brainstorm.md` → PO approve → điền `epic-brief.template.md`. Áp **Analysis lenses** của SDLC (JTBD, 5 Whys, Impact Mapping…).
 - **Output:** `docs/sdlc/po/{epic-slug}/epic-brief.md`
 - **Fallback:** điền epic-brief bằng Analysis lenses của SDLC.
 
-### Phase 2 — Business BA · Opus
+### Phase 2 — Business BA · Opus 4.8
 - **Engine:** Template SDLC + **`domain-packs.md`** (phân loại ngành → nghĩa vụ compliance + must-have requirements).
 - **Output:** `docs/sdlc/ba/business/{epic-slug}/functional-requirement.md` + compliance matrix (regulation ↔ requirement ↔ test).
 - **Fallback:** (đây là native SDLC — không phụ thuộc plugin).
 
-### Phase 3 — Design (chỉ app/web) · Opus (judgment) / Sonnet (component code)
+### Phase 3 — Design (chỉ app/web) · Opus 4.8 (judgment) / Sonnet 5 (component code)
 - **Engine:** SDLC (anti-AI design spec + wireframe + PO/BA review loop). Không plugin nào cover phần này.
 - **Output:** `docs/sdlc/design/{epic-slug}/design-spec.md` + wireframe.
 
-### Phase 4 — Architect · Opus
+### Phase 4 — Architect · Opus 4.8 (escalate Fable 5 cho hệ thống mới/phức tạp)
 - **Engine:** feature-dev *architecture phase* (sub-agent explore codebase → đề xuất approach + trade-offs) + `context7` / `source-driven-development` để bám API framework chính thống.
 - **Giữ nguyên:** ADR vẫn là deliverable SDLC (`adr.template.md`) — feature-dev chỉ cung cấp phân tích, Architect review & chốt ADR.
 - **Output:** `docs/sdlc/architecture/{epic-slug}/adr.md`
 - **Fallback:** Architect điền ADR thủ công theo template.
 
-### Phase 5 — Technical BA · Opus (contract) / Sonnet (điền routine)
+### Phase 5 — Technical BA · Opus 4.8 (contract) / Sonnet 5 (điền routine)
 - **Engine:** Superpowers `writing-plans` — **BỔ SUNG, KHÔNG thay thế.**
   - `writing-plans` tạo **implementation-plan** (task 2–5 phút, file path cụ thể, snippet đầy đủ, verification steps).
   - **GIỮ NGUYÊN** `api-spec.template.md` (OpenAPI/contract) + `team-breakdown.template.md` — chính API contract mới cho phép **FE/BE chạy song song**. Mất nó là mất parallelism.
 - **Output:** `ba/technical/{epic-slug}/` → `api-spec.md` + `team-breakdown.md` + `implementation-plan.md`
 - **Fallback:** điền cả 3 bằng template.
 
-### Phase 6 — QE (docs) · Sonnet
+### Phase 6 — QE (docs) · Sonnet 5
 - **Engine:** Template SDLC. `writing-plans` đã có verification steps; QE Lead nâng thành test-plan + test-cases chính thức. **Chọn depth tier ở đây** (Smoke/Standard/Full) để định hình độ kỹ.
 - **Output:** `qe/{epic-slug}/test-plan.md` + `test-cases.md`
 
-### Phase 7 — Dev · Opus (Tech Lead) / Sonnet (logic) / Haiku (cơ học)
+### Phase 7 — Dev · Opus 4.8 (Tech Lead) / Sonnet 5 (logic) / Haiku 4.5 (cơ học)
 - **Engine:** feature-dev + Superpowers `test-driven-development` + `subagent-driven-development` (+ `context7` cho code đúng framework).
-- **Tech Lead (Opus):** chạy feature-dev (discovery → explore → clarify → architecture → implementation → review → summary). Plan/review giữ ở Opus.
-- **Senior Dev (Sonnet, hoặc Haiku cho task cơ học):** implement theo TDD **RED → GREEN → REFACTOR**. Task song song → mỗi task một sub-agent (spec + file paths + verification), two-stage review (spec → quality).
+- **Tech Lead (Opus 4.8):** chạy feature-dev (discovery → explore → clarify → architecture → implementation → review → summary). Plan/review giữ ở Opus 4.8.
+- **Senior Dev (Sonnet 5, hoặc Haiku 4.5 cho task cơ học):** implement theo TDD **RED → GREEN → REFACTOR**. Task song song → mỗi task một sub-agent (spec + file paths + verification), two-stage review (spec → quality).
 - **Coverage:** **100% branch (TDD/BDD)** — theo quality bar SDLC, KHÔNG hạ xuống 90%.
 - **Guideline (DoD):** mỗi feature mới/đổi phải tạo/cập nhật `guideline/{epic-slug}.md` trong cùng PR — feature chưa "done" nếu guideline stale.
 - **Output:** code + tests + `dev/{epic-slug}/implementation-notes.md` + guideline.
@@ -148,16 +149,16 @@ feature-dev và subagent-driven-development spawn nhiều sub-agent. **Chạy ex
 - **Bug-fix loop:** bug → Dev fix bằng `systematic-debugging` (4 phase: Reproduce → Isolate → Hypothesize → Fix+Verify) + `verification-before-completion` (cấm claim "fixed" trước khi verify pass) → QE retest → lặp đến **0 open bug** → QE Lead sign-off.
 - **Evidence:** screenshot/video/trace là **deliverable** trong `qe/{epic-slug}/evidence/` — **không xóa**, kể cả run pass. Cleanup chỉ áp cho test data/accounts.
 
-### Phase 9 — Security + Principle Engineer · Opus
+### Phase 9 — Security + Principle Engineer · Opus 4.8 (escalate Fable 5 cho hệ thống critical: money/auth/PII)
 - **Lớp 1 (realtime, bật từ Phase 7):** `security-guidance` (Anthropic official) — chạy tự động, **three-layer**: (a) regex check mỗi edit (~25 lớp lỗ hổng, zero-cost), (b) LLM diff review cuối turn (Opus 4.7, bắt logic flaw), (c) agentic cross-file review lúc commit. Là tool hỗ trợ best-effort, **không thay** SAST/DAST/pen-test.
 - **Lớp 2 (audit chính thức):** Security Agent + PE Agent theo SDLC → `security/{epic-slug}/` + `principle-engineer/{epic-slug}/`.
 - **Fix loop:** issue → Dev fix → QE retest → re-audit đến 0 issue → sign-off. *(Đây là lợi thế riêng SDLC — không plugin nào có.)*
 
-### Phase 10 — Deploy · Sonnet
+### Phase 10 — Deploy · Sonnet 5
 - **Gate:** Superpowers `finishing-a-development-branch` (verify tests pass → merge/PR/keep/discard → dọn worktree).
 - **Deploy:** template SDLC — `docker-compose` (staging) / `kubectl apply -f k8s/` (prod) → smoke test.
 
-### Phase 11 — Maintenance · Sonnet / Haiku
+### Phase 11 — Maintenance · Sonnet 5 / Haiku 4.5
 - **Engine:** SDLC (monitoring, bug fix, patch, dependency update, perf tuning, runbooks). Không plugin nào có.
 - **Output:** `docs/sdlc/maintenance/{epic-slug}/`
 
@@ -188,18 +189,18 @@ Plugin bổ sung, KHÔNG thay khung SDLC. Thiếu plugin → fallback template S
 
 | Phase | Engine (verify version) | Model tier | Fallback |
 |-------|-------------------------|------------|----------|
-| PO | Superpowers: brainstorming | Opus | epic-brief template |
-| Business BA | SDLC + domain-packs | Opus | native |
-| Design | SDLC | Opus/Sonnet | native |
-| Architect | feature-dev (architecture) + context7 | Opus | ADR template |
-| Technical BA | + writing-plans (BỔ SUNG, giữ api-spec + team-breakdown) | Opus/Sonnet | templates |
-| QE (docs) | SDLC (chọn depth tier) | Sonnet | native |
-| Dev | feature-dev + TDD + subagent + context7 | Opus/Sonnet/Haiku | manual impl |
+| PO | Superpowers: brainstorming | Opus 4.8 | epic-brief template |
+| Business BA | SDLC + domain-packs | Opus 4.8 | native |
+| Design | SDLC | Opus 4.8/Sonnet 5 | native |
+| Architect | feature-dev (architecture) + context7 | Opus 4.8 (Fable 5 nếu hệ thống mới/phức tạp) | ADR template |
+| Technical BA | + writing-plans (BỔ SUNG, giữ api-spec + team-breakdown) | Opus 4.8/Sonnet 5 | templates |
+| QE (docs) | SDLC (chọn depth tier) | Sonnet 5 | native |
+| Dev | feature-dev + TDD + subagent + context7 | Opus 4.8/Sonnet 5/Haiku 4.5 | manual impl |
 | QE (testing) | depth tier → requesting-code-review + code-review | theo depth | native QE |
-| Bug-fix | systematic-debugging + verification-before-completion | Sonnet | native loop |
-| Security + PE | Security Guidance (realtime) + SDLC audit | Opus | SDLC audit |
-| Deploy | finishing-a-development-branch → SDLC templates | Sonnet | docker/k8s |
-| Maintenance | SDLC | Sonnet/Haiku | native |
+| Bug-fix | systematic-debugging + verification-before-completion | Sonnet 5 | native loop |
+| Security + PE | Security Guidance (realtime) + SDLC audit | Opus 4.8 (Fable 5 nếu critical) | SDLC audit |
+| Deploy | finishing-a-development-branch → SDLC templates | Sonnet 5 | docker/k8s |
+| Maintenance | SDLC | Sonnet 5/Haiku 4.5 | native |
 
 ### Quy tắc bắt buộc
 - Gắn MODEL TIER cho mỗi phase; offload execution nặng sang SUB-AGENT (không phá cache, không đốt session).
@@ -262,7 +263,7 @@ Plugin bổ sung, KHÔNG thay khung SDLC. Thiếu plugin → fallback template S
 3. **Maintenance phase** — monitoring, runbooks, patches.
 4. **Deploy templates** — Docker Compose + K8s sinh sẵn.
 5. **Domain packs** — checklist compliance theo ngành (fintech/health/e-commerce…).
-6. **Model/cost governance** — 3-tier + QE depth tier + sub-agent offload + role/model banner mỗi phase.
+6. **Model/cost governance** — 4-tier (Fable 5 escalation / Opus 4.8 lead / Sonnet 5 execution / Haiku 4.5 cơ học) + QE depth tier + sub-agent offload + role/model banner mỗi phase.
 7. **Guideline (living docs)** — Definition of Done cho mọi feature.
 
 Superpowers và feature-dev là framework thuần kỹ thuật cho developer. SDLC cover toàn bộ vòng đời từ business đến ops, cộng lớp governance model/chi phí — đây là phần plugin không thay thế được.

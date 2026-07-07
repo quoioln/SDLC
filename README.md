@@ -76,7 +76,7 @@ Installs global skills (run once per machine):
 
 After scaffolding (`init`) or installing the plugin, you drive the pipeline by **talking to the agent** (Claude Code / Cursor / Codex). Sending an idea triggers the full pipeline; each phase prints a `🎭 Role · 🧠 Suggested model` banner, asks a checkpoint, then auto-advances to the next phase.
 
-> **Cost tip (read this first):** the workflow suggests a model tier per phase but does **not** switch models for you — use `/model`. Lead/analysis/audit → Opus; logic-bearing code/tests → Sonnet; mechanical work → Haiku. For QE on a **small** feature, ask for the **Smoke** depth tier (Haiku, no cross-browser/visual-regression matrix) so a tiny change doesn't burn the session.
+> **Cost tip (read this first):** the workflow suggests a model tier per phase but does **not** switch models for you — use `/model`. Lead/analysis/audit → Opus 4.8; logic-bearing code/tests → Sonnet 5 (near-Opus coding at ~60% of the price); mechanical work → Haiku 4.5; Fable 5 only as an escalation for the hardest problems (2× Opus price — never the default). For QE on a **small** feature, ask for the **Smoke** depth tier (Haiku 4.5, no cross-browser/visual-regression matrix) so a tiny change doesn't burn the session.
 
 ### A) New project (greenfield)
 
@@ -106,6 +106,21 @@ Tips:
 - Name the domain (fintech, health, e-commerce…) so PO/BA pull the matching compliance pack from `docs/sdlc/domain-packs.md`.
 - Want checkpoints between phases? The agent already asks before advancing — reply `stop` or `adjust <note>` to steer.
 
+### Toggling phases on/off (sdlc-config)
+
+`init` writes `docs/sdlc/sdlc-config.md` — the persistent on/off switch per phase. The agent reads it at every handoff; a disabled phase is skipped with a visible `⏭` banner (never silently). Toggle by talking to the agent:
+
+```text
+profile standard          # presets: full · standard (no Design/Guideline/Maintenance)
+                          #          hotfix (Dev → QE Smoke → Security → Deploy) · docs-only
+disable phase guideline   # turn one phase off (persists across epics)
+enable phase maintain     # turn it back on
+skip qe for this epic     # one-epic override, config file untouched
+show sdlc config          # print the active profile + phase table
+```
+
+Safety: the **security** phase can't be disabled while the epic touches money/auth/PII — the agent refuses and suggests lowering the QE depth tier instead. Calling a phase command explicitly (e.g. `/sdlc-workflow:test`) always runs it, config or not.
+
 ### B) Existing project (brownfield)
 
 ```bash
@@ -128,7 +143,7 @@ scoped to just this feature — reuse the current architecture, don't redesign.
 
 # Small change → keep QE cheap
 Fix: the login form rejects valid emails with a leading dot.
-Run the QE phase at Smoke depth (Haiku), offload test execution to a sub-agent.
+Run the QE phase at Smoke depth (Haiku 4.5), offload test execution to a sub-agent.
 
 # Bug-fix loop
 Bug: orders occasionally double-charge under concurrent checkout.
@@ -146,6 +161,7 @@ Tips:
 ```
 docs/sdlc/
 ├── SDLC-WORKFLOW.md          # Main workflow (use with Claude)
+├── sdlc-config.md            # Phase toggles & profiles (full/standard/hotfix/docs-only) — say "disable phase qe" / "profile hotfix"
 ├── reference.md
 ├── skill-mapping.md          # Recommended skills/agents per SDLC role
 ├── INTEGRATION.md            # Combine SDLC with Superpowers + feature-dev plugins (per-phase engine + model tiers)

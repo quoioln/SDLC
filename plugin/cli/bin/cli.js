@@ -479,7 +479,7 @@ const PLUGIN_PHASE_COMMANDS = [
   { name: "architect", title: "Architect", description: "Run the Architect phase: ADRs (with alternatives + trade-offs), C4 diagrams, security & observability by design, fitness functions.", readme: "architecture/README.md", reads: "Business BA (+ Design if app/web)", out: "docs/sdlc/architecture/" },
   { name: "tech-ba", title: "Technical BA", description: "Run the Technical BA phase: API specs (OpenAPI), DB schema, team breakdown, traceability to FRs.", readme: "ba/technical/README.md", reads: "the Architect (+ Design) outputs", out: "docs/sdlc/ba/technical/" },
   { name: "dev", title: "Dev (Tech Lead + Senior)", description: "Run the Dev phase: implement per spec with the full quality bar, 100% tests, and the living feature guideline.", readme: "dev/tech-lead/README.md", reads: "the Technical BA spec; the rules in docs/sdlc/dev/quality-rules.md and any docs/sdlc/dev/tech/ stack files", out: "code + tests; notes in docs/sdlc/dev/{role}/" },
-  { name: "test", title: "QE (test execution)", description: "Run the QE phase: test plan/cases, execute unit/integration/E2E + visual-regression & layout checks, capture evidence, run the bug-fix loop to zero bugs, UAT + sign-off.", readme: "qe/README.md", reads: "the Technical BA spec, the implemented code, and the QE rules in qe/qe-lead/README.md + qe/senior-qe/README.md", out: "docs/sdlc/qe/{epic-slug}/ — test-plan, test-cases, automation, evidence/ (screenshots/video/trace + report), uat-results, sign-off", extra: "FIRST pick a test depth tier (Smoke / Standard / Full — see qe/README.md) and right-size the rigor: Smoke (small/low-risk) = happy path + 1-2 edge cases on Haiku, NO cross-browser/visual-regression/responsive matrix; Standard (default) = unit+integration+key edges on Sonnet; Full (critical/UI-heavy) = full matrix, QE Lead (Opus) designs + Senior QE (Sonnet) executes. Do NOT run the Full enterprise matrix on a small feature — that is what burns a huge share of the session. Cost guard: run the heavy execution (browser automation, evidence capture) in a SUB-AGENT on the tier's model so its large output stays out of the main session context. Use provisioned test accounts/data (secrets from env/CI, never hardcoded; seed + isolate + tear down test data/accounts after the run). Cleanup is scoped to test data/accounts ONLY — evidence (screenshots/video/trace/report) is a deliverable: keep it in qe/{epic-slug}/evidence/, never delete it (even on passing runs). For Full tier verify no broken/misaligned layout, dropped columns, or broken inputs (visual regression + layout-integrity assertions per breakpoint). Loop with Dev until 0 open bugs, then sign off." },
+  { name: "test", title: "QE (test execution)", description: "Run the QE phase: test plan/cases, execute unit/integration/E2E + visual-regression & layout checks, capture evidence, run the bug-fix loop to zero bugs, UAT + sign-off.", readme: "qe/README.md", reads: "the Technical BA spec, the implemented code, and the QE rules in qe/qe-lead/README.md + qe/senior-qe/README.md", out: "docs/sdlc/qe/{epic-slug}/ — test-plan, test-cases, automation, evidence/ (screenshots/video/trace + report), uat-results, sign-off", extra: "FIRST pick a test depth tier (Smoke / Standard / Full — see qe/README.md) and right-size the rigor: Smoke (small/low-risk) = happy path + 1-2 edge cases on Haiku 4.5, NO cross-browser/visual-regression/responsive matrix; Standard (default) = unit+integration+key edges on Sonnet 5; Full (critical/UI-heavy) = full matrix, QE Lead (Opus 4.8) designs + Senior QE (Sonnet 5) executes. Do NOT run the Full enterprise matrix on a small feature — that is what burns a huge share of the session. Cost guard: run the heavy execution (browser automation, evidence capture) in a SUB-AGENT on the tier's model so its large output stays out of the main session context. Use provisioned test accounts/data (secrets from env/CI, never hardcoded; seed + isolate + tear down test data/accounts after the run). Cleanup is scoped to test data/accounts ONLY — evidence (screenshots/video/trace/report) is a deliverable: keep it in qe/{epic-slug}/evidence/, never delete it (even on passing runs). For Full tier verify no broken/misaligned layout, dropped columns, or broken inputs (visual regression + layout-integrity assertions per breakpoint). Loop with Dev until 0 open bugs, then sign off." },
   { name: "security", title: "Security + Principle Engineer + Performance", description: "Run the audit phase: OWASP/STRIDE/CVE, logic/architecture audit, performance (p95, N+1) with the remediation loop.", readme: "security/README.md", reads: "the implemented code and architecture", out: "docs/sdlc/security/ and docs/sdlc/principle-engineer/", extra: "Give every finding an issue ID; loop Dev fix -> QE retest -> re-audit until 0 Critical/High (max 3 cycles)." },
   { name: "deploy", title: "OPS (deploy)", description: "Run the Deploy phase: Docker Compose + Kubernetes + IaC after sign-off.", readme: "deploy/README.md", reads: "the security/PE sign-off", out: "docs/sdlc/deploy/" },
   { name: "guideline", title: "Technical Writer (guideline)", description: "Write or update the living feature guideline for a new or changed feature (Definition of Done).", readme: "guideline/README.md", reads: "the feature's PO/BA/Technical BA docs and the implemented behavior", out: "docs/sdlc/guideline/{epic-slug}.md + index" },
@@ -487,17 +487,17 @@ const PLUGIN_PHASE_COMMANDS = [
 ];
 
 const PHASE_META = {
-  po:        { badge: "[PO]",      tier: "Opus — analysis & planning" },
-  ba:        { badge: "[BA]",      tier: "Opus — analysis & planning" },
-  design:    { badge: "[DESIGN]",  tier: "Opus — design judgment; Sonnet for production component code" },
-  architect: { badge: "[ARCH]",    tier: "Opus — architecture & logic" },
-  "tech-ba": { badge: "[TECH-BA]", tier: "Opus — API/contract design; Sonnet for routine spec filling" },
-  dev:       { badge: "[DEV]",     tier: "Opus (Tech Lead: plan/review) / Sonnet (logic-bearing code) / Haiku (mechanical: boilerplate, CRUD, config)" },
-  test:      { badge: "[QE]",      tier: "depth-tier: Smoke→Haiku / Standard→Sonnet / Full→Opus(Lead)+Sonnet(exec) — right-size to the feature; offload heavy execution to a sub-agent" },
-  security:  { badge: "[SEC/PE]",  tier: "Opus — security & logic audit" },
-  deploy:    { badge: "[OPS]",     tier: "Sonnet (default) / Haiku (boilerplate manifests)" },
-  guideline: { badge: "[DOC]",     tier: "Sonnet — technical writing" },
-  maintain:  { badge: "[MAINT]",   tier: "Sonnet (triage/fixes) / Haiku (routine dep bumps)" },
+  po:        { badge: "[PO]",      tier: "Opus 4.8 — analysis & planning" },
+  ba:        { badge: "[BA]",      tier: "Opus 4.8 — analysis & planning" },
+  design:    { badge: "[DESIGN]",  tier: "Opus 4.8 — design judgment; Sonnet 5 for production component code" },
+  architect: { badge: "[ARCH]",    tier: "Opus 4.8 — architecture & logic; escalate to Fable 5 only for novel/complex system design" },
+  "tech-ba": { badge: "[TECH-BA]", tier: "Opus 4.8 — API/contract design; Sonnet 5 for routine spec filling" },
+  dev:       { badge: "[DEV]",     tier: "Opus 4.8 (Tech Lead: plan/review) / Sonnet 5 (logic-bearing code) / Haiku 4.5 (mechanical: boilerplate, CRUD, config)" },
+  test:      { badge: "[QE]",      tier: "depth-tier: Smoke→Haiku 4.5 / Standard→Sonnet 5 / Full→Opus 4.8(Lead)+Sonnet 5(exec) — right-size to the feature; offload heavy execution to a sub-agent" },
+  security:  { badge: "[SEC/PE]",  tier: "Opus 4.8 — security & logic audit; escalate to Fable 5 only for critical systems (money/auth/PII)" },
+  deploy:    { badge: "[OPS]",     tier: "Sonnet 5 (default) / Haiku 4.5 (boilerplate manifests)" },
+  guideline: { badge: "[DOC]",     tier: "Sonnet 5 — technical writing" },
+  maintain:  { badge: "[MAINT]",   tier: "Sonnet 5 (triage/fixes) / Haiku 4.5 (routine dep bumps)" },
 };
 
 // Next phase in the pipeline (for the ask + auto-advance handoff). Phases not
@@ -516,7 +516,7 @@ const PHASE_NEXT = {
 
 function buildPhaseCommandSkill(c) {
   const extra = c.extra ? "\n" + c.extra + "\n" : "";
-  const meta = PHASE_META[c.name] || { badge: "[" + c.name.toUpperCase() + "]", tier: "Sonnet (default)" };
+  const meta = PHASE_META[c.name] || { badge: "[" + c.name.toUpperCase() + "]", tier: "Sonnet 5 (default)" };
   const next = PHASE_NEXT[c.name];
   const nextBlock = next
     ? `## Next action — ask, then auto-advance
@@ -525,7 +525,7 @@ When this phase's output is complete${next.gate ? ` and its gate passes (**${nex
 1. **Recap** in one line — what was produced + the output path.
 2. **Ask a checkpoint** (give the user a chance to steer): \`✅ ${c.title} done → next: ${next.label}. Reply \\\`stop\\\` or \\\`adjust <note>\\\` to intervene; otherwise I continue.\`
 3. **If auto-commit per phase is armed**, commit the checkpoint first (only after the gate passes).
-4. **Auto-trigger the next phase** unless the user intervened: run \`/sdlc-workflow:${next.cmd}\` and print its role banner. Do not idle — the pipeline runs continuously unless told to stop.
+4. **Auto-trigger the next ENABLED phase** unless the user intervened: consult \`docs/sdlc/sdlc-config.md\`, starting from \`/sdlc-workflow:${next.cmd}\`. If a phase is disabled there, print its skip banner — \`⏭ Role: [ROLE] <title> — skipped (disabled in sdlc-config)\` — and move to the phase after it. Run the first enabled phase's command and print its role banner. Do not idle — the pipeline runs continuously unless told to stop.
 `
     : `## Next action
 
@@ -537,6 +537,8 @@ description: ${c.description}
 ---
 
 # /sdlc-workflow:${c.name} — ${c.title}
+
+**Config check (before anything else):** if \`docs/sdlc/sdlc-config.md\` exists and marks this phase ⛔ disabled — and the user did not invoke this command explicitly by name — do NOT run it: print \`⏭ Role: ${meta.badge} ${c.title} — skipped (disabled in sdlc-config)\` and hand off to the next enabled phase. An explicit user invocation always wins over the config (they asked for it by name).${c.name === "security" ? " **Guard:** this phase may NOT be treated as disabled when the epic touches money/payments, auth, or PII — run it regardless and tell the user why." : ""}
 
 **On start, print this status banner verbatim** so the user can see the active role and the suggested model (the workflow does NOT switch models for you — verify/switch the model yourself with \`/model\`, or spawn a sub-agent on the suggested tier):
 
@@ -805,6 +807,7 @@ async function generateFromInline(cwd) {
   const files = [
     ["SDLC-WORKFLOW.md", SDLC_WORKFLOW_MD],
     ["ORCHESTRATION.md", ORCHESTRATION_MD],
+    ["sdlc-config.md", SDLC_CONFIG_MD],
     ["reference.md", REFERENCE_MD],
     ["skill-mapping.md", SKILL_MAPPING_MD],
     ["domain-packs.md", DOMAIN_PACKS_MD],
@@ -864,9 +867,11 @@ globs: docs/sdlc/**/*, **/*.md
 
 **On idea/feature request:** Trigger full pipeline continuously through deployment. Do not stop after one phase unless the user asks.
 
-**Announce each phase (mandatory):** print a one-line banner at the start of every phase / role switch — \`🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model\`. Tiers: lead/analysis/audit → **Opus**; logic-bearing code & tests → **Sonnet**; mechanical work → **Haiku**. The workflow does not change the model for you (use \`/model\` or spawn a sub-agent on that tier — switching a running agent's model breaks the prompt cache). Current model: \`/model\` or \`/status\`.
+**Announce each phase (mandatory):** print a one-line banner at the start of every phase / role switch — \`🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model\`. Tiers: lead/analysis/audit → **Opus 4.8**; logic-bearing code & tests → **Sonnet 5** (near-Opus coding at ~60% of the price); mechanical work → **Haiku 4.5**; escalate to **Fable 5** only for the hardest problems (novel architecture, critical security/logic audit — 2× Opus price, never the default). The workflow does not change the model for you (use \`/model\` or spawn a sub-agent on that tier — switching a running agent's model breaks the prompt cache). Current model: \`/model\` or \`/status\`.
 
 **Memory requirement:** Before executing any new action, recall relevant memories (project context, user preferences, past decisions) to ensure continuity and avoid repeating mistakes.
+
+**Phase toggles (sdlc-config):** \`docs/sdlc/sdlc-config.md\` is the persistent per-phase on/off switch (profiles: \`full\` / \`standard\` / \`hotfix\` / \`docs-only\`). Read it at pipeline start and at every handoff; skip disabled phases with a visible banner — \`⏭ Role: [ROLE] <title> — skipped (disabled in sdlc-config)\` — then continue with the next enabled phase. Toggle by saying: "disable phase qe", "enable phase guideline", "profile hotfix", or "skip qe for this epic" (one-epic override; file untouched) — update the file and confirm in one line. **Guard:** security cannot be disabled when the epic touches money/auth/PII (suggest lowering the QE depth tier instead).
 
 **Parallel by default, sequential only when required:** If two workstreams do NOT depend on each other's output, they MUST run in parallel.
 
@@ -962,8 +967,9 @@ description: Multi-role SDLC workflow from user requirements through PO, Busines
 4. **Announce each phase with a status banner (mandatory).** At the start of every phase — and on every role switch in a single-agent run — print this one line first, so the user always sees the active role and the suggested model:
    > 🎭 Role: \`[ROLE]\` <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with \`/model\`
 
-   **Suggested model tiers:** lead / analysis / audit roles ([PO], [BA], [ARCH], Tech Lead, QE Lead, [SEC/PE]) → **Opus**; logic-bearing implementation & tests → **Sonnet**; mechanical work (boilerplate, CRUD, config, templated tests) → **Haiku**. The workflow does **NOT** change the model for you — switch with \`/model\` or spawn a sub-agent on the suggested tier (switching a running agent's model breaks the prompt cache; a sub-agent does not). You can see the current model anytime via \`/model\` or \`/status\` (and the Claude Code status line).
+   **Suggested model tiers:** lead / analysis / audit roles ([PO], [BA], [ARCH], Tech Lead, QE Lead, [SEC/PE]) → **Opus 4.8**; logic-bearing implementation & tests → **Sonnet 5** (near-Opus coding quality at ~60% of the price); mechanical work (boilerplate, CRUD, config, templated tests) → **Haiku 4.5**; **Fable 5** is an escalation tier only — reserve it for the hardest problems (novel/complex architecture, security audit of critical systems) since it costs 2× Opus. The workflow does **NOT** change the model for you — switch with \`/model\` or spawn a sub-agent on the suggested tier (switching a running agent's model breaks the prompt cache; a sub-agent does not). You can see the current model anytime via \`/model\` or \`/status\` (and the Claude Code status line).
 5. **Phase handoff — ask, then auto-advance.** When a phase completes and its gate (if any) passes: (a) **recap** the output in one line; (b) **ask a checkpoint** so the user can steer — "✅ <phase> done → next: <next phase>. Reply \`stop\` or \`adjust <note>\` to intervene; otherwise I continue"; (c) **commit** the checkpoint if auto-commit per phase is armed; (d) **auto-trigger the next phase** by running \`/sdlc-workflow:<next>\` (print its banner). Don't idle — run continuously unless told to stop. **Gates before advancing:** Design→Architect needs PO+BA approval; QE→Security needs 0 open bugs + sign-off; Security→Deploy needs 0 Critical/High + sign-off.
+6. **Phase toggles (sdlc-config).** \`docs/sdlc/sdlc-config.md\` is the persistent per-phase on/off switch (profiles: \`full\` / \`standard\` / \`hotfix\` / \`docs-only\`). Consult it at pipeline start and at every handoff; skip disabled phases with a visible banner — \`⏭ Role: [ROLE] <title> — skipped (disabled in sdlc-config)\` — then continue with the next enabled phase. The user toggles by saying "disable phase qe" / "enable phase guideline" / "profile hotfix" / "skip qe for this epic" (one-epic override; file untouched) — update the file and confirm in one line. **Guard:** security cannot be disabled when the epic touches money/auth/PII (suggest lowering the QE depth tier instead).
 
 **Parallel tracks:**
 - Track A (after Technical BA): [DEV] implementation + [QE] test plan — run SIMULTANEOUSLY
@@ -1048,7 +1054,7 @@ Parallel Track B: Dev complete → [QE] + [SEC] + [PERF] simultaneously → merg
 **⚡ Parallel with Phase 5a**: [DEV] AND [QE] test plan run simultaneously.
 
 **Roles** (vary by project — use only what applies). All implementation roles are **Senior (10+ yrs)**:
-- **Tech Lead (15+ yrs)** — **highest model** (e.g. Opus): Planning, logic analysis, architecture decisions, tech stack, code review & merge.
+- **Tech Lead (15+ yrs)** — **highest model** (e.g. Opus 4.8): Planning, logic analysis, architecture decisions, tech stack, code review & merge.
 - **Senior Frontend (10+ yrs)**: Web UI.
 - **Senior Backend (10+ yrs)**: API, services, DB.
 - **Senior Mobile (10+ yrs)**: iOS/Android/cross-platform.
@@ -1056,7 +1062,7 @@ Parallel Track B: Dev complete → [QE] + [SEC] + [PERF] simultaneously → merg
 - **Senior Data/ML (10+ yrs)**: ETL, models, analytics.
 - **Senior Platform (10+ yrs)**: CI/CD, infra.
 
-**Model tier (all implementation roles, 3 mức theo độ khó):** default **mid-tier** (e.g. Sonnet) for logic-bearing work (business logic, integration, refactor, edge cases); drop to **cost-efficient** (e.g. Haiku) for mechanical work (boilerplate, CRUD, config, tests from a template). Opus stays with the Tech Lead. To realize the saving without breaking the prompt cache, spawn a cheaper-tier sub-agent for the delegated subtask rather than switching a running agent's model.
+**Model tier (all implementation roles, 3 mức theo độ khó):** default **mid-tier** (e.g. Sonnet 5) for logic-bearing work (business logic, integration, refactor, edge cases); drop to **cost-efficient** (e.g. Haiku 4.5) for mechanical work (boilerplate, CRUD, config, tests from a template). Opus 4.8 stays with the Tech Lead; escalate to Fable 5 only for the hardest problems (2× Opus price — never the default). To realize the saving without breaking the prompt cache, spawn a cheaper-tier sub-agent for the delegated subtask rather than switching a running agent's model.
 
 **⚡ All implementation roles run in parallel** — frontend does NOT wait for backend; they coordinate via API contract from Technical BA.
 
@@ -1142,13 +1148,13 @@ Design specs (Markdown) + optional HTML wireframes from idea + PO + BA (before A
 TC-001: [Scenario] — Precondition, Steps, Expected, Links to AC
 
 ## QE Team (one folder per epic: qe/{epic-slug}/)
-- QE Lead (15+ yrs automation) — **highest model** (e.g. Opus): test strategy, framework, automation architecture, review → docs/sdlc/qe/{epic-slug}/
-- Senior QE (10+ yrs) — **mid-tier model** (e.g. Sonnet) for logic-bearing tests, **cost-efficient model** (e.g. Haiku) for mechanical/templated tests: write automation tests per QE Lead's strategy → docs/sdlc/qe/{epic-slug}/
+- QE Lead (15+ yrs automation) — **highest model** (e.g. Opus 4.8): test strategy, framework, automation architecture, review → docs/sdlc/qe/{epic-slug}/
+- Senior QE (10+ yrs) — **mid-tier model** (e.g. Sonnet 5) for logic-bearing tests, **cost-efficient model** (e.g. Haiku 4.5) for mechanical/templated tests: write automation tests per QE Lead's strategy → docs/sdlc/qe/{epic-slug}/
 
 ## Dev Team
-- Tech Lead (15+ yrs) — **highest model** (e.g. Opus): planning, logic, architecture decisions, code review → docs/sdlc/dev/tech-lead/
-- Senior Dev (10+ yrs) — **mid-tier model** (e.g. Sonnet) for logic-bearing code, **cost-efficient model** (e.g. Haiku) for mechanical/templated code: execute Tech Lead specs, Unit Test 100% → docs/sdlc/dev/senior-developer/
-- By project (all Senior 10+ yrs; same 3-tier rule — Sonnet by default, Haiku for mechanical work): Senior Frontend, Backend, Mobile, Embedded, Data/ML, Platform → docs/sdlc/dev/{role}/
+- Tech Lead (15+ yrs) — **highest model** (e.g. Opus 4.8): planning, logic, architecture decisions, code review → docs/sdlc/dev/tech-lead/
+- Senior Dev (10+ yrs) — **mid-tier model** (e.g. Sonnet 5) for logic-bearing code, **cost-efficient model** (e.g. Haiku 4.5) for mechanical/templated code: execute Tech Lead specs, Unit Test 100% → docs/sdlc/dev/senior-developer/
+- By project (all Senior 10+ yrs; same tier rule — Sonnet 5 by default, Haiku 4.5 for mechanical work): Senior Frontend, Backend, Mobile, Embedded, Data/ML, Platform → docs/sdlc/dev/{role}/
 
 ## Security + Principle Engineer + Performance (after implementation)
 - Security team [SEC]: OWASP Top 10, STRIDE, CVE, compliance → docs/sdlc/security/
@@ -1167,9 +1173,11 @@ const AGENTS_MD_CONTENT = `## SDLC Workflow
 
 **Trigger:** When the user sends an **idea**, **feature request**, or **requirement**, run the full pipeline continuously through deployment. Do not stop after one phase unless the user asks.
 
-**Announce each phase (mandatory):** print a one-line banner at the start of every phase / role switch — \`🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model\`. Tiers: lead/analysis/audit → **Opus**; logic-bearing code & tests → **Sonnet**; mechanical work → **Haiku**. The workflow does not change the model for you (use \`/model\` or spawn a sub-agent on that tier — switching a running agent's model breaks the prompt cache). Current model: \`/model\` or \`/status\`.
+**Announce each phase (mandatory):** print a one-line banner at the start of every phase / role switch — \`🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model\`. Tiers: lead/analysis/audit → **Opus 4.8**; logic-bearing code & tests → **Sonnet 5** (near-Opus coding at ~60% of the price); mechanical work → **Haiku 4.5**; escalate to **Fable 5** only for the hardest problems (novel architecture, critical security/logic audit — 2× Opus price, never the default). The workflow does not change the model for you (use \`/model\` or spawn a sub-agent on that tier — switching a running agent's model breaks the prompt cache). Current model: \`/model\` or \`/status\`.
 
 **Memory requirement:** Before executing any new action, recall relevant memories (project context, user preferences, past decisions) to ensure continuity and avoid repeating mistakes.
+
+**Phase toggles (sdlc-config):** \`docs/sdlc/sdlc-config.md\` is the persistent per-phase on/off switch (profiles: \`full\` / \`standard\` / \`hotfix\` / \`docs-only\`). Read it at pipeline start and at every handoff; skip disabled phases with a visible banner — \`⏭ Role: [ROLE] <title> — skipped (disabled in sdlc-config)\` — then continue with the next enabled phase. Toggle by saying: "disable phase qe", "enable phase guideline", "profile hotfix", or "skip qe for this epic" (one-epic override; file untouched). **Guard:** security cannot be disabled when the epic touches money/auth/PII.
 
 **Parallel by default, sequential only when required.**
 
@@ -1191,9 +1199,11 @@ const CLAUDE_SDLC_CONTENT = `## SDLC Workflow
 
 **Trigger on idea:** When the user sends an idea, feature request, or requirement, run the pipeline continuously: Phase 1 (PO) → 2 → … → Deploy → Maintenance. One role per phase (single agent = switch role each phase). Do not stop after one phase unless the user asks.
 
-**Announce each phase (mandatory):** At the start of every phase / role switch, print a one-line banner — \`🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model\`. Tiers: lead/analysis/audit roles → **Opus**; logic-bearing code & tests → **Sonnet**; mechanical work (boilerplate/CRUD/config/templated tests) → **Haiku**. The workflow does not change the model for you — use \`/model\` (or spawn a sub-agent on that tier; switching a running agent's model breaks the prompt cache). See the current model via \`/model\` or \`/status\`.
+**Announce each phase (mandatory):** At the start of every phase / role switch, print a one-line banner — \`🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model\`. Tiers: lead/analysis/audit roles → **Opus 4.8**; logic-bearing code & tests → **Sonnet 5** (near-Opus coding at ~60% of the price); mechanical work (boilerplate/CRUD/config/templated tests) → **Haiku 4.5**; escalate to **Fable 5** only for the hardest problems (novel architecture, critical security/logic audit — 2× Opus price, never the default). The workflow does not change the model for you — use \`/model\` (or spawn a sub-agent on that tier; switching a running agent's model breaks the prompt cache). See the current model via \`/model\` or \`/status\`.
 
 **Memory requirement:** Before executing any new action, recall relevant memories (project context, user preferences, past decisions) to ensure continuity and avoid repeating mistakes.
+
+**Phase toggles (sdlc-config):** \`docs/sdlc/sdlc-config.md\` is the persistent per-phase on/off switch (profiles: \`full\` / \`standard\` / \`hotfix\` / \`docs-only\`). Read it at pipeline start and at every handoff; skip disabled phases with a visible banner — \`⏭ Role: [ROLE] <title> — skipped (disabled in sdlc-config)\` — then continue with the next enabled phase. Toggle by saying: "disable phase qe", "enable phase guideline", "profile hotfix", or "skip qe for this epic" (one-epic override; file untouched) — update the file and confirm in one line. **Guard:** security cannot be disabled when the epic touches money/auth/PII (suggest lowering the QE depth tier instead).
 
 **Parallel by default, sequential only when required:** If two workstreams do NOT depend on each other's output, they MUST run in parallel.
 
@@ -1225,8 +1235,9 @@ For Cursor, see .cursor/rules/sdlc-workflow.mdc
 
 - **When the user sends an idea, feature request, or requirement:** Start the pipeline and run it **continuously through deployment** (Phase 1 → 2 → … → 7). Do not handle everything in one main-agent response.
 - **Memory requirement:** Before executing any new action, recall relevant memories (project context, user preferences, past decisions) to ensure continuity and avoid repeating mistakes.
+- **Phase toggles (sdlc-config):** \`docs/sdlc/sdlc-config.md\` is the persistent per-phase on/off switch (profiles: \`full\` / \`standard\` / \`hotfix\` / \`docs-only\`). Read it at pipeline start and at every handoff; skip disabled phases with a visible banner — \`⏭ Role: [ROLE] <title> — skipped (disabled in sdlc-config)\` — then continue with the next enabled phase. Toggle by saying "disable phase qe" / "enable phase guideline" / "profile hotfix" / "skip qe for this epic" (one-epic override; file untouched). **Guard:** security cannot be disabled when the epic touches money/auth/PII.
 - **One role per phase:** Execute each phase as that role only; write artifacts to the right folder; then continue to the next phase. In Cursor there is one agent — it simulates the pipeline by adopting one role per phase in sequence.
-- **Announce each phase (mandatory):** At the start of every phase / role switch, print a one-line banner — \`🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model\`. Tiers: lead/analysis/audit roles → **Opus**; logic-bearing code & tests → **Sonnet**; mechanical work → **Haiku**. The workflow does not change the model for you (use \`/model\`, or spawn a sub-agent on that tier — switching a running agent's model breaks the prompt cache). Current model is visible via \`/model\` or \`/status\`.
+- **Announce each phase (mandatory):** At the start of every phase / role switch, print a one-line banner — \`🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model\`. Tiers: lead/analysis/audit roles → **Opus 4.8**; logic-bearing code & tests → **Sonnet 5** (near-Opus coding at ~60% of the price); mechanical work → **Haiku 4.5**; escalate to **Fable 5** only for the hardest problems (novel architecture, critical security/logic audit — 2× Opus price, never the default). The workflow does not change the model for you (use \`/model\`, or spawn a sub-agent on that tier — switching a running agent's model breaks the prompt cache). Current model is visible via \`/model\` or \`/status\`.
 - **Do not stop** after PO or any single phase unless the user explicitly asks to stop. Run through to Deploy.
 
 ## Flow
@@ -1324,7 +1335,7 @@ const ORCHESTRATION_MD = `# Pipeline Orchestration
 When the user sends an **idea**, **feature request**, or **requirement**:
 1. **Trigger the full pipeline** and run continuously through deployment.
 2. **One role per phase** for sequential phases. **Spawn parallel workstreams** when dependencies are independent.
-3. **Announce each phase (mandatory):** print a one-line banner at the start of every phase / role switch — \`🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model\`. Tiers: lead/analysis/audit → **Opus**; logic-bearing code & tests → **Sonnet**; mechanical work → **Haiku**. The workflow does not change the model for you (use \`/model\` or spawn a sub-agent on that tier — switching a running agent's model breaks the prompt cache). Current model: \`/model\` or \`/status\`.
+3. **Announce each phase (mandatory):** print a one-line banner at the start of every phase / role switch — \`🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model\`. Tiers: lead/analysis/audit → **Opus 4.8**; logic-bearing code & tests → **Sonnet 5** (near-Opus coding at ~60% of the price); mechanical work → **Haiku 4.5**; escalate to **Fable 5** only for the hardest problems (novel architecture, critical security/logic audit — 2× Opus price, never the default). The workflow does not change the model for you (use \`/model\` or spawn a sub-agent on that tier — switching a running agent's model breaks the prompt cache). Current model: \`/model\` or \`/status\`.
 4. **Phase handoff — ask, then auto-advance.** When a phase completes and its gate (if any) passes: recap the output in one line → ask a checkpoint ("✅ <phase> done → next: <next>. Reply \`stop\`/\`adjust\` to intervene; else I continue") → commit if auto-commit per phase is armed → **auto-trigger the next phase** (\`/sdlc-workflow:<next>\` with its banner). Gates: Design→Architect (PO+BA approve); QE→Security (0 open bugs + sign-off); Security→Deploy (0 Critical/High + sign-off).
 5. **Run through to Maintenance.** Do not stop after PO, BA, or Dev unless the user explicitly says to stop.
 
@@ -1367,6 +1378,22 @@ Parallel Track B: Dev complete → [QE] + [SEC] + [PERF] simultaneously → merg
 - [ ] Phase 9 [OPS]: \`docs/sdlc/deploy/\`
 - [ ] Phase 10: Project Completion Package → SHIPPED ✅
 - [ ] Phase 11 Maintenance
+
+## Phase toggles (sdlc-config)
+
+**All phases on by default** (\`full\` profile). \`docs/sdlc/sdlc-config.md\` is the persistent on/off switch the agent reads at pipeline start and at every handoff — a disabled phase is skipped with a visible \`⏭\` banner, never silently.
+
+### Quick toggle
+
+| Action | What to say to the agent |
+|--------|--------------------------|
+| 🔀 Switch profile | **"profile standard"** — presets: \`full\` (all 11 phases) / \`standard\` (skips Design, Guideline, Maintenance) / \`hotfix\` (Dev → QE Smoke → Security → Deploy) / \`docs-only\` (PO → BA → Architect → Technical BA) |
+| ⛔ Disable one phase | **"disable phase qe"** (po, ba, design, architect, tech-ba, dev, test/qe, security, deploy, guideline, maintain) |
+| ✅ Enable one phase | **"enable phase guideline"** |
+| ⏸ One epic only | **"skip qe for this epic"** — current epic only, config file untouched |
+| 👀 Inspect | **"show sdlc config"** |
+
+The agent edits \`sdlc-config.md\` (profile line + phase table), confirms the new state in one line, and applies it from the next handoff. **Guard:** the security phase cannot be disabled while the epic touches money/payments, auth, or PII — the agent refuses and suggests lowering the QE depth tier instead. Full details and the phase table live in \`docs/sdlc/sdlc-config.md\`.
 
 ## Version-control checkpoints (opt-in)
 
@@ -1411,6 +1438,77 @@ The agent acknowledges the current mode at the start of each phase so you always
 | Guideline | \`docs(guideline): {epic} — feature guideline\` |
 
 \`git log --oneline\` then reads as the pipeline timeline; revert a phase with \`git revert <hash>\` and let the remediation loop redo it. This complements — does not replace — the quality gates.
+`;
+
+const SDLC_CONFIG_MD = `# SDLC Config — phase toggles & profiles
+
+**Purpose:** the persistent on/off switch for pipeline phases. The agent reads this file when the pipeline is triggered and at **every phase handoff**. A phase marked ⛔ is skipped — the agent prints a visible banner and moves to the next enabled phase. **Nothing is ever skipped silently.**
+
+> ⏭ Role: \`[ROLE]\` <title> — skipped (disabled in sdlc-config)
+
+## Active profile
+
+> **Profile:** \`full\`
+
+When the profile changes, the agent rewrites the **Current phase state** table below from the matching profile column, then applies any per-phase overrides you ask for afterwards.
+
+## Quick toggles (say this to the agent)
+
+| Action | What to say |
+|--------|-------------|
+| Switch profile | **"profile standard"** (also: \`full\`, \`hotfix\`, \`docs-only\`) |
+| Disable one phase | **"disable phase qe"** (works for: po, ba, design, architect, tech-ba, dev, test/qe, security, deploy, guideline, maintain) |
+| Enable one phase | **"enable phase guideline"** |
+| One epic only | **"skip qe for this epic"** — current epic only; this file is not edited |
+| Show current state | **"show sdlc config"** — the agent prints the active profile + phase table |
+
+The agent updates this file (profile line and/or table), then confirms the new state in one line.
+
+## Profiles
+
+| Phase | \`full\` (default) | \`standard\` | \`hotfix\` | \`docs-only\` |
+|-------|:---:|:---:|:---:|:---:|
+| po | ✅ | ✅ | ⛔ | ✅ |
+| ba | ✅ | ✅ | ⛔ | ✅ |
+| design | ✅ (auto: app/web only) | ⛔ | ⛔ | ⛔ |
+| architect | ✅ | ✅ | ⛔ | ✅ |
+| tech-ba | ✅ | ✅ | ⛔ | ✅ |
+| dev | ✅ | ✅ | ✅ | ⛔ |
+| test (QE) | ✅ | ✅ | ✅ (Smoke depth) | ⛔ |
+| security | ✅ | ✅ | ✅ | ⛔ |
+| deploy | ✅ | ✅ | ✅ | ⛔ |
+| guideline | ✅ | ⛔ | ⛔ | ⛔ |
+| maintain | ✅ | ⛔ | ⛔ | ⛔ |
+
+- \`full\` — the complete 11-phase pipeline.
+- \`standard\` — day-to-day feature work: skips Design, Guideline, Maintenance.
+- \`hotfix\` — straight to code: Dev → QE (Smoke depth) → Security → Deploy.
+- \`docs-only\` — analysis without implementation: PO → BA → Architect → Technical BA.
+
+## Current phase state (source of truth)
+
+This table is what the agent actually reads at each handoff. It starts as a copy of the active profile column; per-phase toggles edit rows here (**an override in this table wins over the profile**).
+
+| Phase | Enabled | Note |
+|-------|:---:|------|
+| po | ✅ | |
+| ba | ✅ | |
+| design | ✅ | auto-skips for non-UI projects |
+| architect | ✅ | |
+| tech-ba | ✅ | |
+| dev | ✅ | |
+| test (QE) | ✅ | |
+| security | ✅ | |
+| deploy | ✅ | |
+| guideline | ✅ | |
+| maintain | ✅ | |
+
+## Rules
+
+- **Security guard (non-negotiable):** the \`security\` phase cannot be disabled while the epic touches **money/payments, auth, or PII** — the agent must refuse the toggle, keep it ✅, and suggest lowering the QE depth tier instead if cost is the concern. Outside those domains it may be disabled like any other phase.
+- **Never skip silently:** every disabled phase still prints the ⏭ banner at its slot so the pipeline stays auditable.
+- **Missing inputs:** when a later phase needs a disabled phase's output (e.g. Dev needs the Technical BA API spec), the running phase states which input is missing, works from the best available source (existing docs, code, the user's message) — or asks the user if it cannot proceed safely.
+- **Scope:** this file is per-project and safe to commit. \`init\` never overwrites it once it exists (only \`init --force\` does — review the git diff after).
 `;
 
 const REFERENCE_MD = `# SDLC Workflow — Reference
@@ -1523,15 +1621,15 @@ Use this when adding the SDLC workflow to a codebase that already exists and may
 
 const SKILL_MAPPING_MD = `# SDLC Skill & Agent Mapping
 
-Đề xuất **skill** (gọi qua \`/\`) và **sub-agent** (gọi qua Agent tool) cho từng vai trò trong pipeline. Tier model theo quy ước workflow (3 mức, chọn theo độ khó của task): **lead = model mạnh nhất (Opus)** cho plan/logic/review; **execution logic vừa = model tầm trung (Sonnet)** cho business logic, integration, refactor; **execution cơ học = model tiết kiệm (Haiku)** cho boilerplate, CRUD, config, test theo mẫu. Đừng mặc định Haiku cho mọi việc — sai logic thì phải nhờ Opus sửa lại, tổng chi phí còn cao hơn làm đúng một lần trên Sonnet.
+Đề xuất **skill** (gọi qua \`/\`) và **sub-agent** (gọi qua Agent tool) cho từng vai trò trong pipeline. Tier model theo quy ước workflow (4 mức, chọn theo độ khó của task): **lead = Opus 4.8** cho plan/logic/review; **execution logic vừa = Sonnet 5** cho business logic, integration, refactor (chất lượng coding gần Opus nhưng ~60% giá); **execution cơ học = Haiku 4.5** cho boilerplate, CRUD, config, test theo mẫu; **escalation = Fable 5** — CHỈ cho bài toán khó nhất (kiến trúc mới/phức tạp, audit hệ thống critical) vì giá gấp đôi Opus, không bao giờ là mặc định. Đừng mặc định Haiku cho mọi việc — sai logic thì phải nhờ Opus sửa lại, tổng chi phí còn cao hơn làm đúng một lần trên Sonnet 5.
 
-> **Đổi model giữa session sẽ phá prompt cache.** Để tiết kiệm đúng cách: giữ mỗi agent ở một model, và **spawn sub-agent ở tier rẻ hơn** cho subtask (Tech Lead chạy Opus → giao việc cơ học cho sub-agent Haiku) thay vì đổi model của agent đang chạy.
+> **Đổi model giữa session sẽ phá prompt cache.** Để tiết kiệm đúng cách: giữ mỗi agent ở một model, và **spawn sub-agent ở tier rẻ hơn** cho subtask (Tech Lead chạy Opus 4.8 → giao việc cơ học cho sub-agent Haiku 4.5) thay vì đổi model của agent đang chạy.
 
 > **Lưu ý:** Tên skill/agent dưới đây theo bộ skill của Claude Code; tùy môi trường (Cursor/Codex/Antigravity) tên gọi có thể khác — ánh xạ theo *mục đích* của từng cột.
 
 ---
 
-## Phase 1 — PO (Product Owner) · Opus
+## Phase 1 — PO (Product Owner) · Opus 4.8
 | Mục đích | Skill / Agent |
 |---|---|
 | **Phân tích bài bản (built-in, không cần cài)** ⭐ | \`/sdlc-workflow:po\` → chạy **Analysis lenses** trong \`po/README.md\` (JTBD, 5 Whys, Impact Mapping, Opportunity-Solution Tree, assumption mapping, Kano, RICE/WSJF) |
@@ -1555,7 +1653,7 @@ const SKILL_MAPPING_MD = `# SDLC Skill & Agent Mapping
 | Layout/component chất lượng production | \`/frontend-ui-engineering\` |
 | Wireframe / sync sang Figma | \`figma:figma-generate-design\`, \`figma:figma-use\` |
 
-## Phase 4 — Architect · Opus
+## Phase 4 — Architect · Opus 4.8 (escalate Fable 5 cho hệ thống mới/phức tạp)
 | Mục đích | Skill / Agent |
 |---|---|
 | ADR (rationale + trade-off) ⭐ | \`/documentation-and-adrs\` |
@@ -1576,13 +1674,13 @@ const SKILL_MAPPING_MD = `# SDLC Skill & Agent Mapping
 | Thiết kế test suite, chiến lược ⭐ | agent \`agent-skills:test-engineer\` |
 | TDD/BDD plan | \`/test\` (test-driven-development) |
 
-> QE Lead = Opus; Senior QE = Sonnet cho test logic-bearing (E2E, integration), Haiku cho test cơ học/theo mẫu.
+> QE Lead = Opus 4.8; Senior QE = Sonnet 5 cho test logic-bearing (E2E, integration), Haiku 4.5 cho test cơ học/theo mẫu.
 
 ## Phase 5b / 7 — Dev (Tech Lead + Senior Dev)
 | Vai trò | Skill / Agent |
 |---|---|
-| **Tech Lead** (Opus): plan, review | agent \`Plan\`, \`/plan\`, \`/code-review-and-quality\` |
-| **Senior Dev** (Sonnet cho logic, Haiku cho code cơ học): code từng bước | \`/build\`, \`/incremental-implementation\` |
+| **Tech Lead** (Opus 4.8): plan, review | agent \`Plan\`, \`/plan\`, \`/code-review-and-quality\` |
+| **Senior Dev** (Sonnet 5 cho logic, Haiku 4.5 cho code cơ học): code từng bước | \`/build\`, \`/incremental-implementation\` |
 | TDD bắt buộc (coverage 100%) | \`/test-driven-development\` |
 | Bám docs framework | \`/source-driven-development\` |
 | FE | \`/frontend-ui-engineering\` |
@@ -1647,9 +1745,11 @@ Every role in the SDLC runs as a **sub-agent**. Each phase is assigned to a corr
 
 > 🎭 Role: \`[ROLE]\` <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with \`/model\`
 
-Suggested model tiers: lead/analysis/audit roles (PO, BA, Architect, Tech Lead, QE Lead, Security/PE) → **Opus**; logic-bearing implementation/tests → **Sonnet**; mechanical work (boilerplate, CRUD, config, templated tests) → **Haiku**. The workflow does NOT change the model for you — use \`/model\` or spawn a sub-agent on the suggested tier. You see the current model anytime via \`/model\` or \`/status\` (and the Claude Code status line).
+Suggested model tiers: lead/analysis/audit roles (PO, BA, Architect, Tech Lead, QE Lead, Security/PE) → **Opus 4.8**; logic-bearing implementation/tests → **Sonnet 5** (near-Opus coding at ~60% of the price); mechanical work (boilerplate, CRUD, config, templated tests) → **Haiku 4.5**; **Fable 5** only as an escalation for the hardest problems (novel architecture, critical security/logic audit — 2× Opus price, never the default). The workflow does NOT change the model for you — use \`/model\` or spawn a sub-agent on the suggested tier. You see the current model anytime via \`/model\` or \`/status\` (and the Claude Code status line).
 
-**Phase handoff — ask, then auto-advance.** When a phase completes and its gate (if any) passes: (1) recap the output in one line; (2) ask a checkpoint so the user can steer — "✅ <phase> done → next: <next phase>. Reply \`stop\` or \`adjust <note>\` to intervene; otherwise I continue"; (3) commit the checkpoint if auto-commit per phase is armed; (4) **auto-trigger the next phase** by running \`/sdlc-workflow:<next>\` (print its banner). Don't idle — run continuously unless told to stop. **Gates before advancing:** Design→Architect (PO+BA approve the design); QE→Security (0 open bugs + QE sign-off); Security→Deploy (0 Critical/High + Security/PE sign-off).
+**Phase handoff — ask, then auto-advance.** When a phase completes and its gate (if any) passes: (1) recap the output in one line; (2) ask a checkpoint so the user can steer — "✅ <phase> done → next: <next phase>. Reply \`stop\` or \`adjust <note>\` to intervene; otherwise I continue"; (3) commit the checkpoint if auto-commit per phase is armed; (4) **auto-trigger the next ENABLED phase** per \`docs/sdlc/sdlc-config.md\` by running \`/sdlc-workflow:<next>\` (print its banner) — a disabled phase gets a visible skip banner \`⏭ Role: [ROLE] <title> — skipped (disabled in sdlc-config)\` and the pipeline moves to the phase after it. Don't idle — run continuously unless told to stop. **Gates before advancing:** Design→Architect (PO+BA approve the design); QE→Security (0 open bugs + QE sign-off); Security→Deploy (0 Critical/High + Security/PE sign-off).
+
+**Phase toggles:** the user can say "disable phase qe", "enable phase guideline", "profile hotfix" (presets: \`full\` / \`standard\` / \`hotfix\` / \`docs-only\`), or "skip qe for this epic" (one-epic override) — edit \`docs/sdlc/sdlc-config.md\` accordingly and confirm in one line. **Guard:** security cannot be disabled when the epic touches money/auth/PII (suggest lowering the QE depth tier instead).
 
 ## 🚦 Parallel vs Sequential Orchestrator Rules
 
@@ -1989,23 +2089,24 @@ Plugin **version-pinned**, không tự cập nhật:
 
 ## 2. Lớp model & chi phí (áp mọi phase)
 
-### 2.1 — 3 tier model theo độ khó (không phải theo role cứng)
+### 2.1 — 4 tier model theo độ khó (không phải theo role cứng)
 
-| Tier | Dùng cho | Model |
-|------|----------|-------|
-| **Lead / analysis / audit** | PO, BA, Architect, Tech Lead, QE Lead, Security/PE — planning, logic, review | **Opus** |
-| **Logic-bearing execution** | business logic, integration, refactor, test có nhánh | **Sonnet** |
-| **Cơ học** | boilerplate, CRUD, config, wiring, test theo mẫu | **Haiku** |
+| Tier | Dùng cho | Model | Giá tương đối |
+|------|----------|-------|---------------|
+| **Escalation (frontier)** | CHỈ bài toán khó nhất: kiến trúc mới/phức tạp, audit security/logic hệ thống critical (money/auth/PII), run tự trị dài | **Fable 5** | 2× Opus — không bao giờ là mặc định |
+| **Lead / analysis / audit** | PO, BA, Architect, Tech Lead, QE Lead, Security/PE — planning, logic, review | **Opus 4.8** | chuẩn lead |
+| **Logic-bearing execution** | business logic, integration, refactor, test có nhánh | **Sonnet 5** | ~60% Opus — chất lượng coding gần Opus |
+| **Cơ học** | boilerplate, CRUD, config, wiring, test theo mẫu | **Haiku 4.5** | ~20% Opus |
 
-Đừng mặc định Haiku cho mọi thứ: sai logic → Opus phải sửa lại, tổng chi phí cao hơn làm đúng một lần trên Sonnet.
+Đừng mặc định Haiku cho mọi thứ: sai logic → Opus phải sửa lại, tổng chi phí cao hơn làm đúng một lần trên Sonnet 5. Ngược lại cũng đừng mặc định Fable: phần lớn task lead Opus 4.8 xử lý tốt với nửa giá — chỉ escalate khi Opus thực sự không đủ.
 
 ### 2.2 — QE depth tier (right-size độ kỹ theo quy mô feature)
 
 | Depth | Khi nào | Phạm vi | Model |
 |-------|---------|---------|-------|
-| **Smoke** | Feature nhỏ/low-risk | Happy path + 1–2 edge; KHÔNG cross-browser/visual-regression/responsive matrix | Haiku |
-| **Standard** (mặc định) | Feature thường | Unit + integration + key edges; UI: 1 breakpoint | Sonnet |
-| **Full** | Critical / money-auth-PII / UI-heavy | Full matrix | Opus design → Sonnet exec |
+| **Smoke** | Feature nhỏ/low-risk | Happy path + 1–2 edge; KHÔNG cross-browser/visual-regression/responsive matrix | Haiku 4.5 |
+| **Standard** (mặc định) | Feature thường | Unit + integration + key edges; UI: 1 breakpoint | Sonnet 5 |
+| **Full** | Critical / money-auth-PII / UI-heavy | Full matrix | Opus 4.8 design → Sonnet 5 exec |
 
 ### 2.3 — Sub-agent offload (chống đốt session)
 
@@ -2017,42 +2118,42 @@ feature-dev và subagent-driven-development spawn nhiều sub-agent. **Chạy ex
 
 > Mỗi phase: **Plugin (engine) · Model tier · Output · Fallback**. Thứ tự theo SDLC canonical — **Design TRƯỚC Architect** (UX dẫn tech).
 
-### Phase 1 — PO (Product Owner) · Opus
+### Phase 1 — PO (Product Owner) · Opus 4.8
 - **Engine:** Superpowers \`brainstorming\` (Socratic, tách requirement, validate scope) — **bổ sung**, không thay role PO.
 - **Quy trình:** brainstorming → lưu \`po/{epic-slug}/brainstorm.md\` → PO approve → điền \`epic-brief.template.md\`. Áp **Analysis lenses** của SDLC (JTBD, 5 Whys, Impact Mapping…).
 - **Output:** \`docs/sdlc/po/{epic-slug}/epic-brief.md\`
 - **Fallback:** điền epic-brief bằng Analysis lenses của SDLC.
 
-### Phase 2 — Business BA · Opus
+### Phase 2 — Business BA · Opus 4.8
 - **Engine:** Template SDLC + **\`domain-packs.md\`** (phân loại ngành → nghĩa vụ compliance + must-have requirements).
 - **Output:** \`docs/sdlc/ba/business/{epic-slug}/functional-requirement.md\` + compliance matrix (regulation ↔ requirement ↔ test).
 - **Fallback:** (đây là native SDLC — không phụ thuộc plugin).
 
-### Phase 3 — Design (chỉ app/web) · Opus (judgment) / Sonnet (component code)
+### Phase 3 — Design (chỉ app/web) · Opus 4.8 (judgment) / Sonnet 5 (component code)
 - **Engine:** SDLC (anti-AI design spec + wireframe + PO/BA review loop). Không plugin nào cover phần này.
 - **Output:** \`docs/sdlc/design/{epic-slug}/design-spec.md\` + wireframe.
 
-### Phase 4 — Architect · Opus
+### Phase 4 — Architect · Opus 4.8 (escalate Fable 5 cho hệ thống mới/phức tạp)
 - **Engine:** feature-dev *architecture phase* (sub-agent explore codebase → đề xuất approach + trade-offs) + \`context7\` / \`source-driven-development\` để bám API framework chính thống.
 - **Giữ nguyên:** ADR vẫn là deliverable SDLC (\`adr.template.md\`) — feature-dev chỉ cung cấp phân tích, Architect review & chốt ADR.
 - **Output:** \`docs/sdlc/architecture/{epic-slug}/adr.md\`
 - **Fallback:** Architect điền ADR thủ công theo template.
 
-### Phase 5 — Technical BA · Opus (contract) / Sonnet (điền routine)
+### Phase 5 — Technical BA · Opus 4.8 (contract) / Sonnet 5 (điền routine)
 - **Engine:** Superpowers \`writing-plans\` — **BỔ SUNG, KHÔNG thay thế.**
   - \`writing-plans\` tạo **implementation-plan** (task 2–5 phút, file path cụ thể, snippet đầy đủ, verification steps).
   - **GIỮ NGUYÊN** \`api-spec.template.md\` (OpenAPI/contract) + \`team-breakdown.template.md\` — chính API contract mới cho phép **FE/BE chạy song song**. Mất nó là mất parallelism.
 - **Output:** \`ba/technical/{epic-slug}/\` → \`api-spec.md\` + \`team-breakdown.md\` + \`implementation-plan.md\`
 - **Fallback:** điền cả 3 bằng template.
 
-### Phase 6 — QE (docs) · Sonnet
+### Phase 6 — QE (docs) · Sonnet 5
 - **Engine:** Template SDLC. \`writing-plans\` đã có verification steps; QE Lead nâng thành test-plan + test-cases chính thức. **Chọn depth tier ở đây** (Smoke/Standard/Full) để định hình độ kỹ.
 - **Output:** \`qe/{epic-slug}/test-plan.md\` + \`test-cases.md\`
 
-### Phase 7 — Dev · Opus (Tech Lead) / Sonnet (logic) / Haiku (cơ học)
+### Phase 7 — Dev · Opus 4.8 (Tech Lead) / Sonnet 5 (logic) / Haiku 4.5 (cơ học)
 - **Engine:** feature-dev + Superpowers \`test-driven-development\` + \`subagent-driven-development\` (+ \`context7\` cho code đúng framework).
-- **Tech Lead (Opus):** chạy feature-dev (discovery → explore → clarify → architecture → implementation → review → summary). Plan/review giữ ở Opus.
-- **Senior Dev (Sonnet, hoặc Haiku cho task cơ học):** implement theo TDD **RED → GREEN → REFACTOR**. Task song song → mỗi task một sub-agent (spec + file paths + verification), two-stage review (spec → quality).
+- **Tech Lead (Opus 4.8):** chạy feature-dev (discovery → explore → clarify → architecture → implementation → review → summary). Plan/review giữ ở Opus 4.8.
+- **Senior Dev (Sonnet 5, hoặc Haiku 4.5 cho task cơ học):** implement theo TDD **RED → GREEN → REFACTOR**. Task song song → mỗi task một sub-agent (spec + file paths + verification), two-stage review (spec → quality).
 - **Coverage:** **100% branch (TDD/BDD)** — theo quality bar SDLC, KHÔNG hạ xuống 90%.
 - **Guideline (DoD):** mỗi feature mới/đổi phải tạo/cập nhật \`guideline/{epic-slug}.md\` trong cùng PR — feature chưa "done" nếu guideline stale.
 - **Output:** code + tests + \`dev/{epic-slug}/implementation-notes.md\` + guideline.
@@ -2065,16 +2166,16 @@ feature-dev và subagent-driven-development spawn nhiều sub-agent. **Chạy ex
 - **Bug-fix loop:** bug → Dev fix bằng \`systematic-debugging\` (4 phase: Reproduce → Isolate → Hypothesize → Fix+Verify) + \`verification-before-completion\` (cấm claim "fixed" trước khi verify pass) → QE retest → lặp đến **0 open bug** → QE Lead sign-off.
 - **Evidence:** screenshot/video/trace là **deliverable** trong \`qe/{epic-slug}/evidence/\` — **không xóa**, kể cả run pass. Cleanup chỉ áp cho test data/accounts.
 
-### Phase 9 — Security + Principle Engineer · Opus
+### Phase 9 — Security + Principle Engineer · Opus 4.8 (escalate Fable 5 cho hệ thống critical: money/auth/PII)
 - **Lớp 1 (realtime, bật từ Phase 7):** \`security-guidance\` (Anthropic official) — chạy tự động, **three-layer**: (a) regex check mỗi edit (~25 lớp lỗ hổng, zero-cost), (b) LLM diff review cuối turn (Opus 4.7, bắt logic flaw), (c) agentic cross-file review lúc commit. Là tool hỗ trợ best-effort, **không thay** SAST/DAST/pen-test.
 - **Lớp 2 (audit chính thức):** Security Agent + PE Agent theo SDLC → \`security/{epic-slug}/\` + \`principle-engineer/{epic-slug}/\`.
 - **Fix loop:** issue → Dev fix → QE retest → re-audit đến 0 issue → sign-off. *(Đây là lợi thế riêng SDLC — không plugin nào có.)*
 
-### Phase 10 — Deploy · Sonnet
+### Phase 10 — Deploy · Sonnet 5
 - **Gate:** Superpowers \`finishing-a-development-branch\` (verify tests pass → merge/PR/keep/discard → dọn worktree).
 - **Deploy:** template SDLC — \`docker-compose\` (staging) / \`kubectl apply -f k8s/\` (prod) → smoke test.
 
-### Phase 11 — Maintenance · Sonnet / Haiku
+### Phase 11 — Maintenance · Sonnet 5 / Haiku 4.5
 - **Engine:** SDLC (monitoring, bug fix, patch, dependency update, perf tuning, runbooks). Không plugin nào có.
 - **Output:** \`docs/sdlc/maintenance/{epic-slug}/\`
 
@@ -2105,18 +2206,18 @@ Plugin bổ sung, KHÔNG thay khung SDLC. Thiếu plugin → fallback template S
 
 | Phase | Engine (verify version) | Model tier | Fallback |
 |-------|-------------------------|------------|----------|
-| PO | Superpowers: brainstorming | Opus | epic-brief template |
-| Business BA | SDLC + domain-packs | Opus | native |
-| Design | SDLC | Opus/Sonnet | native |
-| Architect | feature-dev (architecture) + context7 | Opus | ADR template |
-| Technical BA | + writing-plans (BỔ SUNG, giữ api-spec + team-breakdown) | Opus/Sonnet | templates |
-| QE (docs) | SDLC (chọn depth tier) | Sonnet | native |
-| Dev | feature-dev + TDD + subagent + context7 | Opus/Sonnet/Haiku | manual impl |
+| PO | Superpowers: brainstorming | Opus 4.8 | epic-brief template |
+| Business BA | SDLC + domain-packs | Opus 4.8 | native |
+| Design | SDLC | Opus 4.8/Sonnet 5 | native |
+| Architect | feature-dev (architecture) + context7 | Opus 4.8 (Fable 5 nếu hệ thống mới/phức tạp) | ADR template |
+| Technical BA | + writing-plans (BỔ SUNG, giữ api-spec + team-breakdown) | Opus 4.8/Sonnet 5 | templates |
+| QE (docs) | SDLC (chọn depth tier) | Sonnet 5 | native |
+| Dev | feature-dev + TDD + subagent + context7 | Opus 4.8/Sonnet 5/Haiku 4.5 | manual impl |
 | QE (testing) | depth tier → requesting-code-review + code-review | theo depth | native QE |
-| Bug-fix | systematic-debugging + verification-before-completion | Sonnet | native loop |
-| Security + PE | Security Guidance (realtime) + SDLC audit | Opus | SDLC audit |
-| Deploy | finishing-a-development-branch → SDLC templates | Sonnet | docker/k8s |
-| Maintenance | SDLC | Sonnet/Haiku | native |
+| Bug-fix | systematic-debugging + verification-before-completion | Sonnet 5 | native loop |
+| Security + PE | Security Guidance (realtime) + SDLC audit | Opus 4.8 (Fable 5 nếu critical) | SDLC audit |
+| Deploy | finishing-a-development-branch → SDLC templates | Sonnet 5 | docker/k8s |
+| Maintenance | SDLC | Sonnet 5/Haiku 4.5 | native |
 
 ### Quy tắc bắt buộc
 - Gắn MODEL TIER cho mỗi phase; offload execution nặng sang SUB-AGENT (không phá cache, không đốt session).
@@ -2179,7 +2280,7 @@ Plugin bổ sung, KHÔNG thay khung SDLC. Thiếu plugin → fallback template S
 3. **Maintenance phase** — monitoring, runbooks, patches.
 4. **Deploy templates** — Docker Compose + K8s sinh sẵn.
 5. **Domain packs** — checklist compliance theo ngành (fintech/health/e-commerce…).
-6. **Model/cost governance** — 3-tier + QE depth tier + sub-agent offload + role/model banner mỗi phase.
+6. **Model/cost governance** — 4-tier (Fable 5 escalation / Opus 4.8 lead / Sonnet 5 execution / Haiku 4.5 cơ học) + QE depth tier + sub-agent offload + role/model banner mỗi phase.
 7. **Guideline (living docs)** — Definition of Done cho mọi feature.
 
 Superpowers và feature-dev là framework thuần kỹ thuật cho developer. SDLC cover toàn bộ vòng đời từ business đến ops, cộng lớp governance model/chi phí — đây là phần plugin không thay thế được.
@@ -2602,9 +2703,9 @@ const QE_README = `# QE (Quality Engineering)
 
 | Tier | When | Scope | Model |
 |------|------|-------|-------|
-| **Smoke** | Small / low-risk change, non-UI or trivial UI, internal tooling | Happy path + 1–2 negative/edge cases. **No** cross-browser, **no** visual regression, **no** responsive matrix. Evidence = screenshot on failure only | **Haiku**, effort low |
-| **Standard** (default) | Normal feature | Unit + integration + key edge cases; for UI, **one** representative breakpoint check. Evidence on failures + final report | **Sonnet**, effort medium |
-| **Full** | Critical path, money/auth/PII, or UI-heavy/public | Full matrix: cross-browser × responsive breakpoints × visual regression × layout integrity × a11y; full evidence (screenshot/video/trace) | QE Lead (**Opus**) designs → Senior QE (**Sonnet**) executes |
+| **Smoke** | Small / low-risk change, non-UI or trivial UI, internal tooling | Happy path + 1–2 negative/edge cases. **No** cross-browser, **no** visual regression, **no** responsive matrix. Evidence = screenshot on failure only | **Haiku 4.5**, effort low |
+| **Standard** (default) | Normal feature | Unit + integration + key edge cases; for UI, **one** representative breakpoint check. Evidence on failures + final report | **Sonnet 5**, effort medium |
+| **Full** | Critical path, money/auth/PII, or UI-heavy/public | Full matrix: cross-browser × responsive breakpoints × visual regression × layout integrity × a11y; full evidence (screenshot/video/trace) | QE Lead (**Opus 4.8**) designs → Senior QE (**Sonnet 5**) executes |
 
 - **Default to Smoke/Standard.** Escalate to **Full** only when the feature is genuinely critical or UI-heavy — never by default.
 - **Cost guard:** offload the heavy test execution to a **sub-agent** on the tier's model. Browser/trace/screenshot output is large; running it in a sub-agent keeps it out of the main session context (this is what prevents a small feature from eating ~40% of the session).
@@ -2643,7 +2744,7 @@ Use test-case.template.md for test cases.
 
 const QE_LEAD_README = `# QE Lead (15+ years exp in test automation)
 
-> **Model**: Use the **highest-tier model** (e.g. Claude Opus) for this role. QE Lead handles test strategy, framework decisions, automation architecture, and review — tasks that require maximum reasoning capability.
+> **Model**: Use the **highest-tier model** (e.g. Claude Opus 4.8) for this role. QE Lead handles test strategy, framework decisions, automation architecture, and review — tasks that require maximum reasoning capability.
 
 **Profile**: 15+ years of experience in test automation, test strategy, and quality engineering. Owns test automation strategy, framework selection, and quality gates across the project.
 
@@ -2663,7 +2764,7 @@ const QE_LEAD_README = `# QE Lead (15+ years exp in test automation)
 - [ ] **Automation architecture**: Design folder structure, layers, fixtures, reporting, retries, env handling
 - [ ] **Review checklist**: Coverage, maintainability, naming, alignment with framework
 - [ ] **Quality gates**: Define thresholds (coverage, required suites before merge), regression criteria
-> **Right-size first (Full-tier items below).** Cross-browser strategy, visual regression, layout-integrity, and the responsive matrix are **Full-tier only** (critical / UI-heavy features). For **Smoke** (small/low-risk) and **Standard** features, skip them — happy path + key edge cases is enough. See the Test depth tier table in qe/README.md. Match the model to the tier: Smoke → Haiku, Standard → Sonnet, Full → Opus (Lead) designs / Sonnet executes.
+> **Right-size first (Full-tier items below).** Cross-browser strategy, visual regression, layout-integrity, and the responsive matrix are **Full-tier only** (critical / UI-heavy features). For **Smoke** (small/low-risk) and **Standard** features, skip them — happy path + key edge cases is enough. See the Test depth tier table in qe/README.md. Match the model to the tier: Smoke → Haiku 4.5, Standard → Sonnet 5, Full → Opus 4.8 (Lead) designs / Sonnet 5 executes.
 
 - [ ] **UI / E2E browser strategy** (Full tier): Cross-browser (Chromium/Firefox/WebKit), headed vs headless, viewport/responsive, **stable selectors** (role/test-id, not brittle CSS); decide which journeys are E2E vs API-level
 - [ ] **Test account & data provisioning**: Define per-environment **test accounts/roles** and how they are provisioned; **secrets via secure store / CI secrets — never hardcoded or committed**; **test-data strategy** (seed fixtures, isolation per run, teardown/cleanup, no prod data/PII)
@@ -2676,7 +2777,7 @@ const QE_LEAD_README = `# QE Lead (15+ years exp in test automation)
 
 const QE_SENIOR_README = `# Senior QE (10+ years exp)
 
-> **Model (match the test depth tier — see qe/README.md)**: **Smoke** tier (small/low-risk feature) → **Haiku**, effort low. **Standard** tier (normal feature, logic-bearing tests) → **Sonnet**, effort medium. **Full** tier items (cross-browser, visual regression, responsive matrix) are designed by the QE Lead (**Opus**) and executed on **Sonnet**. The highest-tier model (Opus) is for the QE Lead's strategy/review, not for writing routine tests.
+> **Model (match the test depth tier — see qe/README.md)**: **Smoke** tier (small/low-risk feature) → **Haiku 4.5**, effort low. **Standard** tier (normal feature, logic-bearing tests) → **Sonnet 5**, effort medium. **Full** tier items (cross-browser, visual regression, responsive matrix) are designed by the QE Lead (**Opus 4.8**) and executed on **Sonnet 5**. The highest-tier model (Opus 4.8) is for the QE Lead's strategy/review, not for writing routine tests.
 >
 > **Cost guard — offload to a sub-agent.** Run the actual test execution (browser automation, evidence capture) in a **sub-agent on the tier's model**, not in the main session. Browser/trace/screenshot output is large and fills context fast; a sub-agent keeps it isolated so a small feature doesn't consume a big share of the session.
 
@@ -2837,7 +2938,7 @@ App
 
 const DEV_TECH_LEAD_README = `# Tech Lead (15+ years exp)
 
-> **Model**: Use the **highest-tier model** (e.g. Claude Opus) for this role. Tech Lead handles planning, logic analysis, architecture decisions, and code review — tasks that require maximum reasoning capability.
+> **Model**: Use the **highest-tier model** (e.g. Claude Opus 4.8) for this role. Tech Lead handles planning, logic analysis, architecture decisions, and code review — tasks that require maximum reasoning capability.
 
 **Responsibilities**:
 - Decide tech stack, frameworks, libraries
@@ -2865,7 +2966,7 @@ const DEV_TECH_LEAD_README = `# Tech Lead (15+ years exp)
 
 const DEV_SENIOR_README = `# Senior Developer (10+ years exp)
 
-> **Model (3 tiers — match the task)**: Default to a **mid-tier model** (e.g. Claude Sonnet) for logic-bearing implementation (business logic, integration, refactor, anything with branching or edge cases). Drop to a **cost-efficient model** (e.g. Claude Haiku) only for mechanical work where the spec is fully prescribed (boilerplate, CRUD, config, wiring, tests from a template, lint/format fixes). The **highest-tier model** (Opus) stays with the Tech Lead. Rationale: cheap-but-wrong on logic forces an Opus rework cycle that costs more than doing it on Sonnet once.
+> **Model (3 tiers — match the task)**: Default to a **mid-tier model** (e.g. Claude Sonnet 5) for logic-bearing implementation (business logic, integration, refactor, anything with branching or edge cases). Drop to a **cost-efficient model** (e.g. Claude Haiku 4.5) only for mechanical work where the spec is fully prescribed (boilerplate, CRUD, config, wiring, tests from a template, lint/format fixes). The **highest-tier model** (Opus 4.8) stays with the Tech Lead. Rationale: cheap-but-wrong on logic forces an Opus rework cycle that costs more than doing it on Sonnet 5 once — and Sonnet 5's coding quality is near-Opus at ~60% of the price, so it is the safe default for implementation.
 
 **Responsibilities**:
 - Implement features per Tech Lead's implementation plan and Technical BA spec
@@ -2887,19 +2988,20 @@ const DEV_IMPLEMENTATION_ROLES_TEMPLATE = `# Implementation roles by project typ
 
 Use only the roles that apply. Remove or ignore the rest. Tech Lead is cross-cutting; add discipline roles as needed.
 
-## Model optimization strategy (3 tiers)
+## Model optimization strategy (4 tiers)
 
 Pick the model by **task difficulty**, not by a fixed per-role rule:
 
 | Role / task | Model tier | Why |
 |-------------|-----------|-----|
-| Tech Lead (lead) | **Highest** (e.g. Opus) | Planning, logic analysis, architecture decisions, code review |
-| Implementation — **logic-bearing** (business logic, integration, refactor, branching/edge cases) | **Mid-tier** (e.g. Sonnet) | Needs real reasoning; cheap-but-wrong here forces an Opus rework cycle that costs more |
-| Implementation — **mechanical** (boilerplate, CRUD, config, wiring, tests from a template, lint/format fixes) | **Cost-efficient** (e.g. Haiku) | Spec is fully prescribed → just execute; cheapest tier is enough |
+| **Hardest problems only** (novel/complex system design, security/logic audit of critical money-auth-PII systems, long-horizon autonomous runs) | **Frontier escalation** (e.g. Fable 5) | Costs 2× Opus — escalate only when the lead tier is genuinely not enough; never the default |
+| Tech Lead (lead) | **Highest** (e.g. Opus 4.8) | Planning, logic analysis, architecture decisions, code review |
+| Implementation — **logic-bearing** (business logic, integration, refactor, branching/edge cases) | **Mid-tier** (e.g. Sonnet 5) | Near-Opus coding quality at ~60% of the price; cheap-but-wrong here forces an Opus rework cycle that costs more |
+| Implementation — **mechanical** (boilerplate, CRUD, config, wiring, tests from a template, lint/format fixes) | **Cost-efficient** (e.g. Haiku 4.5) | Spec is fully prescribed → just execute; cheapest tier is enough |
 
-Tech Lead defines all critical steps, logic, and specs first → implementation roles execute them. **Default implementation to the mid-tier (Sonnet) and drop to Haiku only when the work is purely mechanical** — this maximizes quality on thinking, keeps a safe default on execution, and reserves the cheapest tier for work that genuinely can't go wrong. Avoid defaulting everything to Haiku: the rework loop (Haiku writes → Opus fixes) usually costs more than getting it right once on Sonnet.
+Tech Lead defines all critical steps, logic, and specs first → implementation roles execute them. **Default implementation to the mid-tier (Sonnet 5) and drop to Haiku 4.5 only when the work is purely mechanical** — this maximizes quality on thinking, keeps a safe default on execution, and reserves the cheapest tier for work that genuinely can't go wrong. Avoid defaulting everything to Haiku: the rework loop (Haiku writes → Opus fixes) usually costs more than getting it right once on Sonnet 5. Symmetrically, avoid defaulting the lead tier to Fable 5: Opus 4.8 handles most lead work at half the price — escalate per-problem, not per-role.
 
-> **Switching models mid-session breaks the prompt cache.** To realize these savings cleanly, keep one agent on one model and **spawn a sub-agent on the cheaper tier** for the delegated subtask (the Tech Lead, on Opus, dispatches mechanical work to a Haiku sub-agent) rather than swapping the model of a running agent.
+> **Switching models mid-session breaks the prompt cache.** To realize these savings cleanly, keep one agent on one model and **spawn a sub-agent on the cheaper tier** for the delegated subtask (the Tech Lead, on Opus 4.8, dispatches mechanical work to a Haiku 4.5 sub-agent) rather than swapping the model of a running agent.
 
 > **All roles must satisfy [Developer Quality Rules](./quality-rules.md) before opening a PR** (DoD, test quality, type-safety, error handling, performance budget, security, and i18n for UI). Tech Lead enforces it at review.
 
@@ -2931,7 +3033,7 @@ Tech Lead defines all critical steps, logic, and specs first → implementation 
 
 const DEV_FRONTEND_README = `# Senior Frontend (10+ years exp) — Web UI
 
-> **Model**: Default to a **mid-tier model** (e.g. Claude Sonnet) for logic-bearing work; drop to a **cost-efficient model** (e.g. Claude Haiku) for mechanical work (boilerplate, CRUD, config, wiring, tests from a template). Reserve the **highest-tier model** (Opus) for the Tech Lead. Execute from Tech Lead's specs.
+> **Model**: Default to a **mid-tier model** (e.g. Claude Sonnet 5) for logic-bearing work; drop to a **cost-efficient model** (e.g. Claude Haiku 4.5) for mechanical work (boilerplate, CRUD, config, wiring, tests from a template). Reserve the **highest-tier model** (Opus 4.8) for the Tech Lead. Execute from Tech Lead's specs.
 
 **Responsibilities**:
 - Implement web UI per design and API contract
@@ -2951,7 +3053,7 @@ const DEV_FRONTEND_README = `# Senior Frontend (10+ years exp) — Web UI
 
 const DEV_BACKEND_README = `# Senior Backend (10+ years exp) — API, services
 
-> **Model**: Default to a **mid-tier model** (e.g. Claude Sonnet) for logic-bearing work; drop to a **cost-efficient model** (e.g. Claude Haiku) for mechanical work (boilerplate, CRUD, config, wiring, tests from a template). Reserve the **highest-tier model** (Opus) for the Tech Lead. Execute from Tech Lead's specs.
+> **Model**: Default to a **mid-tier model** (e.g. Claude Sonnet 5) for logic-bearing work; drop to a **cost-efficient model** (e.g. Claude Haiku 4.5) for mechanical work (boilerplate, CRUD, config, wiring, tests from a template). Reserve the **highest-tier model** (Opus 4.8) for the Tech Lead. Execute from Tech Lead's specs.
 
 **Responsibilities**:
 - Implement API, services, DB layer per Technical BA spec
@@ -2971,7 +3073,7 @@ const DEV_BACKEND_README = `# Senior Backend (10+ years exp) — API, services
 
 const DEV_MOBILE_README = `# Senior Mobile (10+ years exp) — iOS / Android / cross-platform
 
-> **Model**: Default to a **mid-tier model** (e.g. Claude Sonnet) for logic-bearing work; drop to a **cost-efficient model** (e.g. Claude Haiku) for mechanical work (boilerplate, CRUD, config, wiring, tests from a template). Reserve the **highest-tier model** (Opus) for the Tech Lead. Execute from Tech Lead's specs.
+> **Model**: Default to a **mid-tier model** (e.g. Claude Sonnet 5) for logic-bearing work; drop to a **cost-efficient model** (e.g. Claude Haiku 4.5) for mechanical work (boilerplate, CRUD, config, wiring, tests from a template). Reserve the **highest-tier model** (Opus 4.8) for the Tech Lead. Execute from Tech Lead's specs.
 
 **Responsibilities**:
 - Implement app UI and API integration per spec
@@ -2991,7 +3093,7 @@ const DEV_MOBILE_README = `# Senior Mobile (10+ years exp) — iOS / Android / c
 
 const DEV_EMBEDDED_README = `# Senior Embedded (10+ years exp) — firmware, IoT
 
-> **Model**: Default to a **mid-tier model** (e.g. Claude Sonnet) for logic-bearing work; drop to a **cost-efficient model** (e.g. Claude Haiku) for mechanical work (boilerplate, CRUD, config, wiring, tests from a template). Reserve the **highest-tier model** (Opus) for the Tech Lead. Execute from Tech Lead's specs.
+> **Model**: Default to a **mid-tier model** (e.g. Claude Sonnet 5) for logic-bearing work; drop to a **cost-efficient model** (e.g. Claude Haiku 4.5) for mechanical work (boilerplate, CRUD, config, wiring, tests from a template). Reserve the **highest-tier model** (Opus 4.8) for the Tech Lead. Execute from Tech Lead's specs.
 
 **Responsibilities**:
 - Implement firmware, drivers, hardware interfaces per spec
@@ -3010,7 +3112,7 @@ const DEV_EMBEDDED_README = `# Senior Embedded (10+ years exp) — firmware, IoT
 
 const DEV_DATA_ML_README = `# Senior Data/ML (10+ years exp)
 
-> **Model**: Default to a **mid-tier model** (e.g. Claude Sonnet) for logic-bearing work; drop to a **cost-efficient model** (e.g. Claude Haiku) for mechanical work (boilerplate, CRUD, config, wiring, tests from a template). Reserve the **highest-tier model** (Opus) for the Tech Lead. Execute from Tech Lead's specs.
+> **Model**: Default to a **mid-tier model** (e.g. Claude Sonnet 5) for logic-bearing work; drop to a **cost-efficient model** (e.g. Claude Haiku 4.5) for mechanical work (boilerplate, CRUD, config, wiring, tests from a template). Reserve the **highest-tier model** (Opus 4.8) for the Tech Lead. Execute from Tech Lead's specs.
 
 **Responsibilities**:
 - Implement ETL, models, analytics pipelines per spec
@@ -3030,7 +3132,7 @@ const DEV_DATA_ML_README = `# Senior Data/ML (10+ years exp)
 
 const DEV_PLATFORM_README = `# Senior Platform (10+ years exp) — infra, CI/CD
 
-> **Model**: Default to a **mid-tier model** (e.g. Claude Sonnet) for logic-bearing work; drop to a **cost-efficient model** (e.g. Claude Haiku) for mechanical work (boilerplate, CRUD, config, wiring, tests from a template). Reserve the **highest-tier model** (Opus) for the Tech Lead. Execute from Tech Lead's specs.
+> **Model**: Default to a **mid-tier model** (e.g. Claude Sonnet 5) for logic-bearing work; drop to a **cost-efficient model** (e.g. Claude Haiku 4.5) for mechanical work (boilerplate, CRUD, config, wiring, tests from a template). Reserve the **highest-tier model** (Opus 4.8) for the Tech Lead. Execute from Tech Lead's specs.
 
 **Responsibilities**:
 - Implement CI/CD, infra as code, observability per spec

@@ -1,14 +1,14 @@
 # SDLC Skill & Agent Mapping
 
-Đề xuất **skill** (gọi qua `/`) và **sub-agent** (gọi qua Agent tool) cho từng vai trò trong pipeline. Tier model theo quy ước workflow (3 mức, chọn theo độ khó của task): **lead = model mạnh nhất (Opus)** cho plan/logic/review; **execution logic vừa = model tầm trung (Sonnet)** cho business logic, integration, refactor; **execution cơ học = model tiết kiệm (Haiku)** cho boilerplate, CRUD, config, test theo mẫu. Đừng mặc định Haiku cho mọi việc — sai logic thì phải nhờ Opus sửa lại, tổng chi phí còn cao hơn làm đúng một lần trên Sonnet.
+Đề xuất **skill** (gọi qua `/`) và **sub-agent** (gọi qua Agent tool) cho từng vai trò trong pipeline. Tier model theo quy ước workflow (4 mức, chọn theo độ khó của task): **lead = Opus 4.8** cho plan/logic/review; **execution logic vừa = Sonnet 5** cho business logic, integration, refactor (chất lượng coding gần Opus nhưng ~60% giá); **execution cơ học = Haiku 4.5** cho boilerplate, CRUD, config, test theo mẫu; **escalation = Fable 5** — CHỈ cho bài toán khó nhất (kiến trúc mới/phức tạp, audit hệ thống critical) vì giá gấp đôi Opus, không bao giờ là mặc định. Đừng mặc định Haiku cho mọi việc — sai logic thì phải nhờ Opus sửa lại, tổng chi phí còn cao hơn làm đúng một lần trên Sonnet 5.
 
-> **Đổi model giữa session sẽ phá prompt cache.** Để tiết kiệm đúng cách: giữ mỗi agent ở một model, và **spawn sub-agent ở tier rẻ hơn** cho subtask (Tech Lead chạy Opus → giao việc cơ học cho sub-agent Haiku) thay vì đổi model của agent đang chạy.
+> **Đổi model giữa session sẽ phá prompt cache.** Để tiết kiệm đúng cách: giữ mỗi agent ở một model, và **spawn sub-agent ở tier rẻ hơn** cho subtask (Tech Lead chạy Opus 4.8 → giao việc cơ học cho sub-agent Haiku 4.5) thay vì đổi model của agent đang chạy.
 
 > **Lưu ý:** Tên skill/agent dưới đây theo bộ skill của Claude Code; tùy môi trường (Cursor/Codex/Antigravity) tên gọi có thể khác — ánh xạ theo *mục đích* của từng cột.
 
 ---
 
-## Phase 1 — PO (Product Owner) · Opus
+## Phase 1 — PO (Product Owner) · Opus 4.8
 | Mục đích | Skill / Agent |
 |---|---|
 | **Phân tích bài bản (built-in, không cần cài)** ⭐ | `/sdlc-workflow:po` → chạy **Analysis lenses** trong `po/README.md` (JTBD, 5 Whys, Impact Mapping, Opportunity-Solution Tree, assumption mapping, Kano, RICE/WSJF) |
@@ -32,7 +32,7 @@
 | Layout/component chất lượng production | `/frontend-ui-engineering` |
 | Wireframe / sync sang Figma | `figma:figma-generate-design`, `figma:figma-use` |
 
-## Phase 4 — Architect · Opus
+## Phase 4 — Architect · Opus 4.8 (escalate Fable 5 cho hệ thống mới/phức tạp)
 | Mục đích | Skill / Agent |
 |---|---|
 | ADR (rationale + trade-off) ⭐ | `/documentation-and-adrs` |
@@ -53,13 +53,13 @@
 | Thiết kế test suite, chiến lược ⭐ | agent `agent-skills:test-engineer` |
 | TDD/BDD plan | `/test` (test-driven-development) |
 
-> QE Lead = Opus; Senior QE = Sonnet cho test logic-bearing (E2E, integration), Haiku cho test cơ học/theo mẫu.
+> QE Lead = Opus 4.8; Senior QE = Sonnet 5 cho test logic-bearing (E2E, integration), Haiku 4.5 cho test cơ học/theo mẫu.
 
 ## Phase 5b / 7 — Dev (Tech Lead + Senior Dev)
 | Vai trò | Skill / Agent |
 |---|---|
-| **Tech Lead** (Opus): plan, review | agent `Plan`, `/plan`, `/code-review-and-quality` |
-| **Senior Dev** (Sonnet cho logic, Haiku cho code cơ học): code từng bước | `/build`, `/incremental-implementation` |
+| **Tech Lead** (Opus 4.8): plan, review | agent `Plan`, `/plan`, `/code-review-and-quality` |
+| **Senior Dev** (Sonnet 5 cho logic, Haiku 4.5 cho code cơ học): code từng bước | `/build`, `/incremental-implementation` |
 | TDD bắt buộc (coverage 100%) | `/test-driven-development` |
 | Bám docs framework | `/source-driven-development` |
 | FE | `/frontend-ui-engineering` |

@@ -1,6 +1,6 @@
 # Senior QE (10+ years exp)
 
-> **Model (match the test depth tier — see qe/README.md)**: **Smoke** tier (small/low-risk feature) → **Haiku**, effort low. **Standard** tier (normal feature, logic-bearing tests) → **Sonnet**, effort medium. **Full** tier items (cross-browser, visual regression, responsive matrix) are designed by the QE Lead (**Opus**) and executed on **Sonnet**. The highest-tier model (Opus) is for the QE Lead's strategy/review, not for writing routine tests.
+> **Model (match the test depth tier — see qe/README.md)**: **Smoke** tier (small/low-risk feature) → **Haiku 4.5**, effort low. **Standard** tier (normal feature, logic-bearing tests) → **Sonnet 5**, effort medium. **Full** tier items (cross-browser, visual regression, responsive matrix) are designed by the QE Lead (**Opus 4.8**) and executed on **Sonnet 5**. The highest-tier model (Opus 4.8) is for the QE Lead's strategy/review, not for writing routine tests.
 >
 > **Cost guard — offload to a sub-agent.** Run the actual test execution (browser automation, evidence capture) in a **sub-agent on the tier's model**, not in the main session. Browser/trace/screenshot output is large and fills context fast; a sub-agent keeps it isolated so a small feature doesn't consume a big share of the session.
 

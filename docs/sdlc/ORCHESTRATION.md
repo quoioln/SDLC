@@ -5,7 +5,7 @@
 When the user sends an **idea**, **feature request**, or **requirement**:
 1. **Trigger the full pipeline** and run continuously through deployment.
 2. **One role per phase** for sequential phases. **Spawn parallel workstreams** when dependencies are independent.
-3. **Announce each phase (mandatory):** print a one-line banner at the start of every phase / role switch — `🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model`. Tiers: lead/analysis/audit → **Opus**; logic-bearing code & tests → **Sonnet**; mechanical work → **Haiku**. The workflow does not change the model for you (use `/model` or spawn a sub-agent on that tier — switching a running agent's model breaks the prompt cache). Current model: `/model` or `/status`.
+3. **Announce each phase (mandatory):** print a one-line banner at the start of every phase / role switch — `🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model`. Tiers: lead/analysis/audit → **Opus 4.8**; logic-bearing code & tests → **Sonnet 5** (near-Opus coding at ~60% of the price); mechanical work → **Haiku 4.5**; escalate to **Fable 5** only for the hardest problems (novel architecture, critical security/logic audit — 2× Opus price, never the default). The workflow does not change the model for you (use `/model` or spawn a sub-agent on that tier — switching a running agent's model breaks the prompt cache). Current model: `/model` or `/status`.
 4. **Phase handoff — ask, then auto-advance.** When a phase completes and its gate (if any) passes: recap the output in one line → ask a checkpoint ("✅ <phase> done → next: <next>. Reply `stop`/`adjust` to intervene; else I continue") → commit if auto-commit per phase is armed → **auto-trigger the next phase** (`/sdlc-workflow:<next>` with its banner). Gates: Design→Architect (PO+BA approve); QE→Security (0 open bugs + sign-off); Security→Deploy (0 Critical/High + sign-off).
 5. **Run through to Maintenance.** Do not stop after PO, BA, or Dev unless the user explicitly says to stop.
 
@@ -48,6 +48,22 @@ Parallel Track B: Dev complete → [QE] + [SEC] + [PERF] simultaneously → merg
 - [ ] Phase 9 [OPS]: `docs/sdlc/deploy/`
 - [ ] Phase 10: Project Completion Package → SHIPPED ✅
 - [ ] Phase 11 Maintenance
+
+## Phase toggles (sdlc-config)
+
+**All phases on by default** (`full` profile). `docs/sdlc/sdlc-config.md` is the persistent on/off switch the agent reads at pipeline start and at every handoff — a disabled phase is skipped with a visible `⏭` banner, never silently.
+
+### Quick toggle
+
+| Action | What to say to the agent |
+|--------|--------------------------|
+| 🔀 Switch profile | **"profile standard"** — presets: `full` (all 11 phases) / `standard` (skips Design, Guideline, Maintenance) / `hotfix` (Dev → QE Smoke → Security → Deploy) / `docs-only` (PO → BA → Architect → Technical BA) |
+| ⛔ Disable one phase | **"disable phase qe"** (po, ba, design, architect, tech-ba, dev, test/qe, security, deploy, guideline, maintain) |
+| ✅ Enable one phase | **"enable phase guideline"** |
+| ⏸ One epic only | **"skip qe for this epic"** — current epic only, config file untouched |
+| 👀 Inspect | **"show sdlc config"** |
+
+The agent edits `sdlc-config.md` (profile line + phase table), confirms the new state in one line, and applies it from the next handoff. **Guard:** the security phase cannot be disabled while the epic touches money/payments, auth, or PII — the agent refuses and suggests lowering the QE depth tier instead. Full details and the phase table live in `docs/sdlc/sdlc-config.md`.
 
 ## Version-control checkpoints (opt-in)
 
