@@ -23,6 +23,7 @@
 | **Full** | Critical path, money/auth/PII, or UI-heavy/public | Full matrix: cross-browser × responsive breakpoints × visual regression × layout integrity × a11y; full evidence (screenshot/video/trace) | QE Lead (**Opus 4.8**) designs → Senior QE (**Sonnet 5**) executes |
 
 - **Default to Smoke/Standard.** Escalate to **Full** only when the feature is genuinely critical or UI-heavy — never by default.
+- **Dynamic mode (sdlc-config, default ON):** for **Trivial** tasks the QE phase is skipped entirely — Dev verifies inline (`/verify`). For **Small** tasks QE runs **inline in the Dev role** at Smoke depth: run the tests, report one line — no separate QE role switch, no sub-agent, no evidence ceremony. The full QE phase (this README's process) applies from **Medium** up. See `docs/sdlc/sdlc-config.md` → Mode.
 - **Cost guard:** offload the heavy test execution to a **sub-agent** on the tier's model. Browser/trace/screenshot output is large; running it in a sub-agent keeps it out of the main session context (this is what prevents a small feature from eating ~40% of the session).
 - The cross-browser / visual-regression / responsive-matrix items in qe-lead/README.md apply to **Full tier only**; Smoke/Standard skip them.
 

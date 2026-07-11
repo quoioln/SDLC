@@ -10,15 +10,43 @@
 
 When the profile changes, the agent rewrites the **Current phase state** table below from the matching profile column, then applies any per-phase overrides you ask for afterwards.
 
+## Mode — static vs dynamic roles
+
+> **Mode:** `dynamic`
+
+- `dynamic` (default) — the agent **auto-narrows the roster per task** from the complexity tier (INTEGRATION.md §2.4): heavy roles only run when the task is complex enough. This is the main cost lever — most small tasks stop paying for QE/PO/BA ceremony automatically.
+- `static` — every enabled phase in the table below runs for every task, regardless of size.
+
+### Dynamic roster (applied on top of the phase table)
+
+| Complexity tier | QE | Docs roles (PO/BA/Design/Architect/Tech-BA) | Other |
+|---|---|---|---|
+| **Trivial** (1 file, no new logic) | ⛔ skipped — Dev runs `/verify` inline | ⛔ skipped | Dev only; Guideline/Maintain skipped |
+| **Small** (bug fix / small feature, 1–3 files) | **inline in Dev** at Smoke depth — run the tests + one-line result; no separate QE role switch, no sub-agent, no evidence ceremony | ⛔ skipped *unless the requirement is unclear* (then run the one role needed, e.g. Tech-BA for a contract) | Security: quick pass only if the change touches a sensitive area |
+| **Medium** (multi-module, 3–10 files) | full QE phase, Standard depth | Tech-BA (plan) runs; PO/BA/Design/Architect only if the change alters requirements/architecture | pipeline per the phase table |
+| **Large/Epic** (new subsystem, money/auth/PII) | full QE phase, depth per QE table (often Full) | all docs roles run | full pipeline per the phase table |
+
+**Dynamic rules:**
+- Dynamic narrowing only **skips** — it never enables a phase the table below disables. Config ⛔ always wins.
+- Every dynamically skipped role still prints the ⏭ banner (`⏭ Role: [QE] — skipped (dynamic: Trivial tier)`) — nothing is silent.
+- The **security guard is unaffected**: money/auth/PII → security runs no matter the tier or mode.
+- The declared tier is auditable: `🧩 Complexity: <tier> → engines: <list> · roster: <roles that will run>`. If the task grows mid-flight, upgrade the tier and say so.
+
+| Action | What to say |
+|--------|-------------|
+| Turn dynamic off | **"static mode"** (or "dynamic roles off") |
+| Turn dynamic on | **"dynamic roles on"** |
+
 ## Quick toggles (say this to the agent)
 
 | Action | What to say |
 |--------|-------------|
 | Switch profile | **"profile standard"** (also: `full`, `hotfix`, `docs-only`) |
+| Switch mode | **"static mode"** / **"dynamic roles on"** |
 | Disable one phase | **"disable phase qe"** (works for: po, ba, design, architect, tech-ba, dev, test/qe, security, deploy, guideline, maintain) |
 | Enable one phase | **"enable phase guideline"** |
 | One epic only | **"skip qe for this epic"** — current epic only; this file is not edited |
-| Show current state | **"show sdlc config"** — the agent prints the active profile + phase table |
+| Show current state | **"show sdlc config"** — the agent prints the active profile + mode + phase table |
 
 The agent updates this file (profile line and/or table), then confirms the new state in one line.
 

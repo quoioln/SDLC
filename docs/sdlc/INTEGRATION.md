@@ -13,6 +13,7 @@
 3. **Graceful degradation.** Thiếu plugin → dùng template SDLC tương ứng và ghi chú "ran without <plugin>". Không chặn pipeline.
 4. **Một chủ sở hữu Git.** SDLC nắm quyền branch + phase-gate commit; TDD chỉ micro-commit *trong* phase Dev trên cùng branch; `finishing-a-development-branch` lo merge cuối. Xem **mục 4** để tránh 4 cơ chế giẫm chân.
 5. **Lớp model & chi phí (mục 2) áp cho TẤT CẢ phase.** feature-dev + subagent-driven spawn rất nhiều sub-agent — không gắn tier model + không offload là cách nhanh nhất đốt session. Mỗi phase phải nêu rõ **model tier** và (với QE) **depth tier**.
+6. **Đã cài plugin thì phải dùng — nhưng đúng độ khó.** Chọn **complexity tier** (mục 2.4) ngay khi nhận task: plugin đã cài + tier đạt ngưỡng → bắt buộc dùng engine (không tự làm native); tier Trivial/Small → bỏ ceremony (brainstorming/writing-plans/feature-dev full) vì chi phí lớn hơn chính task.
 
 ---
 
@@ -94,6 +95,24 @@ Plugin **version-pinned**, không tự cập nhật:
 ### 2.3 — Sub-agent offload (chống đốt session)
 
 feature-dev và subagent-driven-development spawn nhiều sub-agent. **Chạy execution nặng (browser automation, evidence, test run, code-explore) trong sub-agent ở model của tier**, đừng chạy trong session chính — output lớn (trace/screenshot/log) sẽ không nuốt context của orchestrator. Đổi model giữa một agent đang chạy sẽ **phá prompt cache**; spawn sub-agent thì không.
+
+### 2.4 — Task complexity tier: độ khó nào mới dùng plugin engine
+
+**Vấn đề hai chiều:** cài plugin rồi không dùng = phí tiềm năng; nhưng task nhỏ mà chạy đủ ceremony (brainstorming → writing-plans → feature-dev 7-phase) thì **chậm hơn chứ không nhanh hơn** — chi phí ceremony lớn hơn chính task. **Chọn complexity tier NGAY KHI nhận task** (trước khi code) và tuyên bố một dòng: `🧩 Complexity: <tier> → engines: <danh sách>`.
+
+| Tier | Tín hiệu nhận biết | Engine BẮT BUỘC dùng (nếu đã cài) | KHÔNG dùng (ceremony thừa) |
+|------|--------------------|-----------------------------------|----------------------------|
+| **Trivial** — typo, đổi config, sửa docs, đổi hằng số | 1 file, vài dòng, không logic mới | Không plugin nào — sửa trực tiếp + `/verify` | Tất cả: brainstorming, writing-plans, feature-dev, TDD skill, subagent |
+| **Small** — bug fix rõ nguyên nhân, feature nhỏ theo pattern có sẵn | 1–3 file, ít nhánh logic, spec rõ | Bug → superpowers `systematic-debugging` + `verification-before-completion`. Feature → superpowers `test-driven-development` | brainstorming, writing-plans, feature-dev full, subagent-driven |
+| **Medium** — feature chạm nhiều module, logic mới, có edge cases | 3–10 file, cần plan trước khi code | + superpowers `writing-plans` (implementation plan), feature-dev (explore + architecture), `context7` (code đúng framework), plugin `code-review` ở QE | brainstorming — trừ khi requirement mơ hồ |
+| **Large / Epic** — subsystem mới, kiến trúc mới, cross-cutting, money/auth/PII | nhiều unknowns, nhiều team/role, rủi ro cao | FULL: superpowers `brainstorming` (PO), feature-dev đủ 7 phase, `writing-plans`, `subagent-driven-development` (task song song), `code-review` + `security-guidance`, `context7` | không bỏ gì |
+
+**Quy tắc:**
+1. **Plugin đã cài + tier đạt ngưỡng → BẮT BUỘC dùng engine, không tự làm native.** Cài superpowers mà vẫn debug tay là sai quy trình — với bug bất kỳ (tier Small trở lên), `systematic-debugging` là đường mặc định.
+2. **Tier Trivial/Small → cấm ceremony.** Không brainstorming, không writing-plans, không spawn subagent cho việc một file.
+3. **Phân vân giữa hai tier → chọn tier thấp hơn**, nâng lên khi phát hiện độ phức tạp thật (nói rõ: "nâng lên Medium vì chạm 5 module").
+4. Tier này **độc lập** với QE depth tier (2.2) nhưng thường tương quan: Trivial/Small ↔ Smoke, Medium ↔ Standard, Epic ↔ Full.
+5. **Dynamic roles (sdlc-config `mode: dynamic`, mặc định BẬT):** complexity tier cũng quyết định **role nào chạy** — Trivial: chỉ Dev, QE bỏ hẳn (Dev tự `/verify`); Small: QE chạy **inline trong role Dev** ở Smoke depth (chạy test + báo 1 dòng — không đổi role, không sub-agent, không evidence ceremony), docs roles bỏ trừ khi requirement mơ hồ; Medium+: QE phase đầy đủ. Role bị bỏ vẫn in banner ⏭. Security guard (money/auth/PII) không bị ảnh hưởng. Tắt bằng "static mode". Khai báo roster ngay khi chọn tier: `🧩 Complexity: <tier> → engines: <list> · roster: <roles>`.
 
 ---
 
@@ -203,6 +222,7 @@ Plugin bổ sung, KHÔNG thay khung SDLC. Thiếu plugin → fallback template S
 | Maintenance | SDLC | Sonnet 5/Haiku 4.5 | native |
 
 ### Quy tắc bắt buộc
+- Chọn COMPLEXITY TIER trước khi code (Trivial/Small/Medium/Epic — INTEGRATION.md §2.4) và tuyên bố `🧩 Complexity: <tier> → engines: <list>`. Plugin đã cài + tier đạt ngưỡng → BẮT BUỘC dùng engine; Trivial/Small → KHÔNG ceremony.
 - Gắn MODEL TIER cho mỗi phase; offload execution nặng sang SUB-AGENT (không phá cache, không đốt session).
 - QE: chọn DEPTH TIER trước (Smoke/Standard/Full) — KHÔNG chạy Full matrix cho feature nhỏ.
 - 100% branch coverage (TDD/BDD) trước khi sang QE — KHÔNG hạ 90%.

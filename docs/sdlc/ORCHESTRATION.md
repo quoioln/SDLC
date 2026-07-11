@@ -58,6 +58,7 @@ Parallel Track B: Dev complete → [QE] + [SEC] + [PERF] simultaneously → merg
 | Action | What to say to the agent |
 |--------|--------------------------|
 | 🔀 Switch profile | **"profile standard"** — presets: `full` (all 11 phases) / `standard` (skips Design, Guideline, Maintenance) / `hotfix` (Dev → QE Smoke → Security → Deploy) / `docs-only` (PO → BA → Architect → Technical BA) |
+| 🤖 Static ↔ dynamic | **"static mode"** / **"dynamic roles on"** — dynamic (default) auto-narrows the roster per task by complexity tier (Trivial: Dev only, QE skipped; Small: QE inline in Dev at Smoke depth; Medium+: full QE phase) |
 | ⛔ Disable one phase | **"disable phase qe"** (po, ba, design, architect, tech-ba, dev, test/qe, security, deploy, guideline, maintain) |
 | ✅ Enable one phase | **"enable phase guideline"** |
 | ⏸ One epic only | **"skip qe for this epic"** — current epic only, config file untouched |

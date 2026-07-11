@@ -2,6 +2,8 @@
 
 Đề xuất **skill** (gọi qua `/`) và **sub-agent** (gọi qua Agent tool) cho từng vai trò trong pipeline. Tier model theo quy ước workflow (4 mức, chọn theo độ khó của task): **lead = Opus 4.8** cho plan/logic/review; **execution logic vừa = Sonnet 5** cho business logic, integration, refactor (chất lượng coding gần Opus nhưng ~60% giá); **execution cơ học = Haiku 4.5** cho boilerplate, CRUD, config, test theo mẫu; **escalation = Fable 5** — CHỈ cho bài toán khó nhất (kiến trúc mới/phức tạp, audit hệ thống critical) vì giá gấp đôi Opus, không bao giờ là mặc định. Đừng mặc định Haiku cho mọi việc — sai logic thì phải nhờ Opus sửa lại, tổng chi phí còn cao hơn làm đúng một lần trên Sonnet 5.
 
+> **Gate theo độ khó (INTEGRATION.md §2.4):** skill/agent dưới đây chỉ đáng gọi khi task đủ phức tạp. Trivial (1 file) → không engine nào, sửa trực tiếp; Small (1–3 file) → chỉ `systematic-debugging`/`test-driven-development`; Medium (3–10 file) → thêm `writing-plans` + feature-dev explore/architecture + `context7`; Large/Epic → full set (brainstorming, feature-dev 7-phase, subagent-driven, code-review, security-guidance). Plugin đã cài + tier đạt ngưỡng → bắt buộc dùng; dưới ngưỡng → bỏ ceremony.
+
 > **Đổi model giữa session sẽ phá prompt cache.** Để tiết kiệm đúng cách: giữ mỗi agent ở một model, và **spawn sub-agent ở tier rẻ hơn** cho subtask (Tech Lead chạy Opus 4.8 → giao việc cơ học cho sub-agent Haiku 4.5) thay vì đổi model của agent đang chạy.
 
 > **Lưu ý:** Tên skill/agent dưới đây theo bộ skill của Claude Code; tùy môi trường (Cursor/Codex/Antigravity) tên gọi có thể khác — ánh xạ theo *mục đích* của từng cột.

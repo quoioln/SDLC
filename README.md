@@ -113,13 +113,30 @@ Tips:
 ```text
 profile standard          # presets: full · standard (no Design/Guideline/Maintenance)
                           #          hotfix (Dev → QE Smoke → Security → Deploy) · docs-only
+static mode               # run every enabled phase for every task
+dynamic roles on          # (default) auto-narrow the roster per task — see below
 disable phase guideline   # turn one phase off (persists across epics)
 enable phase maintain     # turn it back on
 skip qe for this epic     # one-epic override, config file untouched
-show sdlc config          # print the active profile + phase table
+show sdlc config          # print the active profile + mode + phase table
 ```
 
+**Dynamic roles (default):** the roster auto-narrows from the task's complexity tier, so small tasks stop paying for expensive roles — **QE in particular**: Trivial tasks skip QE entirely (Dev verifies inline); Small tasks run QE **inline in the Dev role** at Smoke depth (run tests + one-line result — no role switch, no sub-agent, no evidence ceremony); Medium+ runs the full QE phase. Docs roles (PO/BA/Design/Architect/Tech-BA) auto-skip on Trivial/Small unless the requirement is unclear. Skipped roles always print a `⏭` banner, and dynamic mode can only skip — it never re-enables a phase you disabled.
+
 Safety: the **security** phase can't be disabled while the epic touches money/auth/PII — the agent refuses and suggests lowering the QE depth tier instead. Calling a phase command explicitly (e.g. `/sdlc-workflow:test`) always runs it, config or not.
+
+### When companion plugins kick in (task complexity tiers)
+
+If you installed the companion plugins (`superpowers`, `feature-dev`, `code-review`, `security-guidance`, `context7`), the workflow engages them **by task complexity** — declared up front as `🧩 Complexity: <tier> → engines: <list>` (full table: `docs/sdlc/INTEGRATION.md` §2.4):
+
+| Tier | Looks like | Engines used |
+|------|-----------|--------------|
+| **Trivial** | typo, config, 1 file, no new logic | none — direct edit + verify |
+| **Small** | clear bug fix / small feature, 1–3 files | `systematic-debugging` + `verification-before-completion` (bugs), `test-driven-development` (features) |
+| **Medium** | multi-module feature, 3–10 files | + `writing-plans`, feature-dev explore/architecture, `context7` |
+| **Large/Epic** | new subsystem, cross-cutting, money/auth/PII | full set: `brainstorming`, feature-dev 7-phase, `subagent-driven-development`, `code-review`, `security-guidance` |
+
+Two rules: installed + tier reached → the engine **must** be used (no reimplementing natively); below the tier → the ceremony is skipped (running brainstorming + writing-plans on a one-line fix costs more than the fix).
 
 ### B) Existing project (brownfield)
 
