@@ -49,6 +49,10 @@ Parallel Track B: Dev complete → [QE] + [SEC] + [PERF] simultaneously → merg
 - [ ] Phase 10: Project Completion Package → SHIPPED ✅
 - [ ] Phase 11 Maintenance
 
+## Feature card (review hub — mandatory)
+
+Every feature/task gets one card: `docs/sdlc/features/{epic-slug}.md`, created **at intake** from `features/feature-card.template.md`. Each phase updates its own row at handoff — status (✅/🔄/⏭ + reason) + artifact links + one-line note; **a handoff is not complete until the row is updated**. Skipped phases (config or dynamic mode) are recorded with their reason, so the card shows the whole story. Reviewers start from the card. Full convention: `docs/sdlc/features/README.md`.
+
 ## Phase toggles (sdlc-config)
 
 **All phases on by default** (`full` profile). `docs/sdlc/sdlc-config.md` is the persistent on/off switch the agent reads at pipeline start and at every handoff — a disabled phase is skipped with a visible `⏭` banner, never silently.

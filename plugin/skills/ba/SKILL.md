@@ -5,7 +5,7 @@ description: Run the Business BA phase: functional + non-functional requirements
 
 # /sdlc-workflow:ba — Business BA
 
-**Config check (before anything else):** if `docs/sdlc/sdlc-config.md` exists and marks this phase ⛔ disabled — and the user did not invoke this command explicitly by name — do NOT run it: print `⏭ Role: [BA] Business BA — skipped (disabled in sdlc-config)` and hand off to the next enabled phase. An explicit user invocation always wins over the config (they asked for it by name).
+**Config check (before anything else):** if `docs/sdlc/sdlc-config.md` exists and marks this phase ⛔ disabled — and the user did not invoke this command explicitly by name — do NOT run it: print `⏭ Role: [BA] Business BA — skipped (disabled in sdlc-config)`, mark this phase's row ⏭ (+ reason) in `docs/sdlc/features/{epic-slug}.md`, and hand off to the next enabled phase. An explicit user invocation always wins over the config (they asked for it by name).
 
 **On start, print this status banner verbatim** so the user can see the active role and the suggested model (the workflow does NOT switch models for you — verify/switch the model yourself with `/model`, or spawn a sub-agent on the suggested tier):
 
@@ -23,7 +23,7 @@ First run the Analysis lenses in ba/business/README.md (Event Storming, decision
 ## Next action — ask, then auto-advance
 
 When this phase's output is complete:
-1. **Recap** in one line — what was produced + the output path.
+1. **Recap** in one line — what was produced + the output path — and **update this phase's row** in the feature card `docs/sdlc/features/{epic-slug}.md` (status ✅ + artifact links + one-line note; create the card from `features/feature-card.template.md` if missing).
 2. **Ask a checkpoint** (give the user a chance to steer): `✅ Business BA done → next: Design (if app/web) — otherwise skip to /sdlc-workflow:architect. Reply \`stop\` or \`adjust <note>\` to intervene; otherwise I continue.`
 3. **If auto-commit per phase is armed**, commit the checkpoint first (only after the gate passes).
 4. **Auto-trigger the next ENABLED phase** unless the user intervened: consult `docs/sdlc/sdlc-config.md`, starting from `/sdlc-workflow:design`. If a phase is disabled there, print its skip banner — `⏭ Role: [ROLE] <title> — skipped (disabled in sdlc-config)` — and move to the phase after it. Run the first enabled phase's command and print its role banner. Do not idle — the pipeline runs continuously unless told to stop.

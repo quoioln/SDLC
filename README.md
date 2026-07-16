@@ -138,6 +138,10 @@ If you installed the companion plugins (`superpowers`, `feature-dev`, `code-revi
 
 Two rules: installed + tier reached → the engine **must** be used (no reimplementing natively); below the tier → the ceremony is skipped (running brainstorming + writing-plans on a one-line fix costs more than the fix).
 
+### Feature cards — one review hub per feature
+
+Every feature/task gets one card in `docs/sdlc/features/{epic-slug}.md` (created at intake from the template). Each phase updates its own row at handoff — status `✅/🔄/⏭ + reason`, links to its artifacts, one-line note — so reviewing a feature means opening **one file**: it links the PRD, requirements, ADRs, API spec, tests + evidence, audit and guideline, and shows what ran vs what was deliberately skipped. Sign-offs (QE 0-bugs, Security 0 Critical/High, UAT) land on the card too.
+
 ### B) Existing project (brownfield)
 
 ```bash
@@ -179,6 +183,9 @@ Tips:
 docs/sdlc/
 ├── SDLC-WORKFLOW.md          # Main workflow (use with Claude)
 ├── sdlc-config.md            # Phase toggles & profiles (full/standard/hotfix/docs-only) — say "disable phase qe" / "profile hotfix"
+├── features/                 # Review hub — one card per feature/task linking every phase artifact + status
+│   ├── feature-card.template.md
+│   └── README.md
 ├── reference.md
 ├── skill-mapping.md          # Recommended skills/agents per SDLC role
 ├── INTEGRATION.md            # Combine SDLC with Superpowers + feature-dev plugins (per-phase engine + model tiers)

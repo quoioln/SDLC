@@ -522,7 +522,7 @@ function buildPhaseCommandSkill(c) {
     ? `## Next action — ask, then auto-advance
 
 When this phase's output is complete${next.gate ? ` and its gate passes (**${next.gate}**)` : ""}:
-1. **Recap** in one line — what was produced + the output path.
+1. **Recap** in one line — what was produced + the output path — and **update this phase's row** in the feature card \`docs/sdlc/features/{epic-slug}.md\` (status ✅ + artifact links + one-line note; create the card from \`features/feature-card.template.md\` if missing).
 2. **Ask a checkpoint** (give the user a chance to steer): \`✅ ${c.title} done → next: ${next.label}. Reply \\\`stop\\\` or \\\`adjust <note>\\\` to intervene; otherwise I continue.\`
 3. **If auto-commit per phase is armed**, commit the checkpoint first (only after the gate passes).
 4. **Auto-trigger the next ENABLED phase** unless the user intervened: consult \`docs/sdlc/sdlc-config.md\`, starting from \`/sdlc-workflow:${next.cmd}\`. If a phase is disabled there, print its skip banner — \`⏭ Role: [ROLE] <title> — skipped (disabled in sdlc-config)\` — and move to the phase after it. Run the first enabled phase's command and print its role banner. Do not idle — the pipeline runs continuously unless told to stop.
@@ -538,7 +538,7 @@ description: ${c.description}
 
 # /sdlc-workflow:${c.name} — ${c.title}
 
-**Config check (before anything else):** if \`docs/sdlc/sdlc-config.md\` exists and marks this phase ⛔ disabled — and the user did not invoke this command explicitly by name — do NOT run it: print \`⏭ Role: ${meta.badge} ${c.title} — skipped (disabled in sdlc-config)\` and hand off to the next enabled phase. An explicit user invocation always wins over the config (they asked for it by name).${c.name === "security" ? " **Guard:** this phase may NOT be treated as disabled when the epic touches money/payments, auth, or PII — run it regardless and tell the user why." : ""}
+**Config check (before anything else):** if \`docs/sdlc/sdlc-config.md\` exists and marks this phase ⛔ disabled — and the user did not invoke this command explicitly by name — do NOT run it: print \`⏭ Role: ${meta.badge} ${c.title} — skipped (disabled in sdlc-config)\`, mark this phase's row ⏭ (+ reason) in \`docs/sdlc/features/{epic-slug}.md\`, and hand off to the next enabled phase. An explicit user invocation always wins over the config (they asked for it by name).${c.name === "security" ? " **Guard:** this phase may NOT be treated as disabled when the epic touches money/payments, auth, or PII — run it regardless and tell the user why." : ""}
 
 **On start, print this status banner verbatim** so the user can see the active role and the suggested model (the workflow does NOT switch models for you — verify/switch the model yourself with \`/model\`, or spawn a sub-agent on the suggested tier):
 
@@ -794,6 +794,7 @@ async function generateFromInline(cwd) {
     join(base, "security"),
     join(base, "principle-engineer"),
     join(base, "guideline"),
+    join(base, "features"),
     join(base, "agents"),
     join(base, "deploy"),
     join(base, "deploy", "k8s"),
@@ -843,6 +844,8 @@ async function generateFromInline(cwd) {
     ["principle-engineer/README.md", PRINCIPLE_ENGINEER_README],
     ["guideline/README.md", GUIDELINE_README],
     ["guideline/feature-guideline.template.md", GUIDELINE_TEMPLATE],
+    ["features/README.md", FEATURES_README],
+    ["features/feature-card.template.md", FEATURE_CARD_TEMPLATE],
     ["agents/README.md", AGENTS_README],
     ["deploy/README.md", DEPLOY_README],
     ["deploy/docker-compose.yml.template", DOCKER_COMPOSE_TEMPLATE],
@@ -870,6 +873,8 @@ globs: docs/sdlc/**/*, **/*.md
 **Announce each phase (mandatory):** print a one-line banner at the start of every phase / role switch — \`🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model\`. Tiers: lead/analysis/audit → **Opus 4.8**; logic-bearing code & tests → **Sonnet 5** (near-Opus coding at ~60% of the price); mechanical work → **Haiku 4.5**; escalate to **Fable 5** only for the hardest problems (novel architecture, critical security/logic audit — 2× Opus price, never the default). The workflow does not change the model for you (use \`/model\` or spawn a sub-agent on that tier — switching a running agent's model breaks the prompt cache). Current model: \`/model\` or \`/status\`.
 
 **Memory requirement:** Before executing any new action, recall relevant memories (project context, user preferences, past decisions) to ensure continuity and avoid repeating mistakes.
+
+**Feature card (review hub — mandatory):** at intake, create \`docs/sdlc/features/{epic-slug}.md\` from \`features/feature-card.template.md\` — one card per feature/task. Every phase, when it completes (or is skipped), updates its own row on the card: status (✅ done / 🔄 in progress / ⏭ skipped + reason) + links to its artifacts + a one-line note. A handoff is not complete until the card row is updated. Reviewers start from the card — it links the PRD, requirements, design, ADRs, API spec, code notes, tests + evidence, audit, deploy, and guideline for that feature in one place.
 
 **Phase toggles (sdlc-config):** \`docs/sdlc/sdlc-config.md\` is the persistent per-phase on/off switch (profiles: \`full\` / \`standard\` / \`hotfix\` / \`docs-only\`). Read it at pipeline start and at every handoff; skip disabled phases with a visible banner — \`⏭ Role: [ROLE] <title> — skipped (disabled in sdlc-config)\` — then continue with the next enabled phase. Toggle by saying: "disable phase qe", "enable phase guideline", "profile hotfix", or "skip qe for this epic" (one-epic override; file untouched) — update the file and confirm in one line. **Guard:** security cannot be disabled when the epic touches money/auth/PII (suggest lowering the QE depth tier instead). **Dynamic roles (default ON — \`mode: dynamic\` in sdlc-config):** the roster auto-narrows by complexity tier — **Trivial** skips QE entirely (Dev verifies inline); **Small** runs QE **inline in the Dev role** at Smoke depth (run the tests + one-line result; no separate QE role switch, no sub-agent, no evidence ceremony); **Medium+** runs the full QE phase per its depth tier. Docs roles (PO/BA/Design/Architect/Tech-BA) auto-skip on Trivial/Small unless the requirement is unclear. Dynamic narrowing only *skips* (with the ⏭ banner) — it never enables a config-disabled phase, and the security guard still applies. Say **"static mode"** to always run every enabled phase; **"dynamic roles on"** to restore.
 
@@ -973,6 +978,7 @@ description: Multi-role SDLC workflow from user requirements through PO, Busines
 5. **Phase handoff — ask, then auto-advance.** When a phase completes and its gate (if any) passes: (a) **recap** the output in one line; (b) **ask a checkpoint** so the user can steer — "✅ <phase> done → next: <next phase>. Reply \`stop\` or \`adjust <note>\` to intervene; otherwise I continue"; (c) **commit** the checkpoint if auto-commit per phase is armed; (d) **auto-trigger the next phase** by running \`/sdlc-workflow:<next>\` (print its banner). Don't idle — run continuously unless told to stop. **Gates before advancing:** Design→Architect needs PO+BA approval; QE→Security needs 0 open bugs + sign-off; Security→Deploy needs 0 Critical/High + sign-off.
 6. **Phase toggles (sdlc-config).** \`docs/sdlc/sdlc-config.md\` is the persistent per-phase on/off switch (profiles: \`full\` / \`standard\` / \`hotfix\` / \`docs-only\`). Consult it at pipeline start and at every handoff; skip disabled phases with a visible banner — \`⏭ Role: [ROLE] <title> — skipped (disabled in sdlc-config)\` — then continue with the next enabled phase. The user toggles by saying "disable phase qe" / "enable phase guideline" / "profile hotfix" / "skip qe for this epic" (one-epic override; file untouched) — update the file and confirm in one line. **Guard:** security cannot be disabled when the epic touches money/auth/PII (suggest lowering the QE depth tier instead). **Dynamic roles (default ON — \`mode: dynamic\` in sdlc-config):** the roster auto-narrows by complexity tier — **Trivial** skips QE entirely (Dev verifies inline); **Small** runs QE **inline in the Dev role** at Smoke depth (run the tests + one-line result; no separate QE role switch, no sub-agent, no evidence ceremony); **Medium+** runs the full QE phase per its depth tier. Docs roles (PO/BA/Design/Architect/Tech-BA) auto-skip on Trivial/Small unless the requirement is unclear. Dynamic narrowing only *skips* (with the ⏭ banner) — it never enables a config-disabled phase, and the security guard still applies. Say **"static mode"** to always run every enabled phase; **"dynamic roles on"** to restore.
 7. **Plugin engines — engage by task complexity.** If companion plugins are installed (superpowers, feature-dev, code-review, security-guidance, context7), use them as phase engines per docs/sdlc/INTEGRATION.md §2.4 and declare the tier up front: \`🧩 Complexity: <tier> → engines: <list>\`. **Trivial** (1 file, no new logic) → no engines, direct edit + verify. **Small** (bug fix / small feature, 1–3 files) → \`systematic-debugging\` + \`verification-before-completion\` for bugs, \`test-driven-development\` for features — nothing more. **Medium** (multi-module, 3–10 files) → add \`writing-plans\`, feature-dev explore/architecture, \`context7\`. **Large/Epic** (new subsystem, cross-cutting, money/auth/PII) → full set: \`brainstorming\`, feature-dev 7-phase, \`subagent-driven-development\`, \`code-review\`, \`security-guidance\`. Installed engine + tier reached → USE the engine, don't reimplement natively; below the tier → skip the ceremony (it costs more than the task).
+8. **Feature card (review hub — mandatory).** At intake, create \`docs/sdlc/features/{epic-slug}.md\` from \`features/feature-card.template.md\` — one card per feature/task. Every phase, when it completes (or is skipped), updates its own row: status (✅/🔄/⏭ + reason) + artifact links + one-line note. A handoff is not complete until the card row is updated; reviewers start from the card.
 
 **Parallel tracks:**
 - Track A (after Technical BA): [DEV] implementation + [QE] test plan — run SIMULTANEOUSLY
@@ -1180,6 +1186,8 @@ const AGENTS_MD_CONTENT = `## SDLC Workflow
 
 **Memory requirement:** Before executing any new action, recall relevant memories (project context, user preferences, past decisions) to ensure continuity and avoid repeating mistakes.
 
+**Feature card (review hub — mandatory):** at intake, create \`docs/sdlc/features/{epic-slug}.md\` from \`features/feature-card.template.md\` — one card per feature/task. Every phase, when it completes (or is skipped), updates its own row on the card: status (✅ done / 🔄 in progress / ⏭ skipped + reason) + links to its artifacts + a one-line note. A handoff is not complete until the card row is updated. Reviewers start from the card — it links the PRD, requirements, design, ADRs, API spec, code notes, tests + evidence, audit, deploy, and guideline for that feature in one place.
+
 **Phase toggles (sdlc-config):** \`docs/sdlc/sdlc-config.md\` is the persistent per-phase on/off switch (profiles: \`full\` / \`standard\` / \`hotfix\` / \`docs-only\`). Read it at pipeline start and at every handoff; skip disabled phases with a visible banner — \`⏭ Role: [ROLE] <title> — skipped (disabled in sdlc-config)\` — then continue with the next enabled phase. Toggle by saying: "disable phase qe", "enable phase guideline", "profile hotfix", or "skip qe for this epic" (one-epic override; file untouched). **Guard:** security cannot be disabled when the epic touches money/auth/PII. **Dynamic roles (default ON):** the roster auto-narrows by complexity tier — Trivial skips QE (Dev verifies inline); Small runs QE inline in Dev at Smoke depth (no separate QE role/sub-agent/evidence ceremony); Medium+ runs the full QE phase. Docs roles auto-skip on Trivial/Small unless the requirement is unclear. Dynamic only skips (⏭ banner) — never enables a config-disabled phase; the security guard still applies. "static mode" runs every enabled phase; "dynamic roles on" restores.
 
 **Plugin engines — engage by task complexity:** if companion plugins are installed (superpowers, feature-dev, code-review, security-guidance, context7), use them per docs/sdlc/INTEGRATION.md §2.4 and declare \`🧩 Complexity: <tier> → engines: <list>\` up front. Trivial (1 file) → no engines; Small (1–3 files) → \`systematic-debugging\`/\`test-driven-development\` only; Medium (3–10 files) → + \`writing-plans\`, feature-dev explore/architecture, \`context7\`; Large/Epic → full set (\`brainstorming\`, feature-dev 7-phase, \`subagent-driven-development\`, \`code-review\`, \`security-guidance\`). Installed + tier reached → use the engine, don't reimplement natively; below tier → skip the ceremony.
@@ -1207,6 +1215,8 @@ const CLAUDE_SDLC_CONTENT = `## SDLC Workflow
 **Announce each phase (mandatory):** At the start of every phase / role switch, print a one-line banner — \`🎭 Role: [ROLE] <title> · 📂 Output: <folder> · 🧠 Suggested model: <tier> — check/switch with /model\`. Tiers: lead/analysis/audit roles → **Opus 4.8**; logic-bearing code & tests → **Sonnet 5** (near-Opus coding at ~60% of the price); mechanical work (boilerplate/CRUD/config/templated tests) → **Haiku 4.5**; escalate to **Fable 5** only for the hardest problems (novel architecture, critical security/logic audit — 2× Opus price, never the default). The workflow does not change the model for you — use \`/model\` (or spawn a sub-agent on that tier; switching a running agent's model breaks the prompt cache). See the current model via \`/model\` or \`/status\`.
 
 **Memory requirement:** Before executing any new action, recall relevant memories (project context, user preferences, past decisions) to ensure continuity and avoid repeating mistakes.
+
+**Feature card (review hub — mandatory):** at intake, create \`docs/sdlc/features/{epic-slug}.md\` from \`features/feature-card.template.md\` — one card per feature/task. Every phase, when it completes (or is skipped), updates its own row on the card: status (✅ done / 🔄 in progress / ⏭ skipped + reason) + links to its artifacts + a one-line note. A handoff is not complete until the card row is updated. Reviewers start from the card — it links the PRD, requirements, design, ADRs, API spec, code notes, tests + evidence, audit, deploy, and guideline for that feature in one place.
 
 **Phase toggles (sdlc-config):** \`docs/sdlc/sdlc-config.md\` is the persistent per-phase on/off switch (profiles: \`full\` / \`standard\` / \`hotfix\` / \`docs-only\`). Read it at pipeline start and at every handoff; skip disabled phases with a visible banner — \`⏭ Role: [ROLE] <title> — skipped (disabled in sdlc-config)\` — then continue with the next enabled phase. Toggle by saying: "disable phase qe", "enable phase guideline", "profile hotfix", or "skip qe for this epic" (one-epic override; file untouched) — update the file and confirm in one line. **Guard:** security cannot be disabled when the epic touches money/auth/PII (suggest lowering the QE depth tier instead). **Dynamic roles (default ON — \`mode: dynamic\` in sdlc-config):** the roster auto-narrows by complexity tier — **Trivial** skips QE entirely (Dev verifies inline); **Small** runs QE **inline in the Dev role** at Smoke depth (run the tests + one-line result; no separate QE role switch, no sub-agent, no evidence ceremony); **Medium+** runs the full QE phase per its depth tier. Docs roles (PO/BA/Design/Architect/Tech-BA) auto-skip on Trivial/Small unless the requirement is unclear. Dynamic narrowing only *skips* (with the ⏭ banner) — it never enables a config-disabled phase, and the security guard still applies. Say **"static mode"** to always run every enabled phase; **"dynamic roles on"** to restore.
 
@@ -1242,6 +1252,8 @@ For Cursor, see .cursor/rules/sdlc-workflow.mdc
 
 - **When the user sends an idea, feature request, or requirement:** Start the pipeline and run it **continuously through deployment** (Phase 1 → 2 → … → 7). Do not handle everything in one main-agent response.
 - **Memory requirement:** Before executing any new action, recall relevant memories (project context, user preferences, past decisions) to ensure continuity and avoid repeating mistakes.
+
+**Feature card (review hub — mandatory):** at intake, create \`docs/sdlc/features/{epic-slug}.md\` from \`features/feature-card.template.md\` — one card per feature/task. Every phase, when it completes (or is skipped), updates its own row on the card: status (✅ done / 🔄 in progress / ⏭ skipped + reason) + links to its artifacts + a one-line note. A handoff is not complete until the card row is updated. Reviewers start from the card — it links the PRD, requirements, design, ADRs, API spec, code notes, tests + evidence, audit, deploy, and guideline for that feature in one place.
 - **Phase toggles (sdlc-config):** \`docs/sdlc/sdlc-config.md\` is the persistent per-phase on/off switch (profiles: \`full\` / \`standard\` / \`hotfix\` / \`docs-only\`). Read it at pipeline start and at every handoff; skip disabled phases with a visible banner — \`⏭ Role: [ROLE] <title> — skipped (disabled in sdlc-config)\` — then continue with the next enabled phase. Toggle by saying "disable phase qe" / "enable phase guideline" / "profile hotfix" / "skip qe for this epic" (one-epic override; file untouched). **Guard:** security cannot be disabled when the epic touches money/auth/PII. **Dynamic roles (default ON):** the roster auto-narrows by complexity tier — Trivial skips QE (Dev verifies inline); Small runs QE inline in Dev at Smoke depth (no separate QE role/sub-agent/evidence ceremony); Medium+ runs the full QE phase. Docs roles auto-skip on Trivial/Small unless the requirement is unclear. Dynamic only skips (⏭ banner) — never enables a config-disabled phase; the security guard still applies. "static mode" runs every enabled phase; "dynamic roles on" restores.
 - **Plugin engines — engage by task complexity:** if companion plugins are installed (superpowers, feature-dev, code-review, security-guidance, context7), use them per docs/sdlc/INTEGRATION.md §2.4 and declare \`🧩 Complexity: <tier> → engines: <list>\` up front. Trivial (1 file) → no engines; Small (1–3 files) → \`systematic-debugging\`/\`test-driven-development\` only; Medium (3–10 files) → + \`writing-plans\`, feature-dev explore/architecture, \`context7\`; Large/Epic → full set (\`brainstorming\`, feature-dev 7-phase, \`subagent-driven-development\`, \`code-review\`, \`security-guidance\`). Installed + tier reached → use the engine, don't reimplement natively; below tier → skip the ceremony.
 - **One role per phase:** Execute each phase as that role only; write artifacts to the right folder; then continue to the next phase. In Cursor there is one agent — it simulates the pipeline by adopting one role per phase in sequence.
@@ -1386,6 +1398,10 @@ Parallel Track B: Dev complete → [QE] + [SEC] + [PERF] simultaneously → merg
 - [ ] Phase 9 [OPS]: \`docs/sdlc/deploy/\`
 - [ ] Phase 10: Project Completion Package → SHIPPED ✅
 - [ ] Phase 11 Maintenance
+
+## Feature card (review hub — mandatory)
+
+Every feature/task gets one card: \`docs/sdlc/features/{epic-slug}.md\`, created **at intake** from \`features/feature-card.template.md\`. Each phase updates its own row at handoff — status (✅/🔄/⏭ + reason) + artifact links + one-line note; **a handoff is not complete until the row is updated**. Skipped phases (config or dynamic mode) are recorded with their reason, so the card shows the whole story. Reviewers start from the card. Full convention: \`docs/sdlc/features/README.md\`.
 
 ## Phase toggles (sdlc-config)
 
@@ -1546,6 +1562,61 @@ This table is what the agent actually reads at each handoff. It starts as a copy
 - **Never skip silently:** every disabled phase still prints the ⏭ banner at its slot so the pipeline stays auditable.
 - **Missing inputs:** when a later phase needs a disabled phase's output (e.g. Dev needs the Technical BA API spec), the running phase states which input is missing, works from the best available source (existing docs, code, the user's message) — or asks the user if it cannot proceed safely.
 - **Scope:** this file is per-project and safe to commit. \`init\` never overwrites it once it exists (only \`init --force\` does — review the git diff after).
+`;
+
+const FEATURES_README = `# Features — review hub (one card per feature/task)
+
+Every feature/task gets **one card**: \`features/{epic-slug}.md\`, created **at intake** from \`feature-card.template.md\` — before any other artifact. The card links everything the pipeline produced for that feature (PRD, requirements, design, ADRs, API spec, code notes, tests + evidence, audit, deploy, guideline) plus per-phase status, so a reviewer can follow the whole story from one file.
+
+## Rules
+
+- **Create at intake.** The moment a feature/task is accepted (PO phase or task start), copy the template to \`features/{epic-slug}.md\` and fill the header (slug, complexity tier, QE depth, mode/profile).
+- **Every phase updates its own row** when it completes — status ✅ + artifact links + a one-line note. **A handoff is not complete until the card row is updated.**
+- **Skipped phases are recorded too** — ⏭ + the reason (\`disabled in sdlc-config\` / \`dynamic: Trivial tier\` / \`non-UI project\`). The card shows the *whole* story, including what deliberately didn't run.
+- **Keep it an index, not a document.** One line per artifact; details live in the linked docs. If you're writing paragraphs on the card, the content belongs in a phase artifact instead.
+- **Key decisions** get one line each with a link to the ADR/doc that holds the rationale.
+- **Sign-offs land on the card** (QE 0-bugs, Security/PE 0 Critical/High, UAT) — the card is where "done" is visible.
+
+## Review flow
+
+Start at the card → scan the Pipeline trace table for status + skipped reasons → open only the artifacts you need. For a shipped feature the card answers: what was asked (PO), what was decided (ADR), what changed (Dev), how it was proven (QE evidence), who signed off.
+`;
+
+const FEATURE_CARD_TEMPLATE = `# Feature: [Name]
+
+- **Slug**: {epic-slug} · **Branch/PR**: epic/{epic-slug} · PR #—
+- **Status**: 🔄 in progress <!-- ✅ shipped · ⏸ paused · ❌ dropped -->
+- **Complexity**: [Trivial|Small|Medium|Epic] · **QE depth**: [Smoke|Standard|Full] · **Mode**: [dynamic|static] · **Profile**: [full|standard|hotfix|docs-only]
+- **Started**: YYYY-MM-DD · **Shipped**: —
+- **One-liner**: [what this delivers, for whom]
+
+## Pipeline trace (each phase updates its own row at handoff)
+
+| Phase | Status | Artifacts | Note |
+|-------|:---:|-----------|------|
+| PO | | [epic-brief](../po/{epic-slug}/epic-brief.md) | |
+| Business BA | | [functional-requirement](../ba/business/{epic-slug}/functional-requirement.md) | |
+| Design | | [design-spec](../design/{epic-slug}/design-spec.md) | |
+| Architect | | [ADR](../architecture/{epic-slug}/adr.md) | |
+| Technical BA | | [api-spec](../ba/technical/{epic-slug}/api-spec.md) · [team-breakdown](../ba/technical/{epic-slug}/team-breakdown.md) | |
+| Dev | | implementation notes · PR | |
+| QE | | [test-plan](../qe/{epic-slug}/test-plan.md) · [test-cases](../qe/{epic-slug}/test-cases.md) · [evidence](../qe/{epic-slug}/evidence/) · [uat](../qe/{epic-slug}/uat-results.md) | open bugs: — |
+| Security + PE | | [security](../security/) · [principle-engineer](../principle-engineer/) | Critical/High: — |
+| Deploy | | [deploy](../deploy/) | env: — |
+| Guideline | | [guideline](../guideline/{epic-slug}.md) | |
+| Maintenance | | [maintenance](../maintenance/) | |
+
+> Status legend: ✅ done · 🔄 in progress · ⏭ skipped (state the reason) · ❌ blocked. Adjust artifact paths to where this project actually wrote them.
+
+## Key decisions
+<!-- one line each, link the doc that holds the rationale: "JWT over sessions — ADR-002" -->
+- …
+
+## Open items / risks
+- …
+
+## Sign-offs
+- QE (0 open bugs): — · Security/PE (0 Critical/High): — · UAT: —
 `;
 
 const REFERENCE_MD = `# SDLC Workflow — Reference
@@ -1789,6 +1860,8 @@ Suggested model tiers: lead/analysis/audit roles (PO, BA, Architect, Tech Lead, 
 **Phase handoff — ask, then auto-advance.** When a phase completes and its gate (if any) passes: (1) recap the output in one line; (2) ask a checkpoint so the user can steer — "✅ <phase> done → next: <next phase>. Reply \`stop\` or \`adjust <note>\` to intervene; otherwise I continue"; (3) commit the checkpoint if auto-commit per phase is armed; (4) **auto-trigger the next ENABLED phase** per \`docs/sdlc/sdlc-config.md\` by running \`/sdlc-workflow:<next>\` (print its banner) — a disabled phase gets a visible skip banner \`⏭ Role: [ROLE] <title> — skipped (disabled in sdlc-config)\` and the pipeline moves to the phase after it. Don't idle — run continuously unless told to stop. **Gates before advancing:** Design→Architect (PO+BA approve the design); QE→Security (0 open bugs + QE sign-off); Security→Deploy (0 Critical/High + Security/PE sign-off).
 
 **Phase toggles:** the user can say "disable phase qe", "enable phase guideline", "profile hotfix" (presets: \`full\` / \`standard\` / \`hotfix\` / \`docs-only\`), or "skip qe for this epic" (one-epic override) — edit \`docs/sdlc/sdlc-config.md\` accordingly and confirm in one line. **Guard:** security cannot be disabled when the epic touches money/auth/PII (suggest lowering the QE depth tier instead). **Dynamic roles (default ON — \`mode: dynamic\` in sdlc-config):** the roster auto-narrows by complexity tier — **Trivial** skips QE entirely (Dev verifies inline); **Small** runs QE **inline in the Dev role** at Smoke depth (run the tests + one-line result; no separate QE role switch, no sub-agent, no evidence ceremony); **Medium+** runs the full QE phase per its depth tier. Docs roles (PO/BA/Design/Architect/Tech-BA) auto-skip on Trivial/Small unless the requirement is unclear. Dynamic narrowing only *skips* (with the ⏭ banner) — it never enables a config-disabled phase, and the security guard still applies. Say **"static mode"** to always run every enabled phase; **"dynamic roles on"** to restore.
+
+**Feature card (review hub — mandatory):** at intake, create \`docs/sdlc/features/{epic-slug}.md\` from \`features/feature-card.template.md\` — one card per feature/task. Every phase, when it completes (or is skipped), updates its own row: status (✅/🔄/⏭ + reason) + artifact links + one-line note. A handoff is not complete until the card row is updated; reviewers start from the card.
 
 **Plugin engines — engage by task complexity:** if companion plugins are installed (superpowers, feature-dev, code-review, security-guidance, context7), use them as phase engines per \`docs/sdlc/INTEGRATION.md\` §2.4 and declare \`🧩 Complexity: <tier> → engines: <list>\` up front. Trivial (1 file, no new logic) → no engines, direct edit + verify; Small (1–3 files) → \`systematic-debugging\` + \`verification-before-completion\` for bugs / \`test-driven-development\` for features — nothing more; Medium (3–10 files) → + \`writing-plans\`, feature-dev explore/architecture, \`context7\`; Large/Epic (new subsystem, money/auth/PII) → full set (\`brainstorming\`, feature-dev 7-phase, \`subagent-driven-development\`, \`code-review\`, \`security-guidance\`). Installed engine + tier reached → USE the engine, don't reimplement natively; below the tier → skip the ceremony (it costs more than the task).
 
